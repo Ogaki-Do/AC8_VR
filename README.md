@@ -37,3 +37,8 @@ The release uses **one DLL, nine runtime Lua scripts, and one Lua camera-setting
 The tuned aircraft offsets are for the F/A-18C and F-4E. Other catalog identifiers are commented examples with default, unmeasured offsets. Wingman placement can briefly lag a radar change. Tutorial/movie content can still receive some HUD glow, and emission regions may remain visible during some dark transitions. Bottom-edge clipping of off-screen artwork remains a known limitation. Quest headset appearance can differ from a single-eye capture.
 
 This is an unofficial community project. See the feature list for the implemented behavior and the maintainer guide for its boundaries.
+
+## Helping with compatibility and performance
+
+See the [modder guide](docs/MODDER-GUIDE.md) for callback schedules, remaining status/logging behavior, known compatibility limits and useful profiling comparisons. An [optional offline shader rebuild tool](tools/shader-rebuild/README.md) is also available; rebuilding bytecode is not a general fix for missing glow.
+
