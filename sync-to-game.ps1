@@ -67,6 +67,7 @@ $filesToSync = @(
     "config.txt",
     "cvars_data.txt",
     "features.txt",
+    "CustomHUDPosition.json",
     "CHANGELOG.md",
     "INSTALLATION.md",
     "PROFILE-FILES.txt",

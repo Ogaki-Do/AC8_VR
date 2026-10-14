@@ -11,6 +11,11 @@ if not registry then
 end
 assert(not registry.sections['cutscene_guard'], 'Duplicate AC8 VR section: cutscene_guard')
 registry.sections['cutscene_guard'] = function(R)
+-- OFF時は完全休眠（レンダースレッド登録ゼロ・Tickゼロ・探索ゼロ）
+local cfg = R and R.customHUDConfig and R.customHUDConfig.cinematicPresentation
+if not (cfg and cfg.enabled == true) then
+    return
+end
 do
 -- Flat2VR Modding Community and Discord: inherited cutscene_guard_v1. Track render heartbeats, rescue stalls reversibly, restore owned settings. Hangar is excluded from Screen Mode rescue.
 (function(uevr,json,print)
@@ -264,6 +269,11 @@ end
 end
 assert(not registry.sections['cinematic'], 'Duplicate AC8 VR section: cinematic')
 registry.sections['cinematic'] = function(R)
+-- OFF時は完全休眠（レンダースレッド登録ゼロ・Tickゼロ・探索ゼロ）
+local cfg = R and R.customHUDConfig and R.customHUDConfig.cinematicPresentation
+if not (cfg and cfg.enabled == true) then
+    return
+end
 -- Cinematic and hangar presentation, camera heuristics and transition coverage.
 
 do

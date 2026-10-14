@@ -913,6 +913,7 @@ local function on_frame()
     if C.hudEpoch~=context.epoch then C.hudEpoch=context.epoch;C.ready=false;retry_gap=10;frame_n=0 end
     if not context.flight then return end
     frame_n = frame_n + 1
+    if rawget(_G, 'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('inheritedHudTick') end
     if not C.ready then
         if frame_n % retry_gap == 0 then
             if discover() then
@@ -1456,6 +1457,7 @@ resolve_all(true)
 local layout_scope_sync
 local function lt14_apply()apply()end
 pcall(function()uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
+ if rawget(_G, 'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('ladderDraw') end
  if not layout_scope_sync or not layout_scope_sync()then return end
  for _,t in ipairs(TARGETS)do if t.key=='ladder'then pcall(apply_one,t)end end
 end)end)

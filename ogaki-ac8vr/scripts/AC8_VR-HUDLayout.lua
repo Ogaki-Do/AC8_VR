@@ -239,6 +239,7 @@ local function apply()
     S.measured={scoreY=score.Y,timeY=time.Y,gap=gap,targetRequestedY=goal,x=x,y=y}
 end
 uevr.sdk.callbacks.on_post_engine_tick(function()
+    if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('hudLayout') end
     local ok,err=pcall(apply);if not ok then S.status=tostring(err) end
     if not S.stopped and S.ticks%120==0 then
         

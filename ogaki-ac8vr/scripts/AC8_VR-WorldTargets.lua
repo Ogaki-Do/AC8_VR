@@ -34,7 +34,10 @@ local function update()
  if packet~=S.packet then call(uevr.api,'dispatch_custom_event','AC8_WorldTargetLayout',packet);S.packet=packet end
  S.controls={enabled=on,boxScale=box,labelScale=label,fontScale=font,lineSpacing=spacing,useFlatLabelOffsets=w.useFlatLabelOffsets~=false,labelRaise=raise,leftLabelDrop=leftDrop}
 end
-uevr.sdk.callbacks.on_pre_engine_tick(function()S.ticks=S.ticks+1;update()end)
+uevr.sdk.callbacks.on_pre_engine_tick(function()
+ if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetLabels') end
+ S.ticks=S.ticks+1;update()
+end)
 pcall(function()uevr.sdk.callbacks.on_script_reset(function()call(uevr.api,'dispatch_custom_event','AC8_WorldTargetLayout','0|0|1|1|1|0|0|0')end)end)
 end)(AC8Runtime.host('utility','native world target layout'),AC8Runtime.json)
 end
@@ -61,6 +64,7 @@ local function restore()
  S.rows={}
 end
 uevr.sdk.callbacks.on_post_engine_tick(function()
+ if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetAnim') end
  S.ticks=S.ticks+1;local ctx=R.context
  if S.epoch~=ctx.epoch then restore();S.epoch=ctx.epoch end
  if not ctx.flight then return end
@@ -169,6 +173,7 @@ uevr.sdk.callbacks.on_pre_engine_tick(function()
  if S.nativeScale~=factor then call(api,'dispatch_custom_event','AC8_WorldPipScale',tostring(factor));S.nativeScale=factor end
 end)
 uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
+ if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetPinsDraw') end
  if S.stopped then return end;S.ticks=S.ticks+1
  local controls=cfgTarget
  if not (type(controls)=='table' and controls.enabled==true) then return end

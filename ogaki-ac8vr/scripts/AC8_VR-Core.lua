@@ -84,6 +84,7 @@ function R.ownedWidgets(root)
 end
 function R.contextTick(advance)
  if advance~=false then R.tick=R.tick+1 end
+ if R.profileCount then R.profileCount('contextTick') end
  local pc=invoke(real.api,'get_player_controller',0)
  if not R.isLiveObject(pc)then pc=nil end
  local hud=invoke(pc,'GetHUD');if not R.isLiveObject(hud)then hud=nil end
@@ -96,7 +97,10 @@ end
 function R.connect(key)
  if R.connected[key]then return end;R.connected[key]=true
  real.sdk.callbacks[key](function(...)
-  if key=='on_pre_engine_tick'then R.contextTick() end
+  if key=='on_pre_engine_tick'then
+   R.contextTick()
+   if R.tickProfiler then R.tickProfiler() end
+  end
   for _,domain in ipairs(order)do
    local rows=(domain~='layout'or R.layoutEnabled)and R.domains[domain]and R.domains[domain][key]
    for _,row in ipairs(rows or {})do
@@ -117,11 +121,96 @@ function R.read(name)
  local c=R.cache[name];if c and R.tick-c.tick<30 then return c.value end
  local ok,value=pcall(realJSON.load_file,name);R.cache[name]={tick=R.tick,value=ok and value or nil};return ok and value or nil
 end
-local journals={['ac8_cinematic_ui_restore.json']=true,['ac8_hangar_restore_v48.json']=true,['ac8_ladder.json']=true,['ac8_hud_layout_cache.json']=true}
+local journals={['ac8_cinematic_ui_restore.json']=true,['ac8_hangar_restore_v48.json']=true,['ac8_ladder.json']=true,['ac8_hud_layout_cache.json']=true,['data/CustomHUDPosition.json']=true,['CustomHUDPosition.json']=true}
 R.json={load_file=R.read,dump_file=function(name,value,indent)
  if journals[name]then R.cache[name]=nil;return realJSON.dump_file(name,value,indent)end
 end}
 function R.log(_)end -- Legacy adapters receive a quiet logger; errors stay in R.errors.
+
+-- Custom HUD and Cinematic configuration
+local function loadCustomHUDConfig()
+ local paths={'data/CustomHUDPosition.json','CustomHUDPosition.json'}
+ for _,p in ipairs(paths)do
+  local ok,data=pcall(function()return realJSON.load_file(p)end)
+  if ok and type(data)=='table'then return data,p end
+ end
+ return {version=1,cinematicPresentation={enabled=false},hudElements={}},'data/CustomHUDPosition.json'
+end
+R.customHUDConfig,R.customHUDConfigPath=loadCustomHUDConfig()
+if not R.customHUDConfig.cinematicPresentation then
+ R.customHUDConfig.cinematicPresentation={enabled=false}
+end
+function R.isCinematicEnabled()
+ local cfg=R.customHUDConfig and R.customHUDConfig.cinematicPresentation
+ return cfg and cfg.enabled==true
+end
+function R.saveCustomHUDConfig()
+ if not R.customHUDConfig then return end
+ local p=R.customHUDConfigPath or 'data/CustomHUDPosition.json'
+ pcall(function()realJSON.dump_file(p,R.customHUDConfig,2)end)
+ pcall(function()realJSON.dump_file('CustomHUDPosition.json',R.customHUDConfig,2)end)
+end
+
+-- Lightweight performance profiler
+R.profiler={enabled=false,frames=0,counts={}}
+function R.profileCount(tag)
+ if not R.profiler.enabled then return end
+ local c=R.profiler.counts;c[tag]=(c[tag]or 0)+1
+end
+function R.tickProfiler()
+ if not R.profiler.enabled then return end
+ R.profiler.frames=R.profiler.frames+1
+ if R.profiler.frames>=60 then
+  local parts={}
+  for k,v in pairs(R.profiler.counts)do parts[#parts+1]=string.format('%s=%d',k,v)end
+  print(string.format('[AC8-PROF] (60 frames) %s',table.concat(parts,' ')))
+  R.profiler.counts={};R.profiler.frames=0
+ end
+end
+
+-- UEVR Script UI (ImGui)
+pcall(function()
+ real.sdk.callbacks.on_draw_ui(function()
+  local ui=rawget(_G,'imgui')
+  if not ui then return end
+  if ui.tree_node and ui.tree_node('AC8 VR Settings') then
+   local cp=R.customHUDConfig and R.customHUDConfig.cinematicPresentation
+   local curEnabled=(cp and cp.enabled==true)
+   if ui.checkbox then
+    local changed,newVal=ui.checkbox('Enable Cinematic Presentation',curEnabled)
+    if changed and newVal~=nil then
+     if not R.customHUDConfig then R.customHUDConfig={version=1,cinematicPresentation={},hudElements={}}end
+     if not R.customHUDConfig.cinematicPresentation then R.customHUDConfig.cinematicPresentation={}end
+     R.customHUDConfig.cinematicPresentation.enabled=newVal
+     R.saveCustomHUDConfig()
+     print(string.format('[AC8-VR] Cinematic Presentation set to: %s (Saved to CustomHUDPosition.json)',tostring(newVal)))
+    end
+   end
+   if ui.text_colored then
+    if curEnabled then
+     ui.text_colored('Status: ACTIVE (Cutscenes & Hangar overrides ON)',0.2,1.0,0.2,1.0)
+    else
+     ui.text_colored('Status: DISABLED (Zero Overhead - Max Performance)',0.4,0.8,1.0,1.0)
+    end
+    ui.text_colored('(Requires Script Reload or Game Restart if changed)',0.7,0.7,0.7,1.0)
+   elseif ui.text then
+    ui.text(curEnabled and 'Status: ACTIVE' or 'Status: DISABLED (Zero Overhead)')
+    ui.text('(Requires Script Reload or Game Restart if changed)')
+   end
+
+   if ui.separator then ui.separator() end
+   if ui.checkbox then
+    local pChanged,pVal=ui.checkbox('Enable Performance Profiler Log',R.profiler.enabled)
+    if pChanged and pVal~=nil then
+     R.profiler.enabled=pVal
+     print(string.format('[AC8-PROF] Profiler %s',pVal and 'ENABLED' or 'DISABLED'))
+    end
+   end
+   if ui.tree_pop then ui.tree_pop() end
+  end
+ end)
+end)
+
 R.connect('on_pre_engine_tick')
 
 
