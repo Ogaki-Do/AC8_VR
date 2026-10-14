@@ -1,0 +1,261 @@
+====================================================================
+  ACE COMBAT 8 - TARGET MARKER EXHAUSTIVE PARAMETER & ARCHITECTURE DUMP
+  Time: 2026-10-07 13:35:08
+====================================================================
+
+【1. ACTIVE TARGET CONTAINER ACTORS IN LEVEL (Total: 4)】
+--------------------------------------------------------------------
+  TARGET [01] : ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167
+  Distance    : 8835 meters
+  Class       : BlueprintGeneratedClass /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C
+  Components  (Total: 11):
+    [01] RootComponent                  | Class: SceneComponent             | RelLoc: (X=2557392.4, Y=-2773366.9, Z=153171.1) | Scale: (X=0.20, Y=0.20, Z=0.20) | Vis=true, Hid=nil
+    [02] ContainerBox                   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=25.00, Y=25.00, Z=25.00) | Vis=true, Hid=nil
+    [03] EscortBillboardImage           | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [04] AntiClockTargetPinBillboardImage | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [05] ClockTargetPinBillboardImage   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [06] AllianceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [07] DistanceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [08] ObjectTypeText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [09] ObjectCallsignText             | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [10] GamerTagText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [11] NextTargetText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+--- [Active_TargetActor_1] Property Scan: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167 ---
+  [PROP] ContainerBox                 = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.ContainerBox (type: userdata)
+  [PROP] EscortBillboardImage         = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.EscortBillboardImage (type: userdata)
+  [PROP] AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.AntiClockTargetPinBillboardImage (type: userdata)
+  [PROP] ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.ClockTargetPinBillboardImage (type: userdata)
+  [PROP] AllianceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.AllianceText (type: userdata)
+  [PROP] DistanceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.DistanceText (type: userdata)
+  [PROP] ObjectTypeText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.ObjectTypeText (type: userdata)
+  [PROP] ObjectCallsignText           = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.ObjectCallsignText (type: userdata)
+  [PROP] GamerTagText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.GamerTagText (type: userdata)
+  [PROP] NextTargetText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.NextTargetText (type: userdata)
+  [PROP] RootComponent                = SceneComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.RootComponent (type: userdata)
+
+>>> TARGET 1 CONTAINERBOX DEEP PROBE <<<
+--- [Active_ContainerBox] Property Scan: MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.ContainerBox ---
+  [PROP] RelativeScale3D              = sol.glm::vec<3,double,0>*: 00000004A9602868 (type: userdata)
+  [PROP] BoundsScale                  = 0.73199999332428               (type: number)
+  [PROP] bHiddenInGame                = false                          (type: boolean)
+  [PROP] bVisible                     = true                           (type: boolean)
+  [PROP] RelativeLocation             = sol.glm::vec<3,double,0>*: 00000004A9603588 (type: userdata)
+  [PROP] RelativeRotation             = sol.glm::vec<3,double,0>*: 00000004A96026D8 (type: userdata)
+  [PROP] AttachParent                 = SceneComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.RootComponent (type: userdata)
+  [PROP] AttachSocketName             = None                           (type: userdata)
+  [PROP] Mobility                     = 2                              (type: number)
+
+    cb:GetNumMaterials() = 0
+    cb:GetMaterial(0)   = MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_000_2147438166
+    Resolved Material   = MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_000_2147438166
+
+--------------------------------------------------------------------
+  TARGET [02] : ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200
+  Distance    : 8666 meters
+  Class       : BlueprintGeneratedClass /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C
+  Components  (Total: 11):
+    [01] RootComponent                  | Class: SceneComponent             | RelLoc: (X=2643627.2, Y=-2789284.3, Z=120174.5) | Scale: (X=0.20, Y=0.20, Z=0.20) | Vis=true, Hid=nil
+    [02] ContainerBox                   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=25.00, Y=25.00, Z=25.00) | Vis=true, Hid=nil
+    [03] EscortBillboardImage           | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [04] AntiClockTargetPinBillboardImage | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [05] ClockTargetPinBillboardImage   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [06] AllianceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [07] DistanceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [08] ObjectTypeText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [09] ObjectCallsignText             | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [10] GamerTagText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [11] NextTargetText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+--- [Active_TargetActor_2] Property Scan: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200 ---
+  [PROP] ContainerBox                 = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.ContainerBox (type: userdata)
+  [PROP] EscortBillboardImage         = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.EscortBillboardImage (type: userdata)
+  [PROP] AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.AntiClockTargetPinBillboardImage (type: userdata)
+  [PROP] ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.ClockTargetPinBillboardImage (type: userdata)
+  [PROP] AllianceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.AllianceText (type: userdata)
+  [PROP] DistanceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.DistanceText (type: userdata)
+  [PROP] ObjectTypeText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.ObjectTypeText (type: userdata)
+  [PROP] ObjectCallsignText           = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.ObjectCallsignText (type: userdata)
+  [PROP] GamerTagText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.GamerTagText (type: userdata)
+  [PROP] NextTargetText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.NextTargetText (type: userdata)
+  [PROP] RootComponent                = SceneComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.RootComponent (type: userdata)
+
+--------------------------------------------------------------------
+  TARGET [03] : ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189
+  Distance    : 9303 meters
+  Class       : BlueprintGeneratedClass /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C
+  Components  (Total: 11):
+    [01] RootComponent                  | Class: SceneComponent             | RelLoc: (X=2762573.4, Y=-2926786.9, Z=115490.5) | Scale: (X=0.20, Y=0.20, Z=0.20) | Vis=true, Hid=nil
+    [02] ContainerBox                   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=25.00, Y=25.00, Z=25.00) | Vis=true, Hid=nil
+    [03] EscortBillboardImage           | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [04] AntiClockTargetPinBillboardImage | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [05] ClockTargetPinBillboardImage   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [06] AllianceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [07] DistanceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [08] ObjectTypeText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [09] ObjectCallsignText             | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [10] GamerTagText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [11] NextTargetText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+--- [Active_TargetActor_3] Property Scan: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189 ---
+  [PROP] ContainerBox                 = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.ContainerBox (type: userdata)
+  [PROP] EscortBillboardImage         = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.EscortBillboardImage (type: userdata)
+  [PROP] AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.AntiClockTargetPinBillboardImage (type: userdata)
+  [PROP] ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.ClockTargetPinBillboardImage (type: userdata)
+  [PROP] AllianceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.AllianceText (type: userdata)
+  [PROP] DistanceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.DistanceText (type: userdata)
+  [PROP] ObjectTypeText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.ObjectTypeText (type: userdata)
+  [PROP] ObjectCallsignText           = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.ObjectCallsignText (type: userdata)
+  [PROP] GamerTagText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.GamerTagText (type: userdata)
+  [PROP] NextTargetText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.NextTargetText (type: userdata)
+  [PROP] RootComponent                = SceneComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.RootComponent (type: userdata)
+
+--------------------------------------------------------------------
+  TARGET [04] : ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178
+  Distance    : 7705 meters
+  Class       : BlueprintGeneratedClass /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C
+  Components  (Total: 11):
+    [01] RootComponent                  | Class: SceneComponent             | RelLoc: (X=2674648.3, Y=-2743356.5, Z=146109.3) | Scale: (X=0.20, Y=0.20, Z=0.20) | Vis=true, Hid=nil
+    [02] ContainerBox                   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=25.00, Y=25.00, Z=25.00) | Vis=true, Hid=nil
+    [03] EscortBillboardImage           | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [04] AntiClockTargetPinBillboardImage | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [05] ClockTargetPinBillboardImage   | Class: MaterialBillboardComponent | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [06] AllianceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [07] DistanceText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [08] ObjectTypeText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [09] ObjectCallsignText             | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [10] GamerTagText                   | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+    [11] NextTargetText                 | Class: TextRenderComponent        | RelLoc: (X=0.0, Y=0.0, Z=0.0) | Scale: (X=1.00, Y=1.00, Z=1.00) | Vis=true, Hid=nil
+--- [Active_TargetActor_4] Property Scan: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178 ---
+  [PROP] ContainerBox                 = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.ContainerBox (type: userdata)
+  [PROP] EscortBillboardImage         = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.EscortBillboardImage (type: userdata)
+  [PROP] AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.AntiClockTargetPinBillboardImage (type: userdata)
+  [PROP] ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.ClockTargetPinBillboardImage (type: userdata)
+  [PROP] AllianceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.AllianceText (type: userdata)
+  [PROP] DistanceText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.DistanceText (type: userdata)
+  [PROP] ObjectTypeText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.ObjectTypeText (type: userdata)
+  [PROP] ObjectCallsignText           = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.ObjectCallsignText (type: userdata)
+  [PROP] GamerTagText                 = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.GamerTagText (type: userdata)
+  [PROP] NextTargetText               = TextRenderComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.NextTargetText (type: userdata)
+  [PROP] RootComponent                = SceneComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.RootComponent (type: userdata)
+
+
+【2. CDO OF ChronicleTargetContainerActorBP_C】
+--- [CDO_ChronicleTargetActor] Property Scan: ChronicleTargetContainerActorBP_C /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C ---
+  [PROP] ContainerBox                 = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ContainerBox (type: userdata)
+  [PROP] EscortBillboardImage         = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.EscortBillboardImage (type: userdata)
+  [PROP] AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.AntiClockTargetPinBillboardImage (type: userdata)
+  [PROP] ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ClockTargetPinBillboardImage (type: userdata)
+  [PROP] AllianceText                 = TextRenderComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.AllianceText (type: userdata)
+  [PROP] DistanceText                 = TextRenderComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.DistanceText (type: userdata)
+  [PROP] ObjectTypeText               = TextRenderComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ObjectTypeText (type: userdata)
+  [PROP] ObjectCallsignText           = TextRenderComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ObjectCallsignText (type: userdata)
+  [PROP] GamerTagText                 = TextRenderComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.GamerTagText (type: userdata)
+  [PROP] NextTargetText               = TextRenderComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.NextTargetText (type: userdata)
+  [PROP] RootComponent                = SceneComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.RootComponent (type: userdata)
+
+--- [CDO_ContainerBox] Property Scan: MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ContainerBox ---
+  [PROP] RelativeScale3D              = sol.glm::vec<3,double,0>*: 00000004C79856C8 (type: userdata)
+  [PROP] BoundsScale                  = 1.0                            (type: number)
+  [PROP] bHiddenInGame                = false                          (type: boolean)
+  [PROP] bVisible                     = true                           (type: boolean)
+  [PROP] RelativeLocation             = sol.glm::vec<3,double,0>*: 00000004C79855D8 (type: userdata)
+  [PROP] RelativeRotation             = sol.glm::vec<3,double,0>*: 00000004C7985808 (type: userdata)
+  [PROP] AttachParent                 = SceneComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.RootComponent (type: userdata)
+  [PROP] AttachSocketName             = None                           (type: userdata)
+  [PROP] Mobility                     = 2                              (type: number)
+
+
+【3. CDO OF LiveTargetContainerActor (C++ BASE)】
+--- [CDO_LiveTargetContainerActor] Property Scan: LiveTargetContainerActor /Script/Live.Default__LiveTargetContainerActor ---
+  [PROP] ContainerBox                 = MaterialBillboardComponent /Script/Live.Default__LiveTargetContainerActor.ContainerBox (type: userdata)
+  [PROP] EscortBillboardImage         = MaterialBillboardComponent /Script/Live.Default__LiveTargetContainerActor.EscortBillboardImage (type: userdata)
+  [PROP] AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Script/Live.Default__LiveTargetContainerActor.AntiClockTargetPinBillboardImage (type: userdata)
+  [PROP] ClockTargetPinBillboardImage = MaterialBillboardComponent /Script/Live.Default__LiveTargetContainerActor.ClockTargetPinBillboardImage (type: userdata)
+  [PROP] AllianceText                 = TextRenderComponent /Script/Live.Default__LiveTargetContainerActor.AllianceText (type: userdata)
+  [PROP] DistanceText                 = TextRenderComponent /Script/Live.Default__LiveTargetContainerActor.DistanceText (type: userdata)
+  [PROP] ObjectTypeText               = TextRenderComponent /Script/Live.Default__LiveTargetContainerActor.ObjectTypeText (type: userdata)
+  [PROP] ObjectCallsignText           = TextRenderComponent /Script/Live.Default__LiveTargetContainerActor.ObjectCallsignText (type: userdata)
+  [PROP] GamerTagText                 = TextRenderComponent /Script/Live.Default__LiveTargetContainerActor.GamerTagText (type: userdata)
+  [PROP] NextTargetText               = TextRenderComponent /Script/Live.Default__LiveTargetContainerActor.NextTargetText (type: userdata)
+  [PROP] RootComponent                = SceneComponent /Script/Live.Default__LiveTargetContainerActor.RootComponent (type: userdata)
+
+--- [CDO_CPP_ContainerBox] Property Scan: MaterialBillboardComponent /Script/Live.Default__LiveTargetContainerActor.ContainerBox ---
+  [PROP] RelativeScale3D              = sol.glm::vec<3,double,0>*: 00000004C79680C8 (type: userdata)
+  [PROP] BoundsScale                  = 1.0                            (type: number)
+  [PROP] bHiddenInGame                = false                          (type: boolean)
+  [PROP] bVisible                     = true                           (type: boolean)
+  [PROP] RelativeLocation             = sol.glm::vec<3,double,0>*: 00000004C7967038 (type: userdata)
+  [PROP] RelativeRotation             = sol.glm::vec<3,double,0>*: 00000004C7967DF8 (type: userdata)
+  [PROP] AttachParent                 = SceneComponent /Script/Live.Default__LiveTargetContainerActor.RootComponent (type: userdata)
+  [PROP] AttachSocketName             = None                           (type: userdata)
+  [PROP] Mobility                     = 2                              (type: number)
+
+
+【4. LiveTargetContainerManager INSTANCES (Total: 1)】
+  [01] LiveTargetContainerManager /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147450885.LiveTargetContainerManager_2147441034 (Outer: LiveMainHUDParent4K_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147450885)
+--- [Manager_1] Property Scan: LiveTargetContainerManager /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147450885.LiveTargetContainerManager_2147441034 ---
+  (No properties matched in probed dictionary)
+
+
+【5. LiveMainHUDParent4K ACTORS (Total: 1)】
+  [01] LiveMainHUDParent4K_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147450885
+--- [HUDParent_1] Property Scan: LiveMainHUDParent4K_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147450885 ---
+  [PROP] TargetContainerManager       = LiveTargetContainerManager /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147450885.LiveTargetContainerManager_2147441034 (type: userdata)
+
+
+【6. RELEVANT UFUNCTIONS IN ENGINE MEMORY (Total: 3)】
+  [01] Function /Script/Engine.MaterialBillboardComponent.AddElement
+  [02] Function /Script/Engine.MaterialBillboardComponent.SetElements
+  [03] Function /Script/Live.LiveTargetContainerManager.OnDestroyActor
+
+【7. RELEVANT MATERIALS IN ENGINE MEMORY (Total: 48)】
+  [01] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_000_2147438188
+  [02] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_Container_Escort_000_2147438165
+  [03] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_MI_HUD_Multi_TargetPinAntiClockwise_002_2147438164
+  [04] Material /Game/UI/Material/HUD/TargetContainer3DUI/M_HUD_TargetContainer3DUI_Text_000.M_HUD_TargetContainer3DUI_Text_000
+  [05] Material /Game/UI/Material/HUD/TargetContainer3DUI/M_HUD_TargetContainer3DUI_000.M_HUD_TargetContainer3DUI_000
+  [06] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_LiveAerialRefuel3DUIActor_C_2147438215.MID_M_HUD_TargetContainer3DUI_Text_000_2147438210
+  [07] Material /Game/UI/Material/HUD/Multi/M_HUD_Multi_TargetPinUserInterface_000.M_HUD_Multi_TargetPinUserInterface_000
+  [08] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_Text_000_2147438194
+  [09] Material /Game/UI/Material/HUD/Multi/M_HUD_Multi_TargetPin_002.M_HUD_Multi_TargetPin_002
+  [10] MaterialInstanceConstant /Game/UI/Material/HUD/Multi/MI_HUD_Multi_TargetPinClockwise_002.MI_HUD_Multi_TargetPinClockwise_002
+  [11] MaterialInstanceConstant /Game/UI/Material/HUD/Multi/MI_HUD_Multi_TargetPinAntiClockwise_002.MI_HUD_Multi_TargetPinAntiClockwise_002
+  [12] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_Text_000_2147438179
+  [13] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_Text_000_2147438161
+  [14] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_Text_000_2147438162
+  [15] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_Text_000_2147438158
+  [16] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_000_2147438166
+  [17] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_MI_HUD_Multi_TargetPinClockwise_002_2147438185
+  [18] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_MI_HUD_Multi_TargetPinAntiClockwise_002_2147438197
+  [19] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_Text_000_2147438173
+  [20] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_Container_Escort_000_2147438176
+  [21] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_Text_000_2147438160
+  [22] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_Text_000_2147438171
+  [23] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_Container_Escort_000_2147438187
+  [24] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_000_2147438199
+  [25] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_Text_000_2147438157
+  [26] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_Text_000_2147438181
+  [27] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_LiveAerialRefuel3DUIActor_C_2147438215.MID_M_HUD_TargetContainer3DUI_Text_000_2147438209
+  [28] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_Container_Escort_000_2147438198
+  [29] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_MI_HUD_Multi_TargetPinClockwise_002_2147438196
+  [30] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_Text_000_2147438195
+  [31] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_Text_000_2147438193
+  [32] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_Text_000_2147438192
+  [33] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_Text_000_2147438191
+  [34] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438200.MID_M_HUD_TargetContainer3DUI_Text_000_2147438190
+  [35] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_MI_HUD_Multi_TargetPinAntiClockwise_002_2147438186
+  [36] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_Text_000_2147438184
+  [37] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_Text_000_2147438183
+  [38] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_Text_000_2147438182
+  [39] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438189.MID_M_HUD_TargetContainer3DUI_Text_000_2147438180
+  [40] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_000_2147438177
+  [41] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_MI_HUD_Multi_TargetPinAntiClockwise_002_2147438175
+  [42] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_MI_HUD_Multi_TargetPinClockwise_002_2147438174
+  [43] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_Text_000_2147438172
+  [44] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_Text_000_2147438170
+  [45] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_Text_000_2147438169
+  [46] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438178.MID_M_HUD_TargetContainer3DUI_Text_000_2147438168
+  [47] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_MI_HUD_Multi_TargetPinClockwise_002_2147438163
+  [48] MaterialInstanceDynamic /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147438167.MID_M_HUD_TargetContainer3DUI_Text_000_2147438159
+
+====================================================================
+  PARAMETER & ARCHITECTURE DUMP COMPLETE
+====================================================================

@@ -1,0 +1,5 @@
+=== LandingGuide Horizon Test (v2) Started ===
+03:01:13 ★ Transient LandingGuide 捕捉: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147464333.WidgetTree_2147464332.LandingGuide
+03:01:13 ★ Transient LandingGuideHorizontal 捕捉: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147464333.WidgetTree_2147464332.LandingGuideHorizontal
+03:01:13 ★ Transient LandingGuideVertical 捕捉: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147464333.WidgetTree_2147464332.LandingGuideVertical
+03:01:13 Tick loop running successfully! Att: P=5.8 R=4.9

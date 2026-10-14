@@ -1,0 +1,4 @@
+=== M1/M2 Horizon Test Started ===
+02:41:06 M1 TextWidget 補足: ScoreUpdateText
+02:41:06 M2 BarRight 補足: Neutral_R
+02:41:06 M2 BarLeft 補足: Neutral_L

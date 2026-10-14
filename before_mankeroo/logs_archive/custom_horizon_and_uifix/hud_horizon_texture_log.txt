@@ -1,0 +1,4 @@
+=== AC8 Split Horizon Edition Started ===
+04:22:32 Texture scan completed to data/pitch_textures.txt
+04:22:32 Both Left & Right bars successfully bound!
+04:24:43 Scene Reset.

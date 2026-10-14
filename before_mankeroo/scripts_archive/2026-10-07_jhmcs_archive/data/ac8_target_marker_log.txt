@@ -1,0 +1,30 @@
+[21:26:03] === AC8-TGT-SCALE v1.0-proto Loaded ===
+[21:26:03] Initialization complete. ScriptUI ready.
+[21:27:18] Group 'Target Lock-on Box' found 2 widgets
+[21:27:18] Group 'Locator / Indicator' found 2 widgets
+[21:53:46] === AC8-TGT-SCALE v1.0-proto Loaded ===
+[21:53:46] Initialization complete. ScriptUI ready.
+[21:54:07] Group 'Target Lock-on Box' found 2 widgets
+[21:54:07] Group 'Locator / Indicator' found 2 widgets
+[21:58:32] Config saved to data/ac8_target_marker_config.json
+[21:58:58] === AC8-TGT-SCALE v1.0-proto Loaded ===
+[21:58:58] Config loaded from data/ac8_target_marker_config.json
+[21:58:58] Group 'Target Lock-on Box' found 2 widgets
+[21:58:58] Group 'Locator / Indicator' found 2 widgets
+[21:58:58] Group 'WayPoint / Ground Target' found 5 widgets
+[21:58:58] Group 'Bomb / Gun Predication' found 2 widgets
+[21:58:58] Initialization complete. ScriptUI ready.
+[22:07:55] === AC8-TGT-SCALE v1.0-proto Loaded ===
+[22:07:55] Config loaded from data/ac8_target_marker_config.json
+[22:07:55] Group 'Target Lock-on Box' found 2 widgets
+[22:07:55] Group 'Locator / Indicator' found 2 widgets
+[22:07:55] Group 'WayPoint / Ground Target' found 5 widgets
+[22:07:55] Group 'Bomb / Gun Predication' found 2 widgets
+[22:07:55] Initialization complete. ScriptUI ready.
+[22:07:57] === AC8-TGT-SCALE v1.0-proto Loaded ===
+[22:07:57] Config loaded from data/ac8_target_marker_config.json
+[22:07:57] Group 'Target Lock-on Box' found 2 widgets
+[22:07:57] Group 'Locator / Indicator' found 2 widgets
+[22:07:57] Group 'WayPoint / Ground Target' found 5 widgets
+[22:07:57] Group 'Bomb / Gun Predication' found 2 widgets
+[22:07:57] Initialization complete. ScriptUI ready.

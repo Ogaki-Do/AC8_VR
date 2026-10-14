@@ -1,0 +1,182 @@
+========================================================================================
+  ACE COMBAT 8 : OFF-SCREEN TARGET LOCATOR DIFFERENTIAL COMPARISON REPORT
+  Generated Time: 2026-10-09 11:42:51
+  State A [ON-SCREEN / IDLE] : Captured 2026-10-09 11:42:38
+  State B [OFF-SCREEN / ARROW] : Captured 2026-10-09 11:42:50
+========================================================================================
+
+########################################################################################
+  【DIRECT TEXT MATCHES: 'TGT' or Target Name (Total: 0)】
+  (These objects literally contain 'TGT' or 'MQ-99' text on screen!)
+########################################################################################
+  (No direct text content matched)
+
+########################################################################################
+  【PRIORITY WATCHLIST HIGHLIGHTS (Total: 13)】
+  (Objects matching 'Target', 'Locator', 'Arrow', 'Pointer', '3DUI', etc. with state changes)
+########################################################################################
+★ [ACTOR TRANSFORM SHIFT] ChronicleTargetContainerActorBP_C_2147466608 | Rot: (0.0, 0.0) -> (0.0, 0.0) | dLoc: 70504.4
+     Path: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.ChronicleTargetContainerActorBP_C_2147466608
+
+★ [ACTOR TRANSFORM SHIFT] BP_LiveAerialRefuel3DUIActor_C_2147466623 | Rot: (3.6, -48.6) -> (-14.6, 145.9) | dLoc: 51893.1
+     Path: BP_LiveAerialRefuel3DUIActor_C /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_LiveAerialRefuel3DUIActor_C_2147466623
+
+★ [WIDGET BECAME VISIBLE] Marker23                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker23
+
+★ [WIDGET BECAME VISIBLE] Marker31                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker31
+
+★ [WIDGET BECAME VISIBLE] Marker20                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker20
+
+★ [WIDGET BECAME VISIBLE] Marker22                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker22
+
+★ [WIDGET BECAME VISIBLE] Marker21                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker21
+
+★ [WIDGET BECAME VISIBLE] MarkLeftText                   | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.MarkLeftText
+
+★ [WIDGET BECAME VISIBLE] MarkRightText                  | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.MarkRightText
+
+★ [WIDGET BECAME VISIBLE] Marker32                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker32
+
+★ [WIDGET BECAME VISIBLE] Marker18                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker18
+
+★ [WIDGET BECAME VISIBLE] Marker24                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker24
+
+★ [WIDGET BECAME VISIBLE] Marker19                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker19
+
+----------------------------------------------------------------------------------------
+  【SECTION 2: OBJECTS THAT BECAME VISIBLE IN STATE B (Total: 25)】
+----------------------------------------------------------------------------------------
+[WIDGET BECAME VISIBLE] NegativePanel                  | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_0.WidgetTree_2147469230.NegativePanel
+
+[WIDGET BECAME VISIBLE] HalfNegativePanel              | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_1.WidgetTree_2147469229.HalfNegativePanel
+
+[WIDGET BECAME VISIBLE] Marker23                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker23
+
+[WIDGET BECAME VISIBLE] TextBlock_13                   | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.TextBlock_13
+
+[WIDGET BECAME VISIBLE] Marker31                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker31
+
+[WIDGET BECAME VISIBLE] TextBlock_19                   | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.TextBlock_19
+
+[WIDGET BECAME VISIBLE] HalfNegativePanel              | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_4.WidgetTree_2147469226.HalfNegativePanel
+
+[WIDGET BECAME VISIBLE] HalfNegativePanel              | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_6.WidgetTree_2147469224.HalfNegativePanel
+
+[WIDGET BECAME VISIBLE] HalfNegativePanel              | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_2.WidgetTree_2147469228.HalfNegativePanel
+
+[WIDGET BECAME VISIBLE] Marker20                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker20
+
+[WIDGET BECAME VISIBLE] Marker22                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker22
+
+[WIDGET BECAME VISIBLE] Marker21                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker21
+
+[WIDGET BECAME VISIBLE] MarkLeftText                   | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.MarkLeftText
+
+[WIDGET BECAME VISIBLE] MarkRightText                  | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.MarkRightText
+
+[WIDGET BECAME VISIBLE] NegativePanel                  | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_5.WidgetTree_2147469225.NegativePanel
+
+[WIDGET BECAME VISIBLE] NegativePanel                  | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.PitchMeterWidget_3.WidgetTree_2147469227.NegativePanel
+
+[WIDGET BECAME VISIBLE] Marker32                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker32
+
+[WIDGET BECAME VISIBLE] TextBlock_W                    | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.TextBlock_W
+
+[WIDGET BECAME VISIBLE] TextBlock_18                   | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.TextBlock_18
+
+[WIDGET BECAME VISIBLE] DynamicDrawCanvas              | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: LiveDynamicDrawCanvas /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.DynamicDrawCanvas
+
+[WIDGET BECAME VISIBLE] Marker18                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker18
+
+[WIDGET BECAME VISIBLE] LowestPriorityDynamicDrawCanvas | Vis: 1->4 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.LowestPriorityDynamicDrawCanvas
+
+[WIDGET BECAME VISIBLE] Marker24                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker24
+
+[WIDGET BECAME VISIBLE] TextBlock_12                   | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.TextBlock_12
+
+[WIDGET BECAME VISIBLE] Marker19                       | Vis: 1->3 | Op: 1.00->1.00 | RT: (0.0, 0.0) | Ang: 0.0
+     Path: Image /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147469290.WidgetTree_2147469289.WBP_ChroniclePersistent.WidgetTree_2147469231.Marker19
+
+----------------------------------------------------------------------------------------
+  【SECTION 3: NEWLY SPAWNED 3D ACTORS (Total: 0)】
+----------------------------------------------------------------------------------------
+  (None)
+
+----------------------------------------------------------------------------------------
+  【SECTION 4: NEWLY CREATED 3D COMPONENTS (Total: 0)】
+----------------------------------------------------------------------------------------
+  (None)
+
+----------------------------------------------------------------------------------------
+  【SECTION 5: NEWLY CREATED UMG WIDGETS (Total: 0)】
+----------------------------------------------------------------------------------------
+  (None)
+
+----------------------------------------------------------------------------------------
+  【SECTION 6: TRANSFORM & ROTATION SHIFTS (Total: 9)】
+----------------------------------------------------------------------------------------
+[ACTOR TRANSFORM SHIFT] BP_PlayerPlane_PP0007_f18c_C_2147466805_NozzleSound1 | Rot: (-3.7, 129.4) -> (14.3, -36.1) | dLoc: 55920.2
+     Path: Actor /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466805_NozzleSound1
+
+[ACTOR TRANSFORM SHIFT] ChronicleTargetContainerActorBP_C_2147466608 | Rot: (0.0, 0.0) -> (0.0, 0.0) | dLoc: 70504.4
+     Path: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.ChronicleTargetContainerActorBP_C_2147466608
+
+[ACTOR TRANSFORM SHIFT] BP_PlayerPlane_PP0007_f18c_C_2147466805 | Rot: (3.6, -48.6) -> (-14.6, 145.9) | dLoc: 55279.8
+     Path: BP_PlayerPlane_PP0007_f18c_C /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466805
+
+[ACTOR TRANSFORM SHIFT] BP_LiveAerialRefuel3DUIActor_C_2147466623 | Rot: (3.6, -48.6) -> (-14.6, 145.9) | dLoc: 51893.1
+     Path: BP_LiveAerialRefuel3DUIActor_C /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_LiveAerialRefuel3DUIActor_C_2147466623
+
+[ACTOR TRANSFORM SHIFT] BP_PlayerPlane_PP0007_f18c_C_2147466805_NozzleSound2 | Rot: (-3.6, 133.4) -> (14.9, -32.1) | dLoc: 55882.4
+     Path: Actor /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466805_NozzleSound2
+
+[ACTOR TRANSFORM SHIFT] LivePlayerCameraManager_2147479202 | Rot: (3.6, -48.6) -> (-14.6, 145.9) | dLoc: 54394.4
+     Path: LivePlayerCameraManager /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.LivePlayerCameraManager_2147479202
+
+[ACTOR TRANSFORM SHIFT] BP_PI101_001_C_2147466674      | Rot: (3.6, -48.6) -> (-14.6, 145.9) | dLoc: 54387.0
+     Path: BP_PI101_001_C /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_PI101_001_C_2147466674
+
+[COMPONENT ROTATION SHIFT] TransformComponent0            | Rot: (3.6, -48.6) -> (-14.6, 145.9)
+     Path: SceneComponent /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.LivePlayerCameraManager_2147479202.TransformComponent0
+
+[COMPONENT ROTATION SHIFT] RootComponent                  | Rot: (3.6, -48.6) -> (-14.6, 145.9)
+     Path: SceneComponent /Game/Maps/Ingame/Training004/PL_Training004.PL_Training004.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466805.RootComponent
+
+========================================================================================
+  END OF REPORT
+========================================================================================

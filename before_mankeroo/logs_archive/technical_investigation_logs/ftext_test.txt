@@ -1,0 +1,9 @@
+=== FText Test Started ===
+KismetTextLibrary OK
+Conv_StringToText: ok=true, res_type=nil, val=nil
+Found TextBlocks: 498
+Found SpeedValue: TextBlock /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147452502.WidgetTree_2147452501.WBP_ChroniclePersistent.WidgetTree_2147452443.SpeedValue
+  Method B (raw string): ok=false err=caught (...) exception
+  Method C (tb.Text property): ok=true err=nil
+  Method D (K2_SetText): ok=true err=nil
+=== Done ===

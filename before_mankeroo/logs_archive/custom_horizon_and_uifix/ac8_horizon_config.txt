@@ -1,0 +1,9 @@
+bar_length=1.100
+bar_thickness=1.600
+center_gap=75.0
+offset_x=0.0
+offset_y=0.0
+pitch_offset=0.00
+roll_offset=0.00
+pitch_sens=7.00
+invert_pitch=false

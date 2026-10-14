@@ -1,0 +1,241 @@
+================================================================================
+  ACE COMBAT 8 - JHMCS プランA (JhmcsA) 評価 & テレメトリログ
+  開始日時: 2026-10-04 20:58:31
+================================================================================
+
+[20:58:31] on_early_calculate_stereo_view_offset フック登録成功
+[20:58:31] AC8-JHMCS-A 初期化完了 (プランA 評価システム稼働中)
+[20:58:31] 
+================================================================================
+[20:58:31] 【JHMCS プランA: 自機カメラ構造 & プロパティ全解析】
+[20:58:31] ================================================================================
+[20:58:31] 
+--------------------------------------------------------------------------------
+[20:58:31] 【CockpitCameraInput (スティック入力処理)】クラスリフレクション解析 (Class: LiveCockpitCameraInputComponent)
+[20:58:31] --------------------------------------------------------------------------------
+[20:58:31]   [Prop] FocusApplyRateForRotation           = 0.000
+[20:58:31]   [Prop] UpwardFocusAngleAdjustment          = 2.000
+[20:58:31]   [Prop] DownwardFocusAngleAdjustment        = 1.000
+[20:58:31]   [Prop] UpwardFocusAngleLimitAdjustment     = 1.000
+[20:58:31]   [Prop] DownwardFocusAngleLimitAdjustment   = 0.250
+[20:58:31]   [Prop] bUseFirstPersonCameraInput          = false
+[20:58:31]   [Prop] FirstPersonCameraInput              = nil
+[20:58:31]   [Prop] VerticalLimitMax                    = 50.000
+[20:58:31]   [Prop] VerticalLimitMin                    = -25.000
+[20:58:31]   [Prop] HorizontalLimit                     = 115.000
+[20:58:31]   [Prop] RightStickSwingSpeed                = 4.500
+[20:58:31]   [Prop] TimeToTarget                        = 0.500
+[20:58:31]   [Prop] CachedFocusTarget                   = sol.uevr::API::UObject*: 000000053C25B238
+[20:58:31]   [Prop] CachedTargetSelector                = sol.uevr::API::UObject*: 000000053C25A3D8
+[20:58:31]   [Prop] SelectedTarget                      = nil
+[20:58:31]   [Prop] RelativeRotation                    = sol.glm::vec<3,double,0>*: 000000053C25D3F8
+[20:58:31]   [Prop] bAbsoluteRotation                   = false
+[20:58:31]   [Prop] bShouldSnapRotationWhenAttached     = false
+[20:58:31]   [Prop] bUseAttachParentBound               = false
+[20:58:31]   [Func] SetWorldScale3D()
+[20:58:31]   [Func] SetVisibility()
+[20:58:31]   [Func] SetShouldUpdatePhysicsVolume()
+[20:58:31]   [Func] SetRelativeScale3D()
+[20:58:31]   [Func] SetMobility()
+[20:58:31]   [Func] SetHiddenInGame()
+[20:58:31]   [Func] SetAbsolute()
+[20:58:31]   [Func] ResetRelativeTransform()
+[20:58:31]   [Func] K2_SetWorldTransform()
+[20:58:31]   [Func] K2_SetWorldRotation()
+[20:58:31]   [Func] K2_SetWorldLocationAndRotation()
+[20:58:31]   [Func] K2_SetWorldLocation()
+[20:58:31]   [Func] K2_SetRelativeTransform()
+[20:58:31]   [Func] K2_SetRelativeRotation()
+[20:58:31]   [Func] K2_SetRelativeLocationAndRotation()
+[20:58:31]   [Func] K2_SetRelativeLocation()
+[20:58:31]   [Func] K2_AddWorldOffset()
+[20:58:31]   [Func] K2_AddLocalOffset()
+[20:58:31]   [Prop] bIsActive                           = true
+[20:58:31]   [Func] SetTickGroup()
+[20:58:31]   [Func] SetTickableWhenPaused()
+[20:58:31]   [Func] SetIsReplicated()
+[20:58:31]   [Func] SetComponentTickIntervalAndCooldown()
+[20:58:31]   [Func] SetComponentTickInterval()
+[20:58:31]   [Func] SetComponentTickEnabled()
+[20:58:31]   [Func] SetAutoActivate()
+[20:58:31]   [Func] SetActive()
+[20:58:31] 
+--------------------------------------------------------------------------------
+[20:58:31] 【CockpitCamera (コックピットカメラ本体)】クラスリフレクション解析 (Class: LiveCockpitCameraComponent)
+[20:58:31] --------------------------------------------------------------------------------
+[20:58:31]   [Prop] CachedInputComponent                = sol.uevr::API::UObject*: 000000053C259B68
+[20:58:31]   [Prop] RollEaseDuration                    = 2.000
+[20:58:31]   [Prop] PitchEaseDuration                   = 1.000
+[20:58:31]   [Prop] YawEaseDuration                     = 1.000
+[20:58:31]   [Prop] RollEaseDurationExpert              = 2.000
+[20:58:31]   [Prop] RollEaseDurationRatioExpert         = 0.400
+[20:58:31]   [Prop] PitchEaseDurationExpert             = 1.000
+[20:58:31]   [Prop] YawEaseDurationExpert               = 1.000
+[20:58:31]   [Prop] AfterburnerFOVCurrent               = 0.000
+[20:58:31]   [Prop] AfterburnerFOVSceneID               = -1.000
+[20:58:31]   [Prop] FieldOfView                         = 73.740
+[20:58:31]   [Prop] bUseCameraHeightAsViewTarget        = true
+[20:58:31]   [Prop] bUseFieldOfViewForLOD               = true
+[20:58:31]   [Prop] bUsePawnControlRotation             = false
+[20:58:31]   [Func] SetUseFieldOfViewForLOD()
+[20:58:31]   [Func] SetUseCameraHeightAsViewTarget()
+[20:58:31]   [Func] SetUpdateOrthoPlanes()
+[20:58:31]   [Func] SetProjectionMode()
+[20:58:31]   [Func] SetPostProcessBlendWeight()
+[20:58:31]   [Func] SetOrthoWidth()
+[20:58:31]   [Func] SetOrthoNearClipPlane()
+[20:58:31]   [Func] SetOrthoFarClipPlane()
+[20:58:31]   [Func] SetFieldOfView()
+[20:58:31]   [Func] SetConstraintAspectRatio()
+[20:58:31]   [Func] SetAutoPlaneShift()
+[20:58:31]   [Func] SetAutoCalculateOrthoPlanes()
+[20:58:31]   [Func] SetAspectRatioAxisConstraint()
+[20:58:31]   [Func] SetAspectRatio()
+[20:58:31]   [Func] OnCameraMeshHiddenChanged()
+[20:58:31]   [Func] GetCameraView()
+[20:58:31]   [Prop] RelativeRotation                    = sol.glm::vec<3,double,0>*: 000000053C26BFE8
+[20:58:31]   [Prop] bAbsoluteRotation                   = false
+[20:58:31]   [Prop] bShouldSnapRotationWhenAttached     = false
+[20:58:31]   [Prop] bUseAttachParentBound               = false
+[20:58:31]   [Func] SetWorldScale3D()
+[20:58:31]   [Func] SetVisibility()
+[20:58:31]   [Func] SetShouldUpdatePhysicsVolume()
+[20:58:31]   [Func] SetRelativeScale3D()
+[20:58:31]   [Func] SetMobility()
+[20:58:31]   [Func] SetHiddenInGame()
+[20:58:31]   [Func] SetAbsolute()
+[20:58:31]   [Func] ResetRelativeTransform()
+[20:58:31]   [Func] K2_SetWorldTransform()
+[20:58:31]   [Func] K2_SetWorldRotation()
+[20:58:31]   [Func] K2_SetWorldLocationAndRotation()
+[20:58:31]   [Func] K2_SetWorldLocation()
+[20:58:31]   [Func] K2_SetRelativeTransform()
+[20:58:31]   [Func] K2_SetRelativeRotation()
+[20:58:31]   [Func] K2_SetRelativeLocationAndRotation()
+[20:58:31]   [Func] K2_SetRelativeLocation()
+[20:58:31]   [Func] K2_AddWorldOffset()
+[20:58:31]   [Func] K2_AddLocalOffset()
+[20:58:31] 
+--------------------------------------------------------------------------------
+[20:58:31] 【PlayerCameraManager (ゲーム内実描画カメラ)】クラスリフレクション解析 (Class: LivePlayerCameraManager)
+[20:58:31] --------------------------------------------------------------------------------
+[20:58:31]   [Prop] DefaultFOV                          = 90.000
+[20:58:31]   [Prop] ViewTarget                          = sol.sol::d::u<lua::datatypes::StructObject>: 0000000608B1CBF8
+[20:58:31]   [Prop] PendingViewTarget                   = sol.sol::d::u<lua::datatypes::StructObject>: 0000000608B1CC68
+[20:58:31]   [Prop] ViewTargetOffset                    = sol.glm::vec<3,double,0>*: 000000053C272F28
+[20:58:31]   [Prop] bUseCameraHeightAsViewTarget        = true
+[20:58:31]   [Prop] bClientSimulatingViewTarget         = false
+[20:58:31]   [Prop] bUseClientSideCameraUpdates         = true
+[20:58:31]   [Prop] ViewPitchMin                        = -89.900
+[20:58:31]   [Prop] ViewPitchMax                        = 89.900
+[20:58:31]   [Prop] ViewYawMin                          = 0.000
+[20:58:31]   [Prop] ViewYawMax                          = 359.999
+[20:58:31]   [Prop] ViewRollMin                         = -89.900
+[20:58:31]   [Prop] ViewRollMax                         = 89.900
+[20:58:31]   [Func] SwapPendingViewTargetWhenUsingClientSideCameraUpdates()
+[20:58:31]   [Func] StopCameraShake()
+[20:58:31]   [Func] StopCameraFade()
+[20:58:31]   [Func] StopAllInstancesOfCameraShakeFromSource()
+[20:58:31]   [Func] StopAllInstancesOfCameraShake()
+[20:58:31]   [Func] StopAllCameraShakesFromSource()
+[20:58:31]   [Func] StopAllCameraShakes()
+[20:58:31]   [Func] StartCameraShakeFromSource()
+[20:58:31]   [Func] StartCameraShake()
+[20:58:31]   [Func] StartCameraFade()
+[20:58:31]   [Func] SetManualCameraFade()
+[20:58:31]   [Func] SetGameCameraCutThisFrame()
+[20:58:31]   [Func] RemoveGenericCameraLensEffect()
+[20:58:31]   [Func] RemoveCameraModifier()
+[20:58:31]   [Func] RemoveCameraLensEffect()
+[20:58:31]   [Func] PhotographyCameraModify()
+[20:58:31]   [Func] GetOwningPlayerController()
+[20:58:31]   [Func] GetCameraRotation()
+[20:58:31]   [Func] GetCameraLocation()
+[20:58:31]   [Func] FindCameraModifierByClass()
+[20:58:31]   [Func] ClearCameraLensEffects()
+[20:58:31]   [Func] BlueprintUpdateCamera()
+[20:58:31]   [Func] AddNewCameraModifier()
+[20:58:31]   [Func] AddGenericCameraLensEffect()
+[20:58:31]   [Func] AddCameraLensEffect()
+[20:58:31]   [Prop] bBlockInput                         = false
+[20:58:31]   [Prop] bFindCameraComponentWhenViewTarget  = true
+[20:58:31]   [Prop] AutoReceiveInput                    = 0.000
+[20:58:31]   [Prop] InputPriority                       = 0.000
+[20:58:31]   [Prop] InputComponent                      = nil
+[20:58:31]   [Prop] OnInputTouchBegin                   = nil
+[20:58:31]   [Prop] OnInputTouchEnd                     = nil
+[20:58:31]   [Prop] OnInputTouchEnter                   = nil
+[20:58:31]   [Prop] OnInputTouchLeave                   = nil
+[20:58:31]   [Func] SetTickGroup()
+[20:58:31]   [Func] SetTickableWhenPaused()
+[20:58:31]   [Func] SetReplicates()
+[20:58:31]   [Func] SetReplicateMovement()
+[20:58:31]   [Func] SetRayTracingGroupId()
+[20:58:31]   [Func] SetPhysicsReplicationMode()
+[20:58:31]   [Func] SetOwner()
+[20:58:31]   [Func] SetNetDormancy()
+[20:58:31]   [Func] SetLifeSpan()
+[20:58:31]   [Func] SetAutoDestroyWhenFinished()
+[20:58:31]   [Func] SetActorTickInterval()
+[20:58:31]   [Func] SetActorTickEnabled()
+[20:58:31]   [Func] SetActorScale3D()
+[20:58:31]   [Func] SetActorRelativeScale3D()
+[20:58:31]   [Func] SetActorHiddenInGame()
+[20:58:31]   [Func] SetActorEnableCollision()
+[20:58:31]   [Func] ReceiveActorOnInputTouchLeave()
+[20:58:31]   [Func] ReceiveActorOnInputTouchEnter()
+[20:58:31]   [Func] ReceiveActorOnInputTouchEnd()
+[20:58:31]   [Func] ReceiveActorOnInputTouchBegin()
+[20:58:31]   [Func] K2_SetActorTransform()
+[20:58:31]   [Func] K2_SetActorRotation()
+[20:58:31]   [Func] K2_SetActorRelativeTransform()
+[20:58:31]   [Func] K2_SetActorRelativeRotation()
+[20:58:31]   [Func] K2_SetActorRelativeLocation()
+[20:58:31]   [Func] K2_SetActorLocationAndRotation()
+[20:58:31]   [Func] K2_SetActorLocation()
+[20:58:31]   [Func] K2_OnReset()
+[20:58:31]   [Func] K2_OnEndViewTarget()
+[20:58:31]   [Func] K2_OnBecomeViewTarget()
+[20:58:31]   [Func] K2_AddActorWorldOffset()
+[20:58:31]   [Func] K2_AddActorLocalOffset()
+[20:58:31]   [Func] GetInstigatorController()
+[20:58:31]   [Func] GetInputVectorAxisValue()
+[20:58:31]   [Func] GetInputAxisValue()
+[20:58:31]   [Func] GetInputAxisKeyValue()
+[20:58:31]   [Func] GetActorEyesViewPoint()
+[20:58:31]   [Func] EnableInput()
+[20:58:31]   [Func] DisableInput()
+[20:58:31]   [Func] CreateInputComponent()
+[20:58:31] 
+================================================================================
+[20:58:31]   リフレクション解析完了。以下、プランA (JhmcsA) の動的評価を開始します...
+[20:58:31] ================================================================================
+
+[20:59:11] UI操作: プランA 逆補正トグル = true
+[20:59:11] ★ [プランA検証] rotation.Yaw への書き込みテスト結果: true
+[20:59:11] ★ [プランA逆補正中] diff_yaw=+137.2° をステレオ視界から相殺中 (回数: 1)
+[20:59:13] ★ [プランA逆補正中] diff_yaw=+137.2° をステレオ視界から相殺中 (回数: 61)
+[20:59:15] ★ [プランA逆補正中] diff_yaw=+137.2° をステレオ視界から相殺中 (回数: 121)
+[20:59:17] ★ [プランA逆補正中] diff_yaw=+137.2° をステレオ視界から相殺中 (回数: 181)
+[20:59:21] ★ [プランA逆補正中] diff_yaw=+29.5° をステレオ視界から相殺中 (回数: 241)
+[20:59:23] ★ [プランA逆補正中] diff_yaw=+134.7° をステレオ視界から相殺中 (回数: 301)
+[20:59:25] ★ [プランA逆補正中] diff_yaw=+134.7° をステレオ視界から相殺中 (回数: 361)
+[20:59:28] ★ [プランA逆補正中] diff_yaw=-91.9° をステレオ視界から相殺中 (回数: 421)
+[20:59:30] ★ [プランA逆補正中] diff_yaw=+29.6° をステレオ視界から相殺中 (回数: 481)
+[20:59:33] ★ [プランA逆補正中] diff_yaw=-2.1° をステレオ視界から相殺中 (回数: 541)
+[20:59:35] ★ [プランA逆補正中] diff_yaw=-20.4° をステレオ視界から相殺中 (回数: 601)
+[20:59:38] ★ [プランA逆補正中] diff_yaw=+109.8° をステレオ視界から相殺中 (回数: 661)
+[20:59:40] ★ [プランA逆補正中] diff_yaw=-50.4° をステレオ視界から相殺中 (回数: 721)
+[20:59:43] ★ [プランA逆補正中] diff_yaw=+5.7° をステレオ視界から相殺中 (回数: 781)
+[21:00:24] ★ [プランA逆補正中] diff_yaw=-41.6° をステレオ視界から相殺中 (回数: 841)
+[21:00:26] ★ [プランA逆補正中] diff_yaw=+98.8° をステレオ視界から相殺中 (回数: 901)
+[21:00:28] ★ [プランA逆補正中] diff_yaw=-95.5° をステレオ視界から相殺中 (回数: 961)
+[21:00:31] ★ [プランA逆補正中] diff_yaw=-132.3° をステレオ視界から相殺中 (回数: 1021)
+[21:00:33] ★ [プランA逆補正中] diff_yaw=-132.2° をステレオ視界から相殺中 (回数: 1081)
+[21:00:35] ★ [プランA逆補正中] diff_yaw=-132.1° をステレオ視界から相殺中 (回数: 1141)
+[21:00:37] ★ [プランA逆補正中] diff_yaw=-132.0° をステレオ視界から相殺中 (回数: 1201)
+[21:00:39] ★ [プランA逆補正中] diff_yaw=-131.9° をステレオ視界から相殺中 (回数: 1261)
+[21:00:41] ★ [プランA逆補正中] diff_yaw=-130.5° をステレオ視界から相殺中 (回数: 1321)
+[21:00:43] ★ [プランA逆補正中] diff_yaw=-21.9° をステレオ視界から相殺中 (回数: 1381)
+[21:00:45] ★ [プランA逆補正中] diff_yaw=-4.7° をステレオ視界から相殺中 (回数: 1441)
+[21:00:50] ★ [プランA逆補正中] diff_yaw=-3.7° をステレオ視界から相殺中 (回数: 1501)

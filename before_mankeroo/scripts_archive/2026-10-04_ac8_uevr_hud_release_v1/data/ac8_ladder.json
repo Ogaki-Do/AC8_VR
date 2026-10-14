@@ -1,0 +1,38 @@
+{
+    "drawcanvas": {
+        "active": false,
+        "op": 1.0,
+        "sc": 1.0,
+        "sdx": 0.0,
+        "sdy": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "info": {
+        "active": false,
+        "op": 1.0,
+        "sc": 1.0,
+        "sdx": 0.0,
+        "sdy": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "ladder": {
+        "active": true,
+        "op": 1.0,
+        "sc": 1.0,
+        "sdx": -1913.0,
+        "sdy": -1200.0,
+        "x": 690.0,
+        "y": 756.0
+    },
+    "radar": {
+        "active": false,
+        "op": 1.0,
+        "sc": 1.0,
+        "sdx": 0.0,
+        "sdy": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    }
+}

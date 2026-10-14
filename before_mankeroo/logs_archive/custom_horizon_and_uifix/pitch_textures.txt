@@ -1,0 +1,15 @@
+=== Total Texture2D in Memory: 2620 ===
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkNegHalf_002.T_HUD_PitchMeter_MarkNegHalf_002
+Texture2D /Game/UI/Texture/HUD/T_HUD_LandingGuideVertical_000.T_HUD_LandingGuideVertical_000
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkCenter_001.T_HUD_PitchMeter_MarkCenter_001
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkPos_001.T_HUD_PitchMeter_MarkPos_001
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkNeg_001.T_HUD_PitchMeter_MarkNeg_001
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkNeg_002.T_HUD_PitchMeter_MarkNeg_002
+Texture2D /Game/UI/Texture/HUD/T_HUD_LandingGuideHorizontal_000.T_HUD_LandingGuideHorizontal_000
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkSide_000.T_HUD_PitchMeter_MarkSide_000
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkPosHalf_001.T_HUD_PitchMeter_MarkPosHalf_001
+Texture2D /Game/UI/Texture/Icon/Tutorial/T_UI_TutorialIcon_IFRGuide_000.T_UI_TutorialIcon_IFRGuide_000
+Texture2D /Game/UI/Texture/HUD/T_HUD_DottedHorizontal_000.T_HUD_DottedHorizontal_000
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkNegHalf_001.T_HUD_PitchMeter_MarkNegHalf_001
+Texture2D /Game/UI/Texture/HUD/PitchMeter/T_HUD_PitchMeter_MarkVertical_000.T_HUD_PitchMeter_MarkVertical_000
+Texture2D /Game/Base/Texture/CharaCommon/T_RainbowHorizontal.T_RainbowHorizontal

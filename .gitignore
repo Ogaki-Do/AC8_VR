@@ -1,0 +1,9 @@
+# OS and Editor temporary files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp
+*.bak
+.vscode/
+.idea/

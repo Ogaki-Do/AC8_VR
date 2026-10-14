@@ -1,0 +1,77 @@
+====================================================================
+  ACE COMBAT 8 - TARGET MARKER & BILLBOARD DEEP DIAGNOSTIC (v10)
+  Time: 2026-10-07 01:19:13
+====================================================================
+
+【1. RELEVANT UFUNCTIONS IN ENGINE MEMORY (Total: 7)】
+  [01] Function /Script/Engine.BillboardComponent.SetOpacityMaskRefVal
+  [02] Function /Script/Engine.BillboardComponent.SetSprite
+  [03] Function /Script/Engine.BillboardComponent.SetSpriteAndUV
+  [04] Function /Script/Engine.BillboardComponent.SetUV
+  [05] Function /Script/Engine.MaterialBillboardComponent.AddElement
+  [06] Function /Script/Engine.MaterialBillboardComponent.SetElements
+  [07] Function /Script/Live.LiveTargetContainerManager.OnDestroyActor
+
+【2. TARGET CONTAINER ACTORS FOUND (Total: 4)】
+  [01] Name: ChronicleTargetContainerActorBP_C_2147404024 | Distance: 5992m
+       FullName: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404024
+  [02] Name: ChronicleTargetContainerActorBP_C_2147404013 | Distance: 7342m
+       FullName: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404013
+  [03] Name: ChronicleTargetContainerActorBP_C_2147404002 | Distance: 6863m
+       FullName: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404002
+  [04] Name: ChronicleTargetContainerActorBP_C_2147403991 | Distance: 6818m
+       FullName: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147403991
+
+====================================================================
+【3. PRIMARY CONTAINER DEEP INSPECTION】
+  Actor: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404024
+  Class: BlueprintGeneratedClass /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C
+====================================================================
+  --- Actor Properties Probe ---
+    * Actor.ContainerBox = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404024.ContainerBox (type: userdata)
+    * Actor.EscortBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404024.EscortBillboardImage (type: userdata)
+    * Actor.AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404024.AntiClockTargetPinBillboardImage (type: userdata)
+    * Actor.ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147404024.ClockTargetPinBillboardImage (type: userdata)
+
+  --- Components Probe (Total: 11) ---
+  [01] RootComponent (Class /Script/Engine.SceneComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+  [02] ContainerBox (Class /Script/Engine.MaterialBillboardComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+       >>> MATERIAL BILLBOARD ELEMENTS INSPECTION <<<
+       comp.Elements access: ok=true, type=nil, val=nil
+       comp:get_property('Elements'): ok=true, type=nil, val=nil
+       GetNumMaterials: 0
+  [03] EscortBillboardImage (Class /Script/Engine.MaterialBillboardComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+       >>> MATERIAL BILLBOARD ELEMENTS INSPECTION <<<
+       comp.Elements access: ok=true, type=nil, val=nil
+       comp:get_property('Elements'): ok=true, type=nil, val=nil
+       GetNumMaterials: 0
+  [04] AntiClockTargetPinBillboardImage (Class /Script/Engine.MaterialBillboardComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+       >>> MATERIAL BILLBOARD ELEMENTS INSPECTION <<<
+       comp.Elements access: ok=true, type=nil, val=nil
+       comp:get_property('Elements'): ok=true, type=nil, val=nil
+       GetNumMaterials: 0
+  [05] ClockTargetPinBillboardImage (Class /Script/Engine.MaterialBillboardComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+       >>> MATERIAL BILLBOARD ELEMENTS INSPECTION <<<
+       comp.Elements access: ok=true, type=nil, val=nil
+       comp:get_property('Elements'): ok=true, type=nil, val=nil
+       GetNumMaterials: 0
+  [06] AllianceText (Class /Script/Engine.TextRenderComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+  [07] DistanceText (Class /Script/Engine.TextRenderComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+  [08] ObjectTypeText (Class /Script/Engine.TextRenderComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+  [09] ObjectCallsignText (Class /Script/Engine.TextRenderComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+  [10] GamerTagText (Class /Script/Engine.TextRenderComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+  [11] NextTargetText (Class /Script/Engine.TextRenderComponent)
+       RelativeScale3D: (1.000, 1.000, 1.000)
+====================================================================
+  DIAGNOSTIC DUMP COMPLETE
+====================================================================

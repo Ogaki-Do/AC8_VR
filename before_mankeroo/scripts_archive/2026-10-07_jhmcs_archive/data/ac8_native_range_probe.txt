@@ -1,0 +1,22 @@
+====================================================================
+  AC8 NATIVE HUD & TARGET RANGE PROBE (v14)
+  Timestamp: 2026-10-07 20:41:50
+====================================================================
+
+PLAYER PAWN: BP_PlayerPlane_PP0007_f18c_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466184
+  Loc: (X=2327040.9, Y=-2142960.2, Z=232682.6)
+  Rot: (Pitch=16.2, Yaw=169.7, Roll=41.7)
+
+=== ACTIVE CONTAINERS 3D POSITION IN PLAYER LOCAL SPACE ===
+  Slot [01] ChronicleTargetContainerActorBP_C_2147465930: Dist=8115m | Fwd=-4034.0m, Right=6991.0m, Up=-841.8m | [*** REAR (BEHIND) ***]
+  Slot [02] ChronicleTargetContainerActorBP_C_2147465908: Dist=6012m | Fwd=-4081.3m, Right=4349.3m, Up=-760.5m | [*** REAR (BEHIND) ***]
+  Slot [03] ChronicleTargetContainerActorBP_C_2147465919: Dist=6410m | Fwd=-5263.1m, Right=3558.1m, Up=-856.3m | [*** REAR (BEHIND) ***]
+  Slot [04] ChronicleTargetContainerActorBP_C_2147465897: Dist=7000m | Fwd=-4792.6m, Right=5050.8m, Up=-722.3m | [*** REAR (BEHIND) ***]
+
+--- [PROBE] LiveTargetContainerManager: LiveTargetContainerManager /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147478627.LiveTargetContainerManager_2147468769 ---
+--- [PROBE] PlayerCameraManager: LivePlayerCameraManager /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LivePlayerCameraManager_2147478634 ---
+    [PROP] DefaultFOV                 = 350.0 (number)
+    [PROP] CameraCachePrivate         = sol.sol::d::u<lua::datatypes::StructObject>: 00000002E6BE6C78 (userdata)
+--- [PROBE] PawnComponent_TargetSelection: LiveTargetSelectionComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466184.TargetSelection ---
+    [PROP] SelectedTarget             = BP_OP0018_uavc_CP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_OP0018_uavc_CP_C_2147465995 (userdata)
+--- [PROBE] PawnComponent_FocusTargetComponent: LiveCameraFocusTargetComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147466184.FocusTargetComponent ---

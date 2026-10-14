@@ -1,0 +1,52 @@
+====================================================================
+  ACE COMBAT 8 - TARGET MANAGER & CDO ARCHITECTURE PROBE
+  Time: 2026-10-07 01:47:16
+====================================================================
+
+【1. RELEVANT UFUNCTIONS IN MEMORY】
+  [01] Function /Script/Live.LiveTargetSelectionComponent.SetJammed
+  [02] Function /Script/Live.LiveTargetSelectionComponent.GetAllLockedOnTargets
+  [03] Function /Script/Live.LiveTargetSelectionComponent.SetIsAngleFirst
+  [04] Function /Script/Live.LiveTargetContainerManager.OnDestroyActor
+  [05] Function /Script/Live.LiveTargetSelectionComponent.GetSelectedEmlTarget
+  [06] Function /Script/Engine.BillboardComponent.SetOpacityMaskRefVal
+  [07] Function /Script/Engine.BillboardComponent.SetSprite
+  [08] Function /Script/Engine.BillboardComponent.SetSpriteAndUV
+  [09] Function /Script/Engine.BillboardComponent.SetUV
+  [10] Function /Script/Engine.MaterialBillboardComponent.AddElement
+  [11] Function /Script/Engine.MaterialBillboardComponent.SetElements
+  [12] Function /Script/Live.LiveTargetSelectionComponent.SetIsWideMode
+  [13] Function /Script/Live.LiveTargetSelectionComponent.SelectTarget
+  [14] Function /Script/Live.LiveTargetSelectionComponent.GetSelectionAssistTarget
+  [15] Function /Script/Live.LiveTargetSelectionComponent.GetFirstLockedOnTarget
+  [16] Function /Script/Live.LiveTargetSelectionComponent.GetSelectedTarget
+  [17] Function /Script/Live.LiveTargetSelectionComponent.OnToggleWeapon
+  [18] Function /Script/Live.LiveTargetSelectionComponent.OverrideCloudParameters
+  [19] Function /Script/Live.LiveTargetSelectionComponent.Reset
+  [20] Function /Script/Live.LiveTargetSelectionComponent.StartSelectTarget
+  Total matching functions: 20
+
+【2. LiveTargetContainerManager INSTANCES (Total: 1)】
+  [01] LiveTargetContainerManager /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.LiveMainHUDParent4K_C_2147398244.LiveTargetContainerManager_2147388393
+
+【3. LiveTargetSelectionComponent INSTANCES (Total: 3)】
+  [01] LiveTargetSelectionComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_PlayerPlane_PP0007_f18c_C_2147385813.TargetSelection
+       Prop: SelectedTarget = BP_OP0018_uavc_CP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.BP_OP0018_uavc_CP_C_2147385654 (userdata)
+  [02] LiveTargetSelectionComponent /Game/Blueprints/Vehicle/Player/Plane/BP_PlayerPlane_Base.BP_PlayerPlane_Base_C.TargetSelection7F75C693426E9FFC1AC71EB6C97D9DD3
+  [03] LiveTargetSelectionComponent /Game/Blueprints/Vehicle/Player/Plane/PP0007_f18c/BP_PlayerPlane_PP0007_f18c.BP_PlayerPlane_PP0007_f18c_C.TargetSelection7F75C693426E9FFC1AC71EB6C97D9DD3
+
+【4. CDO of ChronicleTargetContainerActorBP_C】
+  FullName: ChronicleTargetContainerActorBP_C /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C
+       Prop: ContainerBox = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ContainerBox (userdata)
+       Prop: EscortBillboardImage = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.EscortBillboardImage (userdata)
+       Prop: AntiClockTargetPinBillboardImage = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.AntiClockTargetPinBillboardImage (userdata)
+       Prop: ClockTargetPinBillboardImage = MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ClockTargetPinBillboardImage (userdata)
+  CDO.ContainerBox: MaterialBillboardComponent /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.Default__ChronicleTargetContainerActorBP_C.ContainerBox
+    CDO.ContainerBox GetNumMaterials: 0
+
+【5. ACTIVE TARGET CONTAINER 1】: ChronicleTargetContainerActorBP_C /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147385537
+  ContainerBox: MaterialBillboardComponent /Game/Maps/Ingame/Training005/PL_Training005.PL_Training005.PersistentLevel.ChronicleTargetContainerActorBP_C_2147385537.ContainerBox
+    ContainerBox.RelativeScale3D = sol.glm::vec<3,double,0>*: 00000004B22184C8 (userdata)
+====================================================================
+  PROBE COMPLETE
+====================================================================

@@ -1,0 +1,2 @@
+=== AC8 Horizon & Speed HUD (Robust v8) Started ===
+03:46:25 Bound: Horiz=true, Vert=true

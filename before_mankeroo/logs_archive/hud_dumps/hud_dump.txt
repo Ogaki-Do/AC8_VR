@@ -1,0 +1,44 @@
+==================================================================
+  ACE COMBAT 7 - HUD / 水平儀 調査ダンプ (v2)
+  実行日時: 2026-10-04 01:38:06
+==================================================================
+
+【1. LiveMainHUD 関連アクターの走査】
+  -> LiveMainHUD 関連アクター発見数: 1 件
+
+  [1] アクター: LiveMainHUDParent4K_C /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.LiveMainHUDParent4K_C_2147425369 (クラス: unknown)
+      ● RootComponent: SceneComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.LiveMainHUDParent4K_C_2147425369.DefaultSceneRoot
+        Location: X=397119.25, Y=296141.94, Z=309336.88
+      ▼ 保持コンポーネント一覧 (1 個):
+        - [1] SceneComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.LiveMainHUDParent4K_C_2147425369.DefaultSceneRoot (型: unknown) [Visible: true, Hidden: false]
+      ▼ アクター主要プロパティ値:
+        * BlueprintCreatedComponents = table (要素数: 1)
+            [1] SceneComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.LiveMainHUDParent4K_C_2147425369.DefaultSceneRoot
+        * AlwaysVisibleCanvas = CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147414401.WidgetTree_2147414400.AlwaysVisibleCanvas
+        * ConditionallyVisibleCanvas = CanvasPanel /Engine/Transient.LiveGameEngine_2147482452.BP_LiveGameInstance_C_2147482376.WBP_HUD_Chronicle_MainFlight_000_C_2147414401.WidgetTree_2147414400.ConditionallyVisibleCanvas
+        * AerialRefuelBillboardActor = BP_LiveAerialRefuel3DUIActor_C /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_LiveAerialRefuel3DUIActor_C_2147408849
+        * AerialRefuel3DUIActorClass = BlueprintGeneratedClass /Game/UI/Material/HUD/Texture3DUI/BP_LiveAerialRefuel3DUIActor.BP_LiveAerialRefuel3DUIActor_C
+
+【2. HUD / Cockpit / 3D / Texture 関連オブジェクトの全走査】
+  [1] SceneComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.LiveMainHUDParent4K_C_2147425369.DefaultSceneRoot (型: unknown)
+  [2] SceneComponent /Game/Blueprints/UI/WBP/HUD4K/Common/LiveMainHUDParent4K.LiveMainHUDParent4K_C.DefaultSceneRoot123F490444A8204EAC0B939D2106E425 (型: unknown)
+  -> 該当コンポーネント: 2 件
+
+【3. プレイヤー機 (Pawn) とコックピット】
+  プレイヤー機体: BP_PlayerPlane_PP0006_f35c_C /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877
+  機体コンポーネント数: 65
+    ★ SkeletalMeshComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.CockpitMesh (型: unknown)
+    ★ StaticMeshComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.CockpitMeshStatic (型: unknown)
+    ★ LiveFirstPersonCameraComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.FirstPersonCamera (型: unknown)
+    ★ LiveFirstPersonCameraInputComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.FirstPersonCameraInput (型: unknown)
+    ★ LiveThirdPersonCameraComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.ThirdPersonCamera (型: unknown)
+    ★ LiveThirdPersonCameraInputComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.ThirdPersonCameraInput (型: unknown)
+    ★ LiveCockpitCameraComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.CockpitCamera (型: unknown)
+    ★ LiveCockpitCameraInputComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.CockpitCameraInput (型: unknown)
+    ★ LiveCameraViewComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.CameraView (型: unknown)
+    ★ LiveImpactCameraComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.ImpactCamera (型: unknown)
+    ★ LiveCameraFocusTargetComponent /Game/Maps/Ingame/Mission002/PL_Mission002.PL_Mission002.PersistentLevel.BP_PlayerPlane_PP0006_f35c_C_2147409877.FocusTargetComponent (型: unknown)
+
+==================================================================
+  ダンプ完了
+==================================================================
