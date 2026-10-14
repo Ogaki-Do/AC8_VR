@@ -16,13 +16,15 @@ do
 -- to the post-tick size writer, leaving the introduction's initial size native.
 (function(uevr,json)
 local R=AC8Runtime;local S={version=80,packet=nil,ticks=0};R.worldTargetLayout=S
+local cfgTarget=json.load_file('ac8_workshop_target_controls.json')or{}
+local cfgWorld=json.load_file('ac8_world_target_controls.json')or{}
 local function call(o,k,...)if not o then return end;local ok,v=pcall(function(...)return o[k](o,...)end,...);if ok then return v end end
 local function valid(v,lo,hi)return type(v)=='number'and v==v and v>=lo and v<=hi end
 local function update()
  local c=R.context;local level=c.flight and call(c.hud,'get_outer');local address=R.isLiveObject(level)and call(level,'get_address')or 0
  if not address then address=0 end
- local t=json.load_file('ac8_workshop_target_controls.json')or{}
- local w=json.load_file('ac8_world_target_controls.json')or{}
+ local t=cfgTarget
+ local w=cfgWorld
  local box,label,font,spacing=t.boxScale,t.labelScale,t.fontScale or 1,t.lineSpacing or 0
  if not valid(box,.1,2)or not valid(label,.1,2)or not valid(font,.1,2)or not valid(spacing,-200,200)then box,label,font,spacing=1,1,1,0 end
  local raise=valid(w.labelRaise,-200,200)and w.labelRaise or 0
@@ -32,7 +34,10 @@ local function update()
  if packet~=S.packet then call(uevr.api,'dispatch_custom_event','AC8_WorldTargetLayout',packet);S.packet=packet end
  S.controls={enabled=on,boxScale=box,labelScale=label,fontScale=font,lineSpacing=spacing,useFlatLabelOffsets=w.useFlatLabelOffsets~=false,labelRaise=raise,leftLabelDrop=leftDrop}
 end
-uevr.sdk.callbacks.on_pre_engine_tick(function()S.ticks=S.ticks+1;update()end)
+uevr.sdk.callbacks.on_pre_engine_tick(function()
+ if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetLabels') end
+ S.ticks=S.ticks+1;update()
+end)
 pcall(function()uevr.sdk.callbacks.on_script_reset(function()call(uevr.api,'dispatch_custom_event','AC8_WorldTargetLayout','0|0|1|1|1|0|0|0')end)end)
 end)(AC8Runtime.host('utility','native world target layout'),AC8Runtime.json)
 end
@@ -47,6 +52,7 @@ do
 -- Only box fields are restored here; accepted native label metrics stay separate.
 (function(uevr,json)
 local R=AC8Runtime;local S={version=80,ticks=0,epoch=-1,rows={},writes=0};R.worldBoxDimensionRollback=S
+local cfgControl=json.load_file('ac8_workshop_target_controls.json')or{}
 local fields={'ContainerBoxImageSize','SelectTargetAddContainerBoxSize'}
 local function call(o,k,...)if not o or(o~=uevr.api and not R.isLiveObject(o))then return end;local ok,v=pcall(function(...)return o[k](o,...)end,...);if ok then return v end end
 local function restore()
@@ -58,10 +64,11 @@ local function restore()
  S.rows={}
 end
 uevr.sdk.callbacks.on_post_engine_tick(function()
+ if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetAnim') end
  S.ticks=S.ticks+1;local ctx=R.context
  if S.epoch~=ctx.epoch then restore();S.epoch=ctx.epoch end
  if not ctx.flight then return end
- local control=json.load_file('ac8_workshop_target_controls.json')or{}
+ local control=cfgControl
  local factor=control.enabled==true and tonumber(control.boxScale)or 1
  if not factor or factor~=factor or factor<.1 or factor>2 then return end
  if factor==1 and not next(S.rows)then return end
@@ -112,6 +119,7 @@ do
 
 -- Assignment artwork: native SetElements owns world billboard size; Lua owns attachment offsets and the separate HUD-locator size.
 local api=uevr.api
+local cfgTarget=json.load_file('ac8_workshop_target_controls.json')or{}
 local previous=rawget(_G,'AC8TargetPinsV56');if previous and previous.restore then previous.restore()end
 local S={version=59,ticks=0,rows={},writes=0,failures=0};rawset(_G,'AC8TargetPinsV56',S)
 local function call(o,k,...)if not o then return end;local ok,v=pcall(function(...)return o[k](o,...)end,...);if ok then return v end end
@@ -159,15 +167,17 @@ end
 -- Send the requested scale before this engine tick constructs billboard proxies.
 uevr.sdk.callbacks.on_pre_engine_tick(function()
  if S.stopped then return end
- local controls=json.load_file('ac8_workshop_target_controls.json')
+ local controls=cfgTarget
  local factor=type(controls)=='table'and controls.enabled and tonumber(controls.boxScale)or 1
  if not factor or factor~=factor or factor<.1 or factor>2 then return end
  if S.nativeScale~=factor then call(api,'dispatch_custom_event','AC8_WorldPipScale',tostring(factor));S.nativeScale=factor end
 end)
 uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
+ if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetPinsDraw') end
  if S.stopped then return end;S.ticks=S.ticks+1
- local controls=json.load_file('ac8_workshop_target_controls.json')
- local factor=type(controls)=='table'and controls.enabled and tonumber(controls.boxScale)or 1
+ local controls=cfgTarget
+ if not (type(controls)=='table' and controls.enabled==true) then return end
+ local factor=tonumber(controls.boxScale)or 1
  if not factor or factor<.1 or factor>2 then return end
  local hud=call(call(api,'get_player_controller',0),'GetHUD');local hn=full(hud)or''
  local level=hn:match('^LiveMainHUDParent4K_C (.+%.PersistentLevel)%.');local seen={}
@@ -216,6 +226,9 @@ do
 -- never inferred from flattened HUD/movie pixels.
 (function(uevr,json)
 local R=AC8Runtime;local S={version=79,ticks=0,epoch=-1,components={},saved={},writes=0,failures=0};R.worldTargetSaturation=S
+local control=json.load_file('ac8_world_target_controls.json')or{}
+local fixedFactor=tonumber(control.blueSaturation)or 1.1
+if fixedFactor~=fixedFactor or fixedFactor<1 or fixedFactor>1.5 then fixedFactor=1 end
 local function call(o,k,...)if not o then return end;local ok,v=pcall(function(...)return o[k](o,...)end,...);if ok then return v end end
 local function full(o)return R.isLiveObject(o)and call(o,'get_full_name')end
 local function prop(o,k)return R.isLiveObject(o)and call(o,'get_property',k)end
@@ -250,8 +263,7 @@ local function apply(m,kind,factor)
 end
 uevr.sdk.callbacks.on_post_engine_tick(function()
  S.ticks=S.ticks+1;local c=R.context;local level=(c.hudName or''):match('^LiveMainHUDParent4K_C (.+%.PersistentLevel)%.')
- local control=json.load_file('ac8_world_target_controls.json')or{};local factor=tonumber(control.blueSaturation)or 1.1
- if factor~=factor or factor<1 or factor>1.5 then factor=1 end
+ local factor=fixedFactor
  S.factor=factor
  if S.epoch~=c.epoch then reset();S.epoch=c.epoch;S.components={};S.nextScan=0 end
  if not level or control.enabled==false or factor==1 then reset();return end

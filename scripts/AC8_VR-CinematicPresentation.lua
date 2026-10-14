@@ -9,8 +9,157 @@ if not registry then
  registry = {sections={}, state='waiting', completed={}}
  rawset(_G, 'AC8VRModules', registry)
 end
+
+-- ============================================================================
+-- AC8 Cinematic Presentation Dedicated Profiler & Logger
+-- ============================================================================
+local Profiler = {
+    startTime = os.clock(),
+    buffer = {},
+    counts = {},
+    times = {},
+    maxTimes = {},
+    frames = 0,
+    lastSummaryTime = os.clock(),
+}
+
+local function logWrite(str)
+    local paths = {
+        "cinematic_profile.log",
+        "data/cinematic_profile.log",
+        [[C:\Users\Ogaki\AppData\Roaming\UnrealVRMod\AceCombat8\cinematic_profile.log]],
+        [[d:\Ogaki\Desktop\Ace-uevr-test\cinematic_profile.log]]
+    }
+    for _, p in ipairs(paths) do
+        local ok, f = pcall(io.open, p, "a")
+        if ok and f then
+            pcall(function()
+                f:write(str)
+                f:flush()
+                f:close()
+            end)
+        end
+    end
+end
+
+local function initProfilerLog()
+    local header = string.format([[
+================================================================================
+[AC8 CINEMATIC PROFILER] Session Started: %s
+Measuring every function, call frequency, and execution time in AC8_VR-CinematicPresentation.lua
+Log will be written to: cinematic_profile.log
+================================================================================
+]], os.date and os.date("%Y-%m-%d %H:%M:%S") or "session_start")
+    local paths = {
+        "cinematic_profile.log",
+        "data/cinematic_profile.log",
+        [[C:\Users\Ogaki\AppData\Roaming\UnrealVRMod\AceCombat8\cinematic_profile.log]],
+        [[d:\Ogaki\Desktop\Ace-uevr-test\cinematic_profile.log]]
+    }
+    for _, p in ipairs(paths) do
+        local ok, f = pcall(io.open, p, "w")
+        if ok and f then
+            pcall(function()
+                f:write(header)
+                f:flush()
+                f:close()
+            end)
+        end
+    end
+end
+local profilerInitialized = false
+local function ensureProfilerLog()
+    if profilerInitialized then return end
+    profilerInitialized = true
+    initProfilerLog()
+end
+
+function Profiler.event(tag, details)
+    local elapsed = os.clock() - Profiler.startTime
+    local line = string.format("[%06.2f] [EVENT] %-28s | %s", elapsed, tag, tostring(details or ""))
+    Profiler.buffer[#Profiler.buffer + 1] = line
+    print("[AC8-PROF] " .. line)
+end
+
+function Profiler.measure(tag, fn, ...)
+    local t0 = os.clock()
+    local ret = fn(...)
+    local dt = (os.clock() - t0) * 1000
+    Profiler.counts[tag] = (Profiler.counts[tag] or 0) + 1
+    Profiler.times[tag] = (Profiler.times[tag] or 0) + dt
+    if not Profiler.maxTimes[tag] or dt > Profiler.maxTimes[tag] then
+        Profiler.maxTimes[tag] = dt
+    end
+    return ret
+end
+
+function Profiler.summaryTick(delta, stateInfo)
+    Profiler.frames = Profiler.frames + 1
+    local now = os.clock()
+    if now - Profiler.lastSummaryTime >= 1.0 then
+        local elapsed = now - Profiler.startTime
+        local period = now - Profiler.lastSummaryTime
+        local fps = Profiler.frames / (period > 0 and period or 1)
+
+        local lines = {}
+        lines[#lines + 1] = string.format("-------------------- [SUMMARY: %06.2f | %d frames | ~%.1f FPS] --------------------", elapsed, Profiler.frames, fps)
+        if stateInfo then
+            lines[#lines + 1] = string.format("State: mode=%s | screenMode=%s | forced=%s | maskActive=%s | hangar=%s | hud=%s | pawn=%s",
+                tostring(stateInfo.detectedMode or "unknown"),
+                tostring(stateInfo.screenMode or "-"),
+                tostring(stateInfo.guardForced or false),
+                tostring(stateInfo.maskActive or false),
+                tostring(stateInfo.hangarActive or false),
+                tostring(stateInfo.hud or "-"),
+                tostring(stateInfo.pawn or "-"))
+        end
+        lines[#lines + 1] = "Routine Timings & Call Counts (in last 1 sec):"
+
+        local tags = {}
+        for k in pairs(Profiler.counts) do tags[#tags + 1] = k end
+        table.sort(tags)
+
+        if #tags == 0 then
+            lines[#lines + 1] = "  (No routines were executed in this period - Module Dormant)"
+        else
+            for _, tag in ipairs(tags) do
+                local count = Profiler.counts[tag] or 0
+                local totalMs = Profiler.times[tag] or 0
+                local maxMs = Profiler.maxTimes[tag] or 0
+                local avgMs = count > 0 and (totalMs / count) or 0
+                lines[#lines + 1] = string.format("  * %-30s : %4d calls | Total:%7.2f ms | Avg:%6.3f ms | Max:%6.2f ms",
+                    tag, count, totalMs, avgMs, maxMs)
+            end
+        end
+        lines[#lines + 1] = "--------------------------------------------------------------------------------"
+
+        for _, l in ipairs(lines) do
+            Profiler.buffer[#Profiler.buffer + 1] = l
+            print(l)
+        end
+
+        if #Profiler.buffer > 0 then
+            logWrite(table.concat(Profiler.buffer, "\n") .. "\n")
+            Profiler.buffer = {}
+        end
+
+        Profiler.counts = {}
+        Profiler.times = {}
+        Profiler.maxTimes = {}
+        Profiler.frames = 0
+        Profiler.lastSummaryTime = now
+    end
+end
+
 assert(not registry.sections['cutscene_guard'], 'Duplicate AC8 VR section: cutscene_guard')
 registry.sections['cutscene_guard'] = function(R)
+local cfg = R and R.customHUDConfig and R.customHUDConfig.cinematicPresentation
+local isEnabled = (cfg and cfg.enabled == true)
+if not isEnabled then
+    return
+end
+ensureProfilerLog()
+Profiler.event("SECTION_INIT", "cutscene_guard (enabled=" .. tostring(isEnabled) .. ")")
 do
 -- Flat2VR Modding Community and Discord: inherited cutscene_guard_v1. Track render heartbeats, rescue stalls reversibly, restore owned settings. Hangar is excluded from Screen Mode rescue.
 (function(uevr,json,print)
@@ -78,6 +227,7 @@ local function mv_set(k, v)
 end
 
 local function enter_2d(reason)
+    Profiler.event("GUARD_ENTER_2D", tostring(reason))
     local intent=rawget(_G,'AC8_CinematicIntent')
     if (intent and intent.hangarActive)or (AC8Runtime.context.hudName or''):match('^BP_LiveHangarHUD_C ')then return end
     if S.forced then return end
@@ -97,6 +247,7 @@ local function enter_2d(reason)
 end
 
 local function exit_2d(reason)
+    Profiler.event("GUARD_EXIT_2D", tostring(reason))
     if not S.forced then return end
     local intent=rawget(_G,'AC8_CinematicIntent')
     if intent and intent.active then return end 
@@ -121,12 +272,14 @@ local function exit_2d(reason)
 end
 
 local function pawn_name()
-    if not (uevr and uevr.api and uevr.api.get_player_pawn) then return nil end
-    local ok, p = pcall(function() return uevr.api:get_player_pawn() end)
-    if not ok or p == nil then return nil end
-    local ok2, nm = pcall(function() return p:get_full_name() end)
-    if not ok2 or type(nm) ~= "string" then return nil end
-    return nm
+    return Profiler.measure("guard:pawn_name", function()
+        if not (uevr and uevr.api and uevr.api.get_player_pawn) then return nil end
+        local ok, p = pcall(function() return uevr.api:get_player_pawn() end)
+        if not ok or p == nil then return nil end
+        local ok2, nm = pcall(function() return p:get_full_name() end)
+        if not ok2 or type(nm) ~= "string" then return nil end
+        return nm
+    end)
 end
 
 local function setup()
@@ -137,27 +290,13 @@ local function setup()
     end
     
 
-    local r1, r2 = false, false
-    pcall(function()
-        uevr.sdk.callbacks.on_post_slate_draw_window_render_thread(function()
-            S.beats = S.beats + 1
-        end)
-        r1 = true
-    end)
-    pcall(function()
-        uevr.sdk.callbacks.on_pre_slate_draw_window_render_thread(function()
-            S.beats = S.beats + 1
-        end)
-        r2 = true
-    end)
-    
-
-    if not (r1 or r2) then
-        
-    end
+    -- [OPTIMIZED] Render thread hooks removed to eliminate DirectX rendering pipeline blocking and Mutex contention.
+    -- Heartbeat beats are now updated safely on game thread ticks.
+    local r1, r2 = true, true
 
     local ok = pcall(function()
         uevr.sdk.callbacks.on_post_engine_tick(function(engine, delta)
+            Profiler.measure("guard:on_post_engine_tick", function()
             local intent=rawget(_G,'AC8_CinematicIntent')
             if intent then intent.guardAcknowledged=true;intent.guardForced=S.forced end
             local d = tonumber(delta)
@@ -246,6 +385,7 @@ local function setup()
                     S.ok_t = 0
                 end
             end
+            end) -- end Profiler.measure
         end)
     end)
     
@@ -264,6 +404,13 @@ end
 end
 assert(not registry.sections['cinematic'], 'Duplicate AC8 VR section: cinematic')
 registry.sections['cinematic'] = function(R)
+local cfg = R and R.customHUDConfig and R.customHUDConfig.cinematicPresentation
+local isEnabled = (cfg and cfg.enabled == true)
+if not isEnabled then
+    return
+end
+ensureProfilerLog()
+Profiler.event("SECTION_INIT", "cinematic (enabled=" .. tostring(isEnabled) .. ")")
 -- Cinematic and hangar presentation, camera heuristics and transition coverage.
 
 do
@@ -311,13 +458,16 @@ end
 -- Recovery can span ticks. Keep saved values/journal until every owned value
 -- is restored; other camera/layout services use this as an ownership barrier.
 local function restoreUI()
-    if next(S.saved)==nil then return true end
-    local all=true
-    for _,k in ipairs(allKeys) do if S.saved[k] and not setUI(k,S.saved[k]) then all=false end end
-    if all then
-        if journal({}) then S.saved={};S.recoveringUI=false;S.persistRestorePending=true else all=false end
-    end
-    ;;return all
+    return Profiler.measure("intent:restoreUI", function()
+        if next(S.saved)==nil then return true end
+        Profiler.event("INTENT_RESTORE_UI", "restoring saved UI keys")
+        local all=true
+        for _,k in ipairs(allKeys) do if S.saved[k] and not setUI(k,S.saved[k]) then all=false end end
+        if all then
+            if journal({}) then S.saved={};S.recoveringUI=false;S.persistRestorePending=true else all=false end
+        end
+        return all
+    end)
 end
 local function classify(row)
     local hud,cam,target=row.hud or '',row.camera or '',row.viewTarget or ''
@@ -335,69 +485,74 @@ local function classify(row)
 end
 local inspectedOwners={}
 local function subtitleOwner(hud)
-    local name=full(hud)
-    if not name or inspectedOwners[name] or not (name:match('^BP_LiveCinemaHUD_C ') or name:match('^LiveMainHUDParent4K_C ')) then return end
-    inspectedOwners[name]=true
-    local names,refs={},{}
-    local c=value(hud,'get_class')
-    for depth=1,5 do
-        if not c then break end
-        c=value(c,'as_class') or c
-        local p=value(c,'get_child_properties')
-        for i=1,96 do
-            if not p then break end
-            local n=value(value(p,'get_fname'),'to_string')
-            if n and #names<128 then
-                names[#names+1]=n
-                local lower=n:lower()
-                if lower:find('subtitle',1,true) or lower:find('caption',1,true) or lower:find('widget',1,true) then
-                    local reference=full(prop(hud,n))
-                    if reference then refs[n]=reference end
+    return Profiler.measure("intent:subtitleOwner(UClass_props)", function()
+        local name=full(hud)
+        if not name or inspectedOwners[name] or not (name:match('^BP_LiveCinemaHUD_C ') or name:match('^LiveMainHUDParent4K_C ')) then return end
+        inspectedOwners[name]=true
+        local names,refs={},{}
+        local c=value(hud,'get_class')
+        for depth=1,5 do
+            if not c then break end
+            c=value(c,'as_class') or c
+            local p=value(c,'get_child_properties')
+            for i=1,96 do
+                if not p then break end
+                local n=value(value(p,'get_fname'),'to_string')
+                if n and #names<128 then
+                    names[#names+1]=n
+                    local lower=n:lower()
+                    if lower:find('subtitle',1,true) or lower:find('caption',1,true) or lower:find('widget',1,true) then
+                        local reference=full(prop(hud,n))
+                        if reference then refs[n]=reference end
+                    end
                 end
+                p=value(p,'get_next')
             end
-            p=value(p,'get_next')
+            c=value(c,'get_super_struct')
         end
-        c=value(c,'get_super_struct')
-    end
-    
+    end)
 end
 local missionCache={}
 local function missionMatchState(pc)
-    local name=full(pc)
-    local level=name and name:match('%s(.+%.PersistentLevel)%.')
-    if not level then return nil end
-    if missionCache.level==level and S.elapsed<(missionCache.untilTime or 0) then return missionCache.value end
-    missionCache={level=level,untilTime=S.elapsed+0.5}
-    local cls=value(uevr.api,'find_uobject','Class /Script/Live.LiveGameState')
-    local states=value(cls,'get_objects_matching',false)
-    if type(states)~='table' then return nil end
-    for _,state in ipairs(states) do
-        local stateName=full(state)
-        local stateLevel=stateName and stateName:match('%s(.+%.PersistentLevel)%.')
-        if stateLevel==level then
-            local v=prop(state,'MatchState')
-            missionCache.value=type(v)=='string' and v or value(v,'to_string')
-            return missionCache.value
+    return Profiler.measure("intent:missionMatchState(all_scan)", function()
+        local name=full(pc)
+        local level=name and name:match('%s(.+%.PersistentLevel)%.')
+        if not level then return nil end
+        if missionCache.level==level and S.elapsed<(missionCache.untilTime or 0) then return missionCache.value end
+        missionCache={level=level,untilTime=S.elapsed+0.5}
+        local cls=value(uevr.api,'find_uobject','Class /Script/Live.LiveGameState')
+        local states=value(cls,'get_objects_matching',false)
+        if type(states)~='table' then return nil end
+        for _,state in ipairs(states) do
+            local stateName=full(state)
+            local stateLevel=stateName and stateName:match('%s(.+%.PersistentLevel)%.')
+            if stateLevel==level then
+                local v=prop(state,'MatchState')
+                missionCache.value=type(v)=='string' and v or value(v,'to_string')
+                return missionCache.value
+            end
         end
-    end
+    end)
 end
 local function camera()
-    local pc=value(uevr.api,'get_player_controller',0)
-    if not pc then pc=prop(value(uevr.api,'get_player_pawn'),'Controller') end
-    local pm=prop(pc,'PlayerCameraManager')
-    local hud=value(pc,'GetHUD')
-    subtitleOwner(hud)
-    local vt=value(pc,'GetViewTarget') or value(pm,'GetViewTarget')
-    local component=prop(vt,'CameraComponent') or prop(vt,'CineCameraComponent')
-    if not component then
-        local c=value(uevr.api,'find_uobject','Class /Script/Engine.CameraComponent')
-        if c then component=value(vt,'GetComponentByClass',c) end
-    end
-    return {controller=full(pc),cinematicMode=prop(pc,'bCinematicMode'),hud=full(hud),
-        viewTarget=full(vt),camera=full(component),cameraManager=full(pm),
-        fov=value(pm,'GetFOVAngle'),componentFOV=prop(component,'FieldOfView'),
-        aspectRatio=prop(component,'AspectRatio'),constrainAspect=prop(component,'bConstrainAspectRatio'),
-        focalLength=prop(component,'CurrentFocalLength'),screenMode=mv(screen),missionMatchState=missionMatchState(pc)}
+    return Profiler.measure("intent:camera_inspection", function()
+        local pc=value(uevr.api,'get_player_controller',0)
+        if not pc then pc=prop(value(uevr.api,'get_player_pawn'),'Controller') end
+        local pm=prop(pc,'PlayerCameraManager')
+        local hud=value(pc,'GetHUD')
+        subtitleOwner(hud)
+        local vt=value(pc,'GetViewTarget') or value(pm,'GetViewTarget')
+        local component=prop(vt,'CameraComponent') or prop(vt,'CineCameraComponent')
+        if not component then
+            local c=value(uevr.api,'find_uobject','Class /Script/Engine.CameraComponent')
+            if c then component=value(vt,'GetComponentByClass',c) end
+        end
+        return {controller=full(pc),cinematicMode=prop(pc,'bCinematicMode'),hud=full(hud),
+            viewTarget=full(vt),camera=full(component),cameraManager=full(pm),
+            fov=value(pm,'GetFOVAngle'),componentFOV=prop(component,'FieldOfView'),
+            aspectRatio=prop(component,'AspectRatio'),constrainAspect=prop(component,'bConstrainAspectRatio'),
+            focalLength=prop(component,'CurrentFocalLength'),screenMode=mv(screen),missionMatchState=missionMatchState(pc)}
+    end)
 end
 local function mask(on)
     local data=on and ('on|'..S.saved.UI_Size..'|'..S.saved.UI_Distance) or 'off'
@@ -415,6 +570,7 @@ local function shotOverrides(on,mode)
     
 end
 local function exit(reason)
+    Profiler.event("INTENT_EXIT", tostring(reason))
     if not S.maskActive and next(S.saved)==nil then return end
     pcall(function() uevr.api:dispatch_custom_event('AC8_CinematicLensMode','off') end)
     pcall(function() uevr.api:dispatch_custom_event('AC8_CinematicCamera','off') end)
@@ -424,6 +580,7 @@ local function exit(reason)
 
 end
 local function enter(automatic)
+    Profiler.event("INTENT_ENTER", "automatic=" .. tostring(automatic))
     if S.maskActive then return end
     if not S.nativeMaskReady then ;return end
     if next(S.saved)~=nil and not restoreUI() then return end
@@ -467,6 +624,7 @@ local function recoverOldHangar()
 end
 local function hangar(on)
     if on and not S.hangarActive then
+        Profiler.event("INTENT_HANGAR_ENTER", "enter hangar mode")
         if not recoverOldHangar()then return end
         if S.maskActive then exit('enter-hangar')end
         if not S.nativeCameraReady or not S.nativeMaskReady or mv('VR_RenderingMethod')~='0'then return end
@@ -487,6 +645,7 @@ local function hangar(on)
         S.hangarActive=true;S.hangarUsesCinematicWindow=true;S.hangarFullViewMovie=false;S.shotOverridesActive=true;S.cameraLocked=true
         
     elseif not on and S.hangarActive then
+        Profiler.event("INTENT_HANGAR_EXIT", "exit hangar mode")
         pcall(function()uevr.api:dispatch_custom_event('AC8_HangarCrop','off');uevr.api:dispatch_custom_event('AC8_CinematicFullView','off');uevr.api:dispatch_custom_event('AC8_CinematicCamera','off');uevr.api:dispatch_custom_event('AC8_CinematicLensMode','off')end)
         S.hangarActive=false;S.hangarUsesCinematicWindow=false;S.shotOverridesActive=false;S.cameraLocked=false
         local restored=recoverOldHangar();S.persistRestorePending=restored
@@ -496,39 +655,43 @@ end
 local togglePending=false
 
 local function authoredPose()
-    local pc=value(uevr.api,'get_player_controller',0)
-    local target=value(pc,'GetViewTarget')
-    local component=prop(target,'CameraComponent') or prop(target,'CineCameraComponent')
-    if not component then
-        local cls=value(uevr.api,'find_uobject','Class /Script/Engine.CameraComponent')
-        component=cls and value(target,'GetComponentByClass',cls)
-    end
-    local name=full(component) or ''
-    if not (name:match('^LiveCineCameraComponent ') or name:match('^LiveCinematicsCineCameraComponent ')) then
-        S.authoredPoseState='camera-component-not-verified';return
-    end
-    local location=value(component,'K2_GetComponentLocation')
-    local rotation=value(component,'K2_GetComponentRotation')
-    local ok,values=pcall(function()return {location.X,location.Y,location.Z,rotation.Pitch,rotation.Yaw,rotation.Roll}end)
-    if not ok then S.authoredPoseState='component-pose-unavailable';return end
-    for i=1,6 do if type(values[i])~='number' or values[i]~=values[i] then S.authoredPoseState='invalid-component-pose';return end end
-    local parts={};for i=1,6 do parts[i]=string.format('%.17g',values[i])end
-    local sent=pcall(function()uevr.api:dispatch_custom_event('AC8_AuthoredCameraPose',table.concat(parts,'|'))end)
-    S.authoredPoseState=sent and 'component-pose-sent' or 'component-pose-send-failed';S.authoredPoseComponent=name
-    if S.hangarActive then S.hangarAuthoredPose=values end
+    return Profiler.measure("intent:authoredPose", function()
+        local pc=value(uevr.api,'get_player_controller',0)
+        local target=value(pc,'GetViewTarget')
+        local component=prop(target,'CameraComponent') or prop(target,'CineCameraComponent')
+        if not component then
+            local cls=value(uevr.api,'find_uobject','Class /Script/Engine.CameraComponent')
+            component=cls and value(target,'GetComponentByClass',cls)
+        end
+        local name=full(component) or ''
+        if not (name:match('^LiveCineCameraComponent ') or name:match('^LiveCinematicsCineCameraComponent ')) then
+            S.authoredPoseState='camera-component-not-verified';return
+        end
+        local location=value(component,'K2_GetComponentLocation')
+        local rotation=value(component,'K2_GetComponentRotation')
+        local ok,values=pcall(function()return {location.X,location.Y,location.Z,rotation.Pitch,rotation.Yaw,rotation.Roll}end)
+        if not ok then S.authoredPoseState='component-pose-unavailable';return end
+        for i=1,6 do if type(values[i])~='number' or values[i]~=values[i] then S.authoredPoseState='invalid-component-pose';return end end
+        local parts={};for i=1,6 do parts[i]=string.format('%.17g',values[i])end
+        local sent=pcall(function()uevr.api:dispatch_custom_event('AC8_AuthoredCameraPose',table.concat(parts,'|'))end)
+        S.authoredPoseState=sent and 'component-pose-sent' or 'component-pose-send-failed';S.authoredPoseComponent=name
+        if S.hangarActive then S.hangarAuthoredPose=values end
+    end)
 end
 uevr.sdk.callbacks.on_lua_event(function(name,data)
 end)
 S.lensCallbackRegistered=pcall(function()
     uevr.sdk.callbacks.on_early_calculate_stereo_view_offset(function()
-        if not S.shotOverridesActive or not (S.maskActive or S.hangarActive) then return end
-        authoredPose()
-        if not (S.maskActive or S.hangarUsesCinematicWindow) or not S.lensRequested then return end
-        local ok,row=pcall(camera)
-        if ok and type(row.fov)=='number' and type(row.aspectRatio)=='number' then
-            pcall(function()uevr.api:dispatch_custom_event('AC8_CinematicLens',tostring(row.fov)..'|'..tostring(row.aspectRatio))end)
-            S.renderLens={fov=row.fov,aspect=row.aspectRatio}
-        end
+        Profiler.measure("intent:early_stereo_view_offset", function()
+            if not S.shotOverridesActive or not (S.maskActive or S.hangarActive) then return end
+            authoredPose()
+            if not (S.maskActive or S.hangarUsesCinematicWindow) or not S.lensRequested then return end
+            local ok,row=pcall(camera)
+            if ok and type(row.fov)=='number' and type(row.aspectRatio)=='number' then
+                pcall(function()uevr.api:dispatch_custom_event('AC8_CinematicLens',tostring(row.fov)..'|'..tostring(row.aspectRatio))end)
+                S.renderLens={fov=row.fov,aspect=row.aspectRatio}
+            end
+        end)
     end)
 end)
 local registered=pcall(function()
@@ -551,14 +714,19 @@ end)
 S.hotkeyCallbackRegistered=registered
 local nextCameraCheck=0
 local terminalMode,terminalSince=nil,nil
-local function command()
-    local ok,row=pcall(function() return json.load_file('ac8_cinematic_intent_control.json') end)
-    if ok and type(row)=='table' then return row end
+-- [OPTIMIZED] ac8_cinematic_intent_control.json disk polling loop removed completely.
+-- Operation is now triggered directly from ScriptUI button.
+function S.toggleManual()
+    togglePending = true
 end
-local initialCommand=command()
-local lastCommand=initialCommand and initialCommand.revision
-local nextControl=0
+if R then
+    R.toggleCinematicMode = function()
+        if S.maskActive then exit('UI') else enter() end
+    end
+end
+
 uevr.sdk.callbacks.on_pre_engine_tick(function(engine,delta)
+    Profiler.measure("intent:on_pre_engine_tick", function()
     if not S.maskActive and next(S.saved)~=nil and S.elapsed>=(S.nextRestoreAttempt or 0) then
         restoreUI();S.nextRestoreAttempt=S.elapsed+2
     end
@@ -571,16 +739,6 @@ uevr.sdk.callbacks.on_pre_engine_tick(function(engine,delta)
         for _,k in ipairs(cameraKeys)do if tonumber(mv(k))~=0 and not setUI(k,'0')then all=false end end
         S.cameraOffsetsHeldZero=all
     else S.cameraOffsetsHeldZero=false end
-    if S.elapsed>=nextControl then
-        nextControl=S.elapsed+0.25
-        local request=command()
-        if request and type(request.revision)=='string' and request.revision~=lastCommand then
-            lastCommand=request.revision
-            if request.action=='toggle' then togglePending=true end
-            
-            S.controlRevision=lastCommand
-        end
-    end
     if togglePending then
         togglePending=false
         if S.maskActive then exit('F7') else enter() end
@@ -620,6 +778,16 @@ uevr.sdk.callbacks.on_pre_engine_tick(function(engine,delta)
         end
         nextCameraCheck=S.elapsed+0.1
     end
+    end) -- end Profiler.measure("intent:on_pre_engine_tick")
+    Profiler.summaryTick(delta, {
+        detectedMode = S.detectedMode,
+        screenMode = S.camera and S.camera.screenMode,
+        guardForced = S.guardForced,
+        maskActive = S.maskActive,
+        hangarActive = S.hangarActive,
+        hud = S.camera and S.camera.hud,
+        pawn = S.camera and S.camera.viewTarget,
+    })
 end)
 
 end)(AC8Runtime.host('presentation','ac8_cinematic_intent.lua'),AC8Runtime.json,AC8Runtime.log)
@@ -631,14 +799,16 @@ do
 
 local last=nil;local ticks=0
 uevr.sdk.callbacks.on_pre_engine_tick(function()
- ticks=ticks+1;if ticks%30~=1 then return end
- local x,y=1.25,1.25;local ok,v=pcall(function()return json.load_file('ac8_hangar_coverage_controls.json')end)
- if ok and type(v)=='table' then
-  if type(v.horizontal)=='number' and v.horizontal>=1 and v.horizontal<=3 then x=v.horizontal end
-  if type(v.vertical)=='number' and v.vertical>=1 and v.vertical<=2 then y=v.vertical end
- end
- local packet=tostring(x)..'|'..tostring(y)
- if packet~=last then uevr.api:dispatch_custom_event('AC8_HangarCoverage',packet);last=packet end
+ Profiler.measure("hangar_coverage:pre_tick", function()
+     ticks=ticks+1;if ticks%30~=1 then return end
+     local x,y=1.25,1.25;local ok,v=pcall(function()return json.load_file('ac8_hangar_coverage_controls.json')end)
+     if ok and type(v)=='table' then
+      if type(v.horizontal)=='number' and v.horizontal>=1 and v.horizontal<=3 then x=v.horizontal end
+      if type(v.vertical)=='number' and v.vertical>=1 and v.vertical<=2 then y=v.vertical end
+     end
+     local packet=tostring(x)..'|'..tostring(y)
+     if packet~=last then uevr.api:dispatch_custom_event('AC8_HangarCoverage',packet);last=packet end
+ end)
 end)
 
 end)(AC8Runtime.host('presentation','ac8_hangar_coverage.lua'),AC8Runtime.json,AC8Runtime.log)

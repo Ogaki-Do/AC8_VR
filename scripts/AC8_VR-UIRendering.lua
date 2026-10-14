@@ -122,8 +122,8 @@ local function intersection(a,b)
     local r={math.max(a[1],b[1]),math.max(a[2],b[2]),math.min(a[3],b[3]),math.min(a[4],b[4])}
     if r[1]>=r[3] or r[2]>=r[4]then return nil end;return r
 end
-local function bounds(w,g,size,inset)
-    local ancestors=chain(w);if not ancestors then return nil end
+local function bounds(w,g,size,inset,cachedAncestors)
+    local ancestors=cachedAncestors or chain(w);if not ancestors then return nil end
     local r=intersection(rawBounds(w,g,size,inset),{0,0,1,1});if not r then return nil end
 
     for _,a in ipairs(ancestors)do
@@ -155,61 +155,280 @@ local function kind(n,w)
     end
 
 end
-local function discover()
+
+-- Direct hierarchy discovery helpers: walk only the target widget's branch
+local function iterChildren(w)
+    local children = {}
+    if not w then return children end
+    local okc, cc = pcall(function() return call(w, 'GetChildrenCount') or 0 end)
+    if okc and type(cc) == 'number' and cc > 0 then
+        for i = 0, cc - 1 do
+            local ok2, c = pcall(function() return call(w, 'GetChildAt', i) end)
+            if ok2 and c then children[#children + 1] = c end
+        end
+    end
+    local wt = field(w, 'WidgetTree')
+    if wt then
+        local r = field(wt, 'RootWidget')
+        if r then children[#children + 1] = r end
+    end
+    return children
+end
+
+local function findDesc(root, target, maxd, exact)
+    if not root then return nil end
+    local seen, found = {}, nil
+    local function rec(w, d)
+        if not w or found or d > maxd then return end
+        local addr = tostring(w)
+        if seen[addr] then return end
+        seen[addr] = true
+        local fn = full(w) or ''
+        local nm = fn:match('%.([^%.]+)$') or fn:match('^%S+ (.+)$') or fn
+        local hit = exact and (nm == target) or (not exact and nm:find(target, 1, true) ~= nil)
+        if hit then found = w; return end
+        for _, c in ipairs(iterChildren(w)) do rec(c, d + 1) end
+    end
+    rec(root, 0)
+    return found
+end
+
+local function findDescAll(root, targetPattern, maxd)
+    local results = {}
+    if not root then return results end
+    local seen = {}
+    local function rec(w, d)
+        if not w or d > maxd then return end
+        local addr = tostring(w)
+        if seen[addr] then return end
+        seen[addr] = true
+        local fn = full(w) or ''
+        local nm = fn:match('%.([^%.]+)$') or fn:match('^%S+ (.+)$') or fn
+        if nm:match(targetPattern) then
+            results[#results + 1] = w
+        end
+        for _, c in ipairs(iterChildren(w)) do rec(c, d + 1) end
+    end
+    rec(root, 0)
+    return results
+end
+
+-- Rebuild UI cache function: can be called anytime externally or on demand
+local rebuildUIRectangles
+
+local function rebuildUICache(force)
+    if not force and S.candidates and #S.candidates > 0 and S.root and full(S.root) == S.rootName then
+        return true
+    end
     S.candidates={};S.roots={};S.root=nil
-    local hud=call(call(api,'get_player_controller',0),'GetHUD');S.root=call(hud,'get_property','HudWidget');S.rootName=full(S.root)
-    if not S.rootName then return end
-    local roots=call(call(api,'find_uobject','Class /Script/UMG.UserWidget'),'get_objects_matching',false) or {}
-    local prefixes,ownedRoots={},{}
-    local function addRoot(w)
-        local n=full(w) or '';local path=n:match('^%S+ (.+)$')
-        if path and path:find('/Engine/Transient.',1,true) and not S.roots[n] then S.roots[n]=true;prefixes[#prefixes+1]=path;ownedRoots[#ownedRoots+1]=w end
+    local pc = call(api, 'get_player_controller', 0)
+    local hud = pc and call(pc, 'GetHUD')
+    if not hud then return false end
+    local hudWidget = call(hud, 'get_property', 'HudWidget')
+    local msgWidget = call(hud, 'get_property', 'HUDMessageWidget')
+    S.root = hudWidget
+    S.rootName = full(S.root)
+    if not S.rootName then return false end
+
+    -- [FAST PATH] Targeted direct hierarchy lookup: 0 UMG.Widget global scans
+    local fastCandidates = {}
+    local function addCandidate(w, category, inset, flags)
+        if not w then return end
+        local n = full(w)
+        if not n then return end
+        local ancestors = chain(w)
+        if ancestors then
+            fastCandidates[#fastCandidates + 1] = {
+                widget = w,
+                name = n,
+                category = category,
+                inset = inset,
+                flags = flags,
+                ancestors = ancestors
+            }
+        end
     end
 
-    for _,key in ipairs({'HudWidget','SubtitleWidget','HUDMessageWidget','NonGlowWidget','GlowWidgetPtr','NonGlowFrontWidgetPtr','NonGlowBackWidgetPtr'})do
-        addRoot(call(hud,'get_property',key))
+    -- 1. Radio portrait & banner: direct under HUDMessageWidget
+    if msgWidget then
+        local portrait = findDesc(msgWidget, 'Portrait', 8, true)
+        if portrait then addCandidate(portrait, 'portrait', 2, {1, 1, 0, 1}) end
+        local banner = findDesc(msgWidget, 'LayerTwoBackground', 8, true)
+        if banner then addCandidate(banner, 'banner', 0, {1, 0, 1, 1}) end
     end
-    for _,w in ipairs(roots)do
-        local n=full(w) or '';local path=n:match('^%S+ (.+)$')
-        if path and path:find('/Engine/Transient.',1,true) and
-            (call(w,'IsInViewport')==true or (S.elapsed<(S.nativeRootsUntil or 0) and S.nativeRootPaths[path]))then
+
+    -- 2. Player state, weapons, flares, chaff: direct under HudWidget
+    if hudWidget then
+        local planeBg = findDesc(hudWidget, 'PlaneIconBackGround', 12, true)
+        if planeBg then addCandidate(planeBg, 'plane-linework', 0, {0, 0, 1, 0}) end
+
+        local missiles = findDescAll(hudWidget, '^MissilePB%d+$', 14)
+        for _, m in ipairs(missiles) do addCandidate(m, 'missile-art', 0, {0, 0, 1, 0}) end
+
+        local flares = findDescAll(hudWidget, '^FlarePB%d+$', 14)
+        for _, f in ipairs(flares) do addCandidate(f, 'countermeasure-art', 0, {0, 0, 1, 0}) end
+
+        local chaffs = findDescAll(hudWidget, '^ChaffPB%d+$', 14)
+        for _, c in ipairs(chaffs) do addCandidate(c, 'countermeasure-art', 0, {0, 0, 1, 0}) end
+    end
+
+    if #fastCandidates > 0 then
+        local priority = {portrait = 1, ['plane-linework'] = 2, ['missile-art'] = 3, ['countermeasure-art'] = 3, banner = 4, ['radio-normal-glow'] = 5}
+        table.sort(fastCandidates, function(a, b)
+            local pa, pb = priority[a.category] or 9, priority[b.category] or 9
+            if pa ~= pb then return pa < pb end
+            return a.name < b.name
+        end)
+        while #fastCandidates > 128 do table.remove(fastCandidates) end
+        S.candidates = fastCandidates
+        S.directHits = (S.directHits or 0) + 1
+        if rebuildUIRectangles then rebuildUIRectangles(true) end
+        return true
+    end
+
+    -- [FALLBACK PATH] Bounded scan only if direct tree lookup yielded nothing
+    local roots = call(call(api, 'find_uobject', 'Class /Script/UMG.UserWidget'), 'get_objects_matching', false) or {}
+    local prefixes, ownedRoots = {}, {}
+    local function addRoot(w)
+        local n = full(w) or ''; local path = n:match('^%S+ (.+)$')
+        if path and path:find('/Engine/Transient.', 1, true) and not S.roots[n] then S.roots[n] = true; prefixes[#prefixes + 1] = path; ownedRoots[#ownedRoots + 1] = w end
+    end
+
+    for _, key in ipairs({'HudWidget', 'SubtitleWidget', 'HUDMessageWidget', 'NonGlowWidget', 'GlowWidgetPtr', 'NonGlowFrontWidgetPtr', 'NonGlowBackWidgetPtr'}) do
+        addRoot(call(hud, 'get_property', key))
+    end
+    for _, w in ipairs(roots) do
+        local n = full(w) or ''; local path = n:match('^%S+ (.+)$')
+        if path and path:find('/Engine/Transient.', 1, true) and
+            (call(w, 'IsInViewport') == true or (S.elapsed < (S.nativeRootsUntil or 0) and S.nativeRootPaths[path])) then
             addRoot(w)
         end
     end
-    local widgets,seen={},{}
-    local complete=true
-    for _,root in ipairs(ownedRoots)do
-        local owned=AC8Runtime.ownedWidgets(root)
-        if not owned then complete=false;break end
-        for _,w in ipairs(owned)do
-            local n=full(w)
-            if n and not seen[n]then seen[n]=true;widgets[#widgets+1]=w end
+    local widgets, seen = {}, {}
+    local complete = true
+    for _, root in ipairs(ownedRoots) do
+        local owned = AC8Runtime.ownedWidgets(root)
+        if not owned then complete = false; break end
+        for _, w in ipairs(owned) do
+            local n = full(w)
+            if n and not seen[n] then seen[n] = true; widgets[#widgets + 1] = w end
         end
     end
     if not complete then
-        widgets=call(call(api,'find_uobject','Class /Script/UMG.Widget'),'get_objects_matching',false) or {}
-        S.fallbackScans=(S.fallbackScans or 0)+1
-    else S.ownedScans=(S.ownedScans or 0)+1 end
-    for i,w in ipairs(widgets)do
-        if i>32768 then break end
-        local n=full(w) or '';local category,inset,flags=kind(n,w);local path=n:match('^%S+ (.+)$')
+        widgets = call(call(api, 'find_uobject', 'Class /Script/UMG.Widget'), 'get_objects_matching', false) or {}
+        S.fallbackScans = (S.fallbackScans or 0) + 1
+    else S.ownedScans = (S.ownedScans or 0) + 1 end
+    for i, w in ipairs(widgets) do
+        if i > 32768 then break end
+        local n = full(w) or ''; local category, inset, flags = kind(n, w); local path = n:match('^%S+ (.+)$')
         if category and path then
-            for _,prefix in ipairs(prefixes)do
-                if path==prefix or path:sub(1,#prefix+1)==prefix..'.'then
-
-                    if chain(w)then S.candidates[#S.candidates+1]={widget=w,name=n,category=category,inset=inset,flags=flags}end
+            for _, prefix in ipairs(prefixes) do
+                if path == prefix or path:sub(1, #prefix + 1) == prefix .. '.' then
+                    local ancestors = chain(w)
+                    if ancestors then S.candidates[#S.candidates + 1] = {widget = w, name = n, category = category, inset = inset, flags = flags, ancestors = ancestors} end
                     break
                 end
             end
         end
     end
-    local priority={portrait=1,['plane-linework']=2,['missile-art']=3,['countermeasure-art']=3,banner=4,['radio-normal-glow']=5}
-    table.sort(S.candidates,function(a,b)
-        local pa,pb=priority[a.category] or 9,priority[b.category] or 9
-        if pa~=pb then return pa<pb end;return a.name<b.name
+    local priority = {portrait = 1, ['plane-linework'] = 2, ['missile-art'] = 3, ['countermeasure-art'] = 3, banner = 4, ['radio-normal-glow'] = 5}
+    table.sort(S.candidates, function(a, b)
+        local pa, pb = priority[a.category] or 9, priority[b.category] or 9
+        if pa ~= pb then return pa < pb end; return a.name < b.name
     end)
-    while #S.candidates>128 do table.remove(S.candidates)end
+    while #S.candidates > 128 do table.remove(S.candidates) end
+    if #S.candidates > 0 and rebuildUIRectangles then
+        rebuildUIRectangles(true)
+    end
+    return #S.candidates > 0
 end
+local discover = rebuildUICache
+
+-- Compute and cache UI policy rectangles: eliminates per-frame Slate matrix transforms
+rebuildUIRectangles = function(force)
+    if not force and S.cachedRectangles and #S.cachedRectangles > 0 and S.root and full(S.root) == S.rootName then
+        return S.cachedRectangles
+    end
+    if not S.root or full(S.root) ~= S.rootName or not S.candidates or #S.candidates == 0 then
+        return S.cachedRectangles or {}
+    end
+    local g = geometry(S.root)
+    local size = xy(call(slate, 'GetLocalSize', g))
+    if not size or size.X <= 0 or size.Y <= 0 then
+        return S.cachedRectangles or {}
+    end
+
+    local rectangles = {}
+    local function add(r, flags, name, category)
+        if not r then return end
+        for i = #rectangles, 1, -1 do
+            local a = rectangles[i]; local same = true
+            for j = 1, 4 do if flags[j] ~= a.flags[j] then same = false end end
+            if same then
+                if r[1] >= a.bounds[1] and r[2] >= a.bounds[2] and r[3] <= a.bounds[3] and r[4] <= a.bounds[4] then return end
+                if a.bounds[1] >= r[1] and a.bounds[2] >= r[2] and a.bounds[3] <= r[3] and a.bounds[4] <= r[4] then table.remove(rectangles, i) end
+            end
+        end
+        rectangles[#rectangles + 1] = { bounds = r, flags = flags }
+    end
+
+    for _, c in ipairs(S.candidates) do
+        if full(c.widget) == c.name then
+            local usable = true
+            if c.category == 'portrait' then
+                local brush = call(c.widget, 'GetBrush') or call(c.widget, 'get_property', 'Brush')
+                local resource = field(brush, 'ResourceObject')
+                local color = call(c.widget, 'GetColorAndOpacity') or call(c.widget, 'get_property', 'ColorAndOpacity')
+                local alpha = field(color, 'A')
+                usable = resource ~= nil and (type(alpha) ~= 'number' or alpha > 0)
+            end
+            local r = usable and bounds(c.widget, g, size, c.inset, c.ancestors)
+            if r then
+                add(r, c.flags, c.name, c.category)
+                if c.category == 'portrait' then
+                    local outer = bounds(c.widget, g, size, 0, c.ancestors)
+                    local inner = rawBounds(c.widget, g, size, c.inset)
+                    if outer and inner then
+                        local strips = {
+                            { outer[1], outer[2], outer[3], inner[2] },
+                            { outer[1], inner[4], outer[3], outer[4] },
+                            { outer[1], inner[2], inner[1], inner[4] },
+                            { inner[3], inner[2], outer[3], inner[4] }
+                        }
+                        for _, strip in ipairs(strips) do
+                            add(intersection(strip, outer), { 0, 0, 3, 0 }, c.name, 'portrait-border')
+                        end
+                    end
+                end
+            end
+        end
+    end
+    if #rectangles > 48 then rectangles = {}; S.overflow = true else S.overflow = false end
+    S.cachedRectangles = rectangles
+    S.lastRectCalc = S.elapsed
+    return rectangles
+end
+
+-- Expose UI cache and rectangle rebuild functions globally and via AC8Runtime
+rawset(_G, 'AC8_RefreshUICache', function(force)
+    local ok = rebuildUICache(force == nil or force == true)
+    if ok and rebuildUIRectangles then rebuildUIRectangles(true) end
+    return ok
+end)
+rawset(_G, 'AC8_RefreshUIRectangles', function(force)
+    return rebuildUIRectangles(force == nil or force == true)
+end)
+if type(AC8Runtime) == 'table' then
+    AC8Runtime.refreshUICache = function(force)
+        local ok = rebuildUICache(force == nil or force == true)
+        if ok and rebuildUIRectangles then rebuildUIRectangles(true) end
+        return ok
+    end
+    AC8Runtime.refreshUIRectangles = function(force)
+        return rebuildUIRectangles(force == nil or force == true)
+    end
+end
+
 -- Compare geometry every frame and reuse the serialized packet when unchanged.
 -- Continue sending it every frame: the native 250ms stale-policy safeguard uses
 -- wall time, so a paused/dilated game clock must never delay its heartbeat.
@@ -238,61 +457,32 @@ end
 local function update(delta)
     if S.stopped then return end
     S.elapsed=S.elapsed+math.max(0,math.min(tonumber(delta) or 0.016,1))
-    if S.elapsed>=S.nextScan then discover();S.nextScan=S.elapsed+0.5 end
-    local rectangles={}
-    local function add(r,flags,name,category)
-        if not r then return end
-
-        for i=#rectangles,1,-1 do
-            local a=rectangles[i];local same=true
-            for j=1,4 do if flags[j]~=a.flags[j]then same=false end end
-            if same then
-                if r[1]>=a.bounds[1] and r[2]>=a.bounds[2] and r[3]<=a.bounds[3] and r[4]<=a.bounds[4]then return end
-                if a.bounds[1]>=r[1] and a.bounds[2]>=r[2] and a.bounds[3]<=r[3] and a.bounds[4]<=r[4]then table.remove(rectangles,i)end
-            end
-        end
-        rectangles[#rectangles+1]={bounds=r,flags=flags}
-    end
-    if S.root and full(S.root)==S.rootName then
-        local g=geometry(S.root);local size=xy(call(slate,'GetLocalSize',g))
-        if size and size.X>0 and size.Y>0 then
-            for _,c in ipairs(S.candidates)do
-                if full(c.widget)==c.name then
-                    local usable=true
-                    if c.category=='portrait' then
-                        local brush=call(c.widget,'GetBrush') or call(c.widget,'get_property','Brush')
-                        local resource=field(brush,'ResourceObject')
-                        local color=call(c.widget,'GetColorAndOpacity') or call(c.widget,'get_property','ColorAndOpacity')
-                        local alpha=field(color,'A')
-                        usable=resource~=nil and (type(alpha)~='number' or alpha>0)
-                    end
-                    local r=usable and bounds(c.widget,g,size,c.inset)
-                    if r then
-                        add(r,c.flags,c.name,c.category)
-                        if c.category=='portrait' then
-                            local outer=bounds(c.widget,g,size,0);local inner=rawBounds(c.widget,g,size,c.inset)
-                            if outer and inner then
-                                local strips={{outer[1],outer[2],outer[3],inner[2]},
-                                    {outer[1],inner[4],outer[3],outer[4]},
-                                    {outer[1],inner[2],inner[1],inner[4]},
-                                    {inner[3],inner[2],outer[3],inner[4]}}
-                                for _,strip in ipairs(strips)do add(intersection(strip,outer),{0,0,3,0},c.name,'portrait-border')end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
     
-    if #rectangles>48 then rectangles={};S.overflow=true else S.overflow=false end
-    publishPolicy(rectangles)
+    -- Cache-driven update: only scan on epoch change or when cache is empty with bounded retry
+    local currentEpoch = AC8Runtime and AC8Runtime.context and AC8Runtime.context.epoch or 0
+    if S.lastEpoch ~= currentEpoch then
+        S.lastEpoch = currentEpoch
+        rebuildUICache(true)
+        rebuildUIRectangles(true)
+    elseif (not S.candidates or #S.candidates == 0) and (S.elapsed >= (S.nextRetry or 0)) then
+        if rebuildUICache(false) then
+            rebuildUIRectangles(true)
+        else
+            S.nextRetry = S.elapsed + 3.0
+        end
+    elseif not S.cachedRectangles or #S.cachedRectangles == 0 then
+        rebuildUIRectangles(false)
+    end
+
+    -- Zero Slate geometry calculations on regular frames: send cached policy to C++ heartbeat
+    publishPolicy(S.cachedRectangles or {})
 
 end
 uevr.sdk.callbacks.on_post_engine_tick(function(_,delta)update(delta)end)
 uevr.sdk.callbacks.on_lua_event(function(name,data)
     if S.stopped or name~='AC8_UI_RegisteredRoots' or type(data)~='string'then return end
-    S.nativeRootPaths={};S.nativeRootsUntil=S.elapsed+1.25;S.nextScan=0
+    S.nativeRootPaths={};S.nativeRootsUntil=S.elapsed+1.25;
+    rebuildUICache(true)
     for path in data:gmatch('[^|]+')do S.nativeRootPaths[path]=true end
 end)
 

@@ -31,6 +31,7 @@ local function visible(o)
 end
 local statics
 local function update()
+ if R.context.flight and not S.active then return end
  if not R.isLiveObject(statics)then statics=call(uevr.api,'find_uobject','GameplayStatics /Script/Engine.Default__GameplayStatics')end
  local gi=call(statics,'GetGameInstance',R.context.pc);local gin=full(gi)
  if not gin then S.subsystem=nil;S.gameInstance=nil;S.nextScan=0;clear('no current game instance');return end
@@ -74,7 +75,6 @@ local function update()
 end
 local host=R.host('utility','mission loading ownership')
 host.sdk.callbacks.on_pre_engine_tick(update)
-host.sdk.callbacks.on_post_engine_tick(update)
 end
 
 
@@ -182,7 +182,9 @@ local function matchState(pc)
 end
 local function update(_,delta)
     if S.stopped then return end;S.ticks=S.ticks+1;S.elapsed=S.elapsed+math.max(0,math.min(tonumber(delta) or 0.016,1))
-    if S.elapsed>=S.nextScan then discover();S.nextScan=S.elapsed+0.5 end
+    local isFlight = AC8Runtime and AC8Runtime.context and AC8Runtime.context.flight
+    local scanInterval = isFlight and 10.0 or 1.0
+    if S.elapsed>=S.nextScan then discover();S.nextScan=S.elapsed+scanInterval end
     local pc=call(api,'get_player_controller',0);local hud=call(pc,'GetHUD');local hn=full(hud) or '';local pn=full(pc) or ''
     local state=matchState(pc)
 
@@ -194,8 +196,11 @@ local function update(_,delta)
     local main=prop(hud,'HudWidget')
 
     local nativeSource=0;local nativeMultiplier=1
-    local fadeClass=call(api,'find_uobject','Class /Script/Live.LiveFadeWidget')
-    for _,w in ipairs(call(fadeClass,'get_objects_matching',false) or {})do
+    if not isFlight or S.ticks%15==0 or not S.cachedFadeWidgets then
+        local fadeClass=call(api,'find_uobject','Class /Script/Live.LiveFadeWidget')
+        S.cachedFadeWidgets = call(fadeClass,'get_objects_matching',false) or {}
+    end
+    for _,w in ipairs(S.cachedFadeWidgets or {})do
         local n=full(w) or '';local active=n:match('^LiveFadeWidget ') and call(w,'IsInViewport')==true and opacity(w)>0
         
         local ci=rawget(_G,'AC8_CinematicIntent')
@@ -245,7 +250,6 @@ local function update(_,delta)
     
 end
 uevr.sdk.callbacks.on_pre_engine_tick(update)
-uevr.sdk.callbacks.on_post_engine_tick(function()if not S.stopped then update(nil,0)end end)
 
 end)(AC8Runtime.host('utility','general_vr_transitions.lua'),AC8Runtime.json,AC8Runtime.log)
 end

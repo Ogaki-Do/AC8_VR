@@ -114,17 +114,37 @@ local function scan()
     scanMovies()
 end
 
+local function finishStartup(reason)
+    if done then return end
+    local names={};for n in pairs(originals) do names[#names+1]=n end
+    for _,n in ipairs(names) do restoreOne(n,reason or 'startup-window-ended') end
+    done=true;report.status=next(originals)==nil and 'complete-restored' or 'complete-restore-incomplete'
+    print(string.format('[AC8-STARTUP] Startup movie scan finished: %s (elapsed=%.1fs)', tostring(reason), elapsed))
+end
+
 uevr.sdk.callbacks.on_post_engine_tick(function(engine,delta)
     if done then return end
     elapsed=elapsed+math.max(0,math.min(tonumber(delta) or 0.016,1))
-    if elapsed<90 and elapsed>=nextScan then
-        pcall(scan)
-        nextScan=elapsed+0.05
+
+    -- Immediately terminate if player is in flight or in main menu
+    local ctx = rawget(_G, 'AC8Runtime') and AC8Runtime.context
+    if ctx then
+        if ctx.flight or (ctx.hudName or ''):match('^LiveMainHUDParent4K_C') then
+            finishStartup('entered-flight')
+            return
+        end
+        if (ctx.hudName or ''):match('^BP_LiveMenuHUD_C') and elapsed >= 5 then
+            finishStartup('entered-main-menu')
+            return
+        end
     end
-    if elapsed>=90 then
-        local names={};for n in pairs(originals) do names[#names+1]=n end
-        for _,n in ipairs(names) do restoreOne(n,'startup-window-ended') end
-        done=true;report.status=next(originals)==nil and 'complete-restored' or 'complete-restore-incomplete'
+
+    if elapsed<15 and elapsed>=nextScan then
+        pcall(scan)
+        nextScan=elapsed+0.5 -- 0.5s interval is plenty (was 0.05s / 20 scans per sec!)
+    end
+    if elapsed>=15 then
+        finishStartup('timeout-15s')
     end
 end)
 

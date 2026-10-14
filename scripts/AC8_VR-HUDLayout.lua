@@ -131,33 +131,28 @@ function S.restore()
 end
 local function discard()S.base=nil;S.row=nil;S.widgets=nil end
 local function discover()
-    local found={}
-    local cls=call(api,'find_uobject','Class /Script/UMG.Widget')
-    for _,w in ipairs(call(cls,'get_objects_matching',false) or {}) do
-        local n=full(w) or '';local key=n:match('%.([^%.]+)$')
-        if n:find('/Engine/Transient.',1,true) and n:find('WBP_HUD_Chronicle_MainFlight_000_C_',1,true)
-            and n:find('WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C_',1,true)
-            and (key=='TargetText' or key=='TargetInfoText' or key=='PrivateScore' or key=='TimeText') then
-            
-            local rootPath=n:match('^[^ ]+ (.-WBP_HUD_Chronicle_MainFlight_000_C_%d+)%.')
-            local root=rootPath and call(api,'find_uobject','WBP_HUD_Chronicle_MainFlight_000_C '..rootPath)
-            if call(root,'IsInViewport')==true then
-                found[rootPath]=found[rootPath] or {};found[rootPath][key]=w
+    -- Fast path: use shared HUD refs from InheritedHUD
+    local refs = AC8Runtime and AC8Runtime.hudLayoutRefs
+    local camp = refs and refs.campaign
+    if camp and AC8Runtime.isLiveObject(camp) then
+        local targetText = call(camp, 'get_property', 'TargetText')
+        local targetInfo = call(camp, 'get_property', 'TargetInfoText')
+        local privateScore = call(camp, 'get_property', 'PrivateScore')
+        local timeText = call(camp, 'get_property', 'TimeText')
+        if targetText and targetInfo and privateScore and timeText then
+            local row = call(targetText, 'GetParent')
+            if row and full(row) == full(call(targetInfo, 'GetParent')) then
+                local t, sc = transform(row)
+                if t and sc then
+                    S.widgets = { TargetText = targetText, TargetInfoText = targetInfo, PrivateScore = privateScore, TimeText = timeText }
+                    S.row = row
+                    S.base = { name = full(row), translation = t, scale = sc }
+                    return
+                end
             end
         end
     end
-    local matches={}
-    for _,w in pairs(found) do
-        local row=call(w.TargetText,'GetParent')
-        if row and full(row)==full(call(w.TargetInfoText,'GetParent')) and w.PrivateScore and w.TimeText then
-            matches[#matches+1]={widgets=w,row=row}
-        end
-    end
-    if #matches~=1 then S.status='waiting for one active campaign target row';return end
-    S.widgets=matches[1].widgets;S.row=matches[1].row
-    local t,sc=transform(S.row)
-    if not t or not sc then S.row=nil;S.widgets=nil;S.status='row transform unavailable';return end
-    S.base={name=full(S.row),translation=t,scale=sc}
+    S.status = 'waiting for shared campaign info ref'
 end
 local function apply()
     if S.stopped then return end
@@ -169,18 +164,31 @@ local function apply()
     if S.hud~=hud then discard();S.hud=hud end
     if S.row and full(S.row)~=S.base.name then S.restore() end
     if not S.row then
-        if S.ticks%4~=1 then return end
-        discover();if not S.row then return end
+        if S.ticks < (S.nextDiscover or 0) then return end
+        S.nextDiscover = S.ticks + 60
+        discover()
+        if not S.row then
+            S.nextDiscover = S.ticks + 90
+            return
+        end
     end
     local w=S.widgets
-    local cfgOK,cfg=pcall(function()return json.load_file('ac8_workshop_v2_controls.json')end)
-    local revision=cfgOK and type(cfg)=='table'and cfg.revision or nil
+    if S.cachedWorkshopCfg == nil then
+        local cfgOK, cfg = pcall(function() return json.load_file('ac8_workshop_v2_controls.json') end)
+        S.cachedWorkshopCfg = (cfgOK and type(cfg) == 'table') and cfg or false
+    end
+    local cfg = S.cachedWorkshopCfg ~= false and S.cachedWorkshopCfg or nil
+    local revision=cfg and cfg.revision or nil
     local rowName=full(S.row)or '';local scope=(rowName:match('^(%S+)')or '')..':'..(rowName:match('%.([^%.]+)$')or rowName:match('%s(.+)$')or '')
     if S.cacheRow~=rowName then
         S.cacheRow=rowName
-        local ok,cached=pcall(function()return json.load_file('ac8_hud_layout_cache.json')end)
+        if S.cachedLayoutData == nil then
+            local ok, cached = pcall(function() return json.load_file('ac8_hud_layout_cache.json') end)
+            S.cachedLayoutData = (ok and type(cached) == 'table') and cached or false
+        end
+        local cached = S.cachedLayoutData ~= false and S.cachedLayoutData or nil
         local _,scoreScale=transform(w.PrivateScore)
-        if ok and type(cached)=='table'and cached.version==1 and revision and cached.revision==revision and cached.scope==scope
+        if cached and type(cached)=='table'and cached.version==1 and revision and cached.revision==revision and cached.scope==scope
             and type(cached.x)=='number'and type(cached.y)=='number'and math.abs(cached.x)<4000 and math.abs(cached.y)<4000
             and scoreScale and type(cached.scale)=='table'and type(cached.scale.X)=='number'and type(cached.scale.Y)=='number'
             and math.abs(cached.scale.X-scoreScale.X)<.001 and math.abs(cached.scale.Y-scoreScale.Y)<.001 then
@@ -231,6 +239,7 @@ local function apply()
     S.measured={scoreY=score.Y,timeY=time.Y,gap=gap,targetRequestedY=goal,x=x,y=y}
 end
 uevr.sdk.callbacks.on_post_engine_tick(function()
+    if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('hudLayout') end
     local ok,err=pcall(apply);if not ok then S.status=tostring(err) end
     if not S.stopped and S.ticks%120==0 then
         
@@ -290,24 +299,18 @@ function S.restore()
 end
 local function discard()S.velocity=nil;S.icon=nil;S.altimeter=nil;S.root=nil;S.originals=nil;S.lastIconPin=nil end
 local function discover()
-    local sets={}
-    for _,w in ipairs(call(call(api,'find_uobject','Class /Script/UMG.Widget'),'get_objects_matching',false) or {})do
-        local n=full(w) or '';local leaf=n:match('%.([^%.]+)$')
-        if (leaf=='Velocity' or leaf=='VelocityIcon' or leaf=='Altimeter') and n:find('.WBP_ChroniclePersistent.',1,true) then
-            local path=n:match('^[^ ]+ (.-WBP_HUD_Chronicle_MainFlight_000_C_%d+)%.')
-            local root=path and call(api,'find_uobject','WBP_HUD_Chronicle_MainFlight_000_C '..path)
-            if call(root,'IsInViewport')==true then sets[path]=sets[path] or {root=root};sets[path][leaf]=w end
+    -- Fast path: use shared HUD refs from InheritedHUD
+    local refs = AC8Runtime and AC8Runtime.hudLayoutRefs
+    if refs and refs.vel and refs.vicon and refs.altimeter and refs.root then
+        local originals = {}
+        for _, o in ipairs({ refs.vel, refs.vicon }) do
+            local t, sc = transform(o)
+            if not t or not sc then return end
+            originals[#originals + 1] = { object = o, name = full(o), translation = t, scale = sc }
         end
+        S.velocity = refs.vel; S.icon = refs.vicon; S.altimeter = refs.altimeter; S.root = refs.root; S.originals = originals
+        return
     end
-    local found={}
-    for _,w in pairs(sets)do if w.Velocity and w.VelocityIcon and w.Altimeter then found[#found+1]=w end end
-    if #found~=1 then return end
-    local w=found[1];local originals={}
-    for _,o in ipairs({w.Velocity,w.VelocityIcon})do
-        local t,sc=transform(o);if not t or not sc then return end
-        originals[#originals+1]={object=o,name=full(o),translation=t,scale=sc}
-    end
-    S.velocity=w.Velocity;S.icon=w.VelocityIcon;S.altimeter=w.Altimeter;S.root=w.root;S.originals=originals
 end
 local function apply()
     if S.stopped then return end
@@ -317,7 +320,15 @@ local function apply()
     if not S.enabled then S.restore();return end
     if S.hud~=hud then discard();S.hud=hud end
     if S.root and call(S.root,'IsInViewport')~=true then S.restore() end
-    if not S.velocity then discover();if not S.velocity then return end end
+    if not S.velocity then
+        if S.ticks < (S.nextDiscover or 0) then return end
+        S.nextDiscover = S.ticks + 60
+        discover()
+        if not S.velocity then
+            S.nextDiscover = S.ticks + 90
+            return
+        end
+    end
     local ladder,scale=transform(S.altimeter);if not ladder or not scale then return end
     local wanted={X=ladder.X+S.offsetX,Y=ladder.Y+S.offsetY}
     local translation,currentScale=transform(S.velocity);local changed=false
@@ -809,28 +820,64 @@ local function restore()
  S.small=nil;S.large=nil;S.expanded=nil;S.searchWidget=nil
 end
 local function find()
- local prefix=(R.context.rootName or''):match('^%S+ (.+)$');if not prefix then return end
+ local root = R.context.root
+ local prefix=(R.context.rootName or''):match('^%S+ (.+)$');if not prefix or not R.isLiveObject(root) then return end
  S.discoveries=S.discoveries+1
- local owned=R.ownedWidgets(R.context.root)
- local function objects(class)
-  if owned then return owned end
-  local cls=call(uevr.api,'find_uobject','Class /Script/UMG.'..class)
-  return call(cls,'get_objects_matching',false)or{}
+
+ -- Direct targeted tree lookup
+ local function findChild(w, target, maxd)
+  local seen, found = {}, nil
+  local function rec(node, d)
+   if not node or found or d > maxd then return end
+   local addr = tostring(node)
+   if seen[addr] then return end
+   seen[addr] = true
+   local fn = full(node) or ''
+   if fn:match(target) then found = node; return end
+   local cc = call(node, 'GetChildrenCount') or 0
+   for i = 0, cc - 1 do rec(call(node, 'GetChildAt', i), d + 1) end
+   local wt = field(node, 'WidgetTree')
+   if wt then rec(field(wt, 'RootWidget'), d + 1) end
+  end
+  rec(w, 0)
+  return found
  end
- for _,o in ipairs(objects('CanvasPanel'))do
-  local n=full(o)or''
-  if n:match('^CanvasPanel ')and n:find(' '..prefix..'.',1,true)then
-   if n:match('%.AlwaysVisibleCanvas$')then S.canvas=o end
-   if n:find('.WBP_HUD_Command_Wingman_000.',1,true)and n:match('%.Command_S$')then S.widget=o;S.name=n end
-   if n:find('.MiniMapLayer.',1,true)then
-    if n:match('%.MiniMapCornerCanvas$')then S.large=o end
-    if n:match('%.MiniMapEnlargedCorners$')then S.expanded=o end
+
+ S.canvas = findChild(root, '%.AlwaysVisibleCanvas$', 8)
+ S.widget = findChild(root, '%.WBP_HUD_Command_Wingman_000%..*%.Command_S$', 10)
+ if S.widget then S.name = full(S.widget) end
+ S.large = findChild(root, '%.MiniMapLayer%..*%.MiniMapCornerCanvas$', 10)
+ S.expanded = findChild(root, '%.MiniMapLayer%..*%.MiniMapEnlargedCorners$', 10)
+ local smallBorder = findChild(root, '%.MiniMapLayer%..*%.RadarBoundingArea$', 10)
+ if smallBorder then
+  S.small = smallBorder
+  local tree = call(smallBorder, 'get_outer')
+  if (full(tree) or ''):match('^WidgetTree ') then S.searchWidget = call(tree, 'get_outer') end
+ end
+
+ -- Fallback only if direct search failed
+ if not S.canvas or not S.widget then
+  local owned=R.ownedWidgets(R.context.root)
+  local function objects(class)
+   if owned then return owned end
+   local cls=call(uevr.api,'find_uobject','Class /Script/UMG.'..class)
+   return call(cls,'get_objects_matching',false)or{}
+  end
+  for _,o in ipairs(objects('CanvasPanel'))do
+   local n=full(o)or''
+   if n:match('^CanvasPanel ')and n:find(' '..prefix..'.',1,true)then
+    if n:match('%.AlwaysVisibleCanvas$')then S.canvas=o end
+    if n:find('.WBP_HUD_Command_Wingman_000.',1,true)and n:match('%.Command_S$')then S.widget=o;S.name=n end
+    if n:find('.MiniMapLayer.',1,true)then
+     if n:match('%.MiniMapCornerCanvas$')then S.large=o end
+     if n:match('%.MiniMapEnlargedCorners$')then S.expanded=o end
+    end
    end
   end
- end
- for _,o in ipairs(objects('Border'))do local n=full(o)or''
-  if n:match('^Border ')and n:find(' '..prefix..'.',1,true)and n:find('.MiniMapLayer.',1,true)and n:match('%.RadarBoundingArea$')then
-   S.small=o;local tree=call(o,'get_outer');if(full(tree)or''):match('^WidgetTree ')then S.searchWidget=call(tree,'get_outer')end
+  for _,o in ipairs(objects('Border'))do local n=full(o)or''
+   if n:match('^Border ')and n:find(' '..prefix..'.',1,true)and n:find('.MiniMapLayer.',1,true)and n:match('%.RadarBoundingArea$')then
+    S.small=o;local tree=call(o,'get_outer');if(full(tree)or''):match('^WidgetTree ')then S.searchWidget=call(tree,'get_outer')end
+   end
   end
  end
  if not S.canvas or not S.widget then S.status='waiting for Command_S and stable canvas';return end
