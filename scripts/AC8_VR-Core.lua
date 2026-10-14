@@ -107,6 +107,10 @@ function R.contextTick(advance)
    pcall(R.applyMultiRadar)
   end
  end
+
+ if R.updateInstantAwakeCycle then
+  R.updateInstantAwakeCycle()
+ end
 end
 function R.connect(key)
  if R.connected[key]then return end;R.connected[key]=true
@@ -349,6 +353,60 @@ function R.applyMultiRadar()
     pcall(function() w:SetVisibility(1) end) -- 1 = Collapsed
    end
   end
+ end
+end
+
+-- =========================================================================
+-- Instant Awake: All-Elements Unlocker (P3)
+-- =========================================================================
+local instantCycleActive = false
+local instantCycleFrame = 0
+
+function R.triggerInstantAwake()
+ instantCycleActive = true
+ instantCycleFrame = 0
+ print('[AC8-VR] Triggered Instant Awake sequence...')
+end
+
+function R.setAllHUDVisibility(hide)
+ local visCode = hide and 1 or 4 -- 1 = Collapsed, 4 = SelfHitTestInvisible
+ local refs = R.hudLayoutRefs
+ local candidates = {}
+ if refs and refs.root and R.isLiveObject(refs.root) then candidates[#candidates+1] = refs.root end
+ if refs and refs.maincv and R.isLiveObject(refs.maincv) then candidates[#candidates+1] = refs.maincv end
+ if R.context.root and R.isLiveObject(R.context.root) then candidates[#candidates+1] = R.context.root end
+
+ if #candidates == 0 and real.api then
+  local umg = real.api:find_uobject('Class /Script/UMG.Widget')
+  if umg then
+   local ok, objs = pcall(function() return umg:get_objects_matching(false) end)
+   if ok and type(objs) == 'table' then
+    for _, w in ipairs(objs) do
+     local fn = R.objectCall(w, 'get_full_name') or ''
+     if fn:find('/Engine/Transient', 1, true) and fn:find('MainFlight', 1, true) then
+      candidates[#candidates+1] = w
+     end
+    end
+   end
+  end
+ end
+
+ for _, w in ipairs(candidates) do
+  pcall(function() w:SetVisibility(visCode) end)
+ end
+end
+
+function R.updateInstantAwakeCycle()
+ if not instantCycleActive then return end
+ instantCycleFrame = instantCycleFrame + 1
+ if instantCycleFrame == 1 then
+  R.setAllHUDVisibility(true)
+ elseif instantCycleFrame >= 4 then
+  R.setAllHUDVisibility(false)
+  instantCycleActive = false
+  instantCycleFrame = 0
+  if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+  print('[AC8-VR] Instant Awake complete! All HUD elements unlocked.')
  end
 end
 
@@ -655,6 +713,34 @@ pcall(function()
       R.applyMultiRadar()
       print('[AC8-VR] Multi-Radar reset to defaults')
      end
+    end
+   end
+   if ui.tree_pop then ui.tree_pop() end
+  end
+
+  -- =========================================================================
+  -- SECTION 5: Instant Awake & HUD Visibility (P3)
+  -- =========================================================================
+  if ui.tree_node and ui.tree_node('Instant Awake & HUD Visibility (P3)') then
+   if ui.text then
+    ui.text('Toggles HUD visibility off and on for 4 frames to unlock all sleeping/hidden')
+    ui.text('gauges, locator elements, and flight indicators at once.')
+   end
+   if ui.separator then ui.separator() end
+
+   if ui.button and ui.button('>> Instant Awake (Unlock All Elements) <<') then
+    R.triggerInstantAwake()
+   end
+
+   if ui.separator then ui.separator() end
+   if ui.button and ui.same_line then
+    if ui.button('Force Show HUD') then
+     R.setAllHUDVisibility(false)
+     if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+    end
+    ui.same_line()
+    if ui.button('Force Hide HUD') then
+     R.setAllHUDVisibility(true)
     end
    end
    if ui.tree_pop then ui.tree_pop() end
