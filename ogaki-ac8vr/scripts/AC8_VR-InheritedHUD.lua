@@ -659,7 +659,13 @@ local function discover()
         pcall(function() inv = mf:IsInViewport() end)
         if inv == true then keep = mf; keep_addr = tostring(mf); break end
     end
-    if AC8Runtime.context.rootName:match('^WBP_HUD_Chronicle_MainFlight_000_C ') then keep=AC8Runtime.context.root;keep_addr=tostring(keep);pcall(function()if not keep:IsInViewport()then keep:AddToViewport()end end)end
+    if AC8Runtime.context.rootName:match('^WBP_HUD_Chronicle_MainFlight') then
+        keep = AC8Runtime.context.root
+        keep_addr = tostring(keep)
+        pcall(function()
+            if not keep:IsInViewport() then keep:AddToViewport() end
+        end)
+    end
     if keep == nil then
         keep = mfs[1]; keep_addr = tostring(mfs[1])
         pcall(function() keep:AddToViewport() end)
@@ -676,7 +682,9 @@ local function discover()
     C.keep = keep
 
     pcall(function() keep.RenderOpacity = 1.0 end)
+    pcall(function() keep:SetRenderOpacity(1.0) end)
     pcall(function() keep.Visibility = 0 end)
+    pcall(function() keep:SetVisibility(0) end)
 
     local base = find_desc(keep, "BaseCanvas", 6, true)
     if base == nil then
@@ -1052,7 +1060,7 @@ local TARGETS = {
     },
 }
 
-local SCOPE = "WBP_HUD_Chronicle_MainFlight_000_C"
+local SCOPE = "WBP_HUD_Chronicle_MainFlight"
 
 local DEFAULTS = {}
 for _, t in ipairs(TARGETS) do
@@ -1228,20 +1236,27 @@ end
 
 local function prepare_items(t)
     t.items = nil
-    if t.objs == nil then return end
+    if t.objs == nil or #t.objs == 0 then return end
     local out = {}
     for i, o in ipairs(t.objs) do
-        local l = leaf(o)
-        local base = l:gsub("_%d+$", "")
-        local issub = false
-        if t.subnames ~= nil then
-            for _, nm in ipairs(t.subnames) do
-                if l == nm or base == nm then issub = true; break end
+        if AC8Runtime.isLiveObject(o) then
+            local l = leaf(o)
+            local base = l:gsub("_%d+$", "")
+            local issub = false
+            if t.subnames ~= nil then
+                for _, nm in ipairs(t.subnames) do
+                    if l == nm or base == nm then issub = true; break end
+                end
             end
+            out[#out + 1] = { o = o, k = path_of(o) or l, fn = full_name(o), sub = issub }
         end
-        out[i] = { o = o, k = path_of(o) or l, fn = full_name(o), sub = issub }
     end
-    t.items = out
+    if #out > 0 then
+        t.items = out
+    else
+        t.items = nil
+        t.objs = nil
+    end
 
     t.opApplied, t.scApplied = nil, nil
 end
@@ -1298,15 +1313,24 @@ local function restore(e)
 end
 
 local function apply_one(t)
-    if not AC8Runtime.context.flight or t.items == nil then return end
+    if not AC8Runtime.context.flight then return end
+
+    -- 自己修復：もし未解決なら C.altimeter または resolve_all から即座に再取得
+    if t.active and (t.items == nil or #t.items == 0) then
+        if t.key == "ladder" and C and C.altimeter and AC8Runtime.isLiveObject(C.altimeter) then
+            t.objs = { C.altimeter }
+            prepare_items(t)
+        else
+            resolve_all(false)
+        end
+    end
+    if t.items == nil or #t.items == 0 then return end
 
     if not t.active then
-
         if t.applied then
             for _, e in ipairs(t.items) do restore(e) end
             t.applied = false
         end
-        
         t.opApplied, t.scApplied = nil, nil
         return
     end
@@ -1316,22 +1340,37 @@ local function apply_one(t)
 
     for _, e in ipairs(t.items) do
         local o = e.o
-        if not AC8Runtime.isLiveObject(o)then t.objs=nil;t.items=nil;return end
-        remember(e)               
+        if not AC8Runtime.isLiveObject(o) then
+            t.objs = nil
+            t.items = nil
+            t.applied = false
+            return
+        end
+        remember(e)
 
         if not t.nopos then
-            
             local ox, oy = 0.0, 0.0
             if e.sub then ox, oy = t.sdx or 0.0, t.sdy or 0.0 end
             local tx, ty = t.x + ox, t.y + oy
-
             local cx, cy = get_rt_xy(o)
-            
             if not (type(cx) == "number" and math.abs(cx - tx) < 1
                     and type(cy) == "number" and math.abs(cy - ty) < 1) then
                 pcall(function() o:SetRenderTranslation({ X = tx, Y = ty }) end)
             end
         end
+
+        -- 可視性（Visibility）と透過度（RenderOpacity）の確実な復元（チュートリアル後などの非表示化対策）
+        pcall(function()
+            local curVis = o:GetVisibility()
+            if curVis == 1 or curVis == 2 then
+                o:SetVisibility(4)
+            end
+            local curOp = o:GetRenderOpacity()
+            local targetOp = (type(t.op) == "number") and t.op or 1.0
+            if type(curOp) == "number" and curOp < 0.1 then
+                o:SetRenderOpacity(targetOp)
+            end
+        end)
 
         if op_dirty then
             pcall(function() o:SetRenderOpacity(t.op) end)
@@ -1343,7 +1382,7 @@ local function apply_one(t)
 
     if op_dirty then t.opApplied = t.op end
     if sc_dirty then t.scApplied = t.sc end
-    t.applied = true     
+    t.applied = true
 end
 
 local workshop_after, workshop_poll
@@ -1412,12 +1451,16 @@ end
 
 local function resolve_all(verbose)
     for _, t in ipairs(TARGETS) do
-        if t.objs == nil or verbose then
-            t.objs = find_node(t.from, t.nodes)
+        if t.objs == nil or #t.objs == 0 or verbose then
+            if t.key == "ladder" and C and C.altimeter and AC8Runtime.isLiveObject(C.altimeter) then
+                t.objs = { C.altimeter }
+            else
+                local found = find_node(t.from, t.nodes)
+                t.objs = (found and #found > 0) and found or nil
+            end
             prepare_items(t)
             if verbose then
-                if #t.objs > 0 then
-                    
+                if t.objs and #t.objs > 0 then
                     for i, o in ipairs(t.objs) do
                         
                     end
@@ -1790,6 +1833,10 @@ layout_scope_sync=function()
   WS.entries={};WS.originals={};WS.catalog={};WS.canvasRoot=nil;WS.canvasBase=nil
   WS.needScan=true;WS.elapsed=19;WS.scan_elapsed=20;WS.acquireUntil=AC8Runtime.tick+120
   if context.flight then pcall(resolve_all,false)end
+ end
+ -- 飛行中にラダーが未解決の場合は即座に再取得（チュートリアル復帰直後の遅延生成対策）
+ if context.flight and TARGETS[1] and (TARGETS[1].items == nil or #TARGETS[1].items == 0) then
+  pcall(resolve_all, false)
  end
  return context.flight==true
 end
