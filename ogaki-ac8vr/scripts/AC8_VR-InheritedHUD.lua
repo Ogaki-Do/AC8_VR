@@ -969,7 +969,11 @@ end)(AC8Runtime.host('layout','ac8_hud_inspect.lua'),AC8Runtime.json,AC8Runtime.
 end
 end
 
+-- [PERF TEST] Disabled legacy ladder fix v19 & old workshop scanning
+-- To re-enable, remove the return statement below.
 AC8Runtime.inheritedSetup[#AC8Runtime.inheritedSetup+1]=function()
+    -- DISABLED: legacy ladder fix v19 & old workshop scans
+    if true then return end
 
 do
 -- Flat2VR Modding Community and Discord: inherited ac8_ladder_fix_v19_fast, including the original groups described as Herbert's in the supplied code. Preserve ladder, radar, aircraft and canvas controls and numeric originals; apply saved workshop revisions. HUD update ordering is owned by ac8_20_hud_layout.lua.
