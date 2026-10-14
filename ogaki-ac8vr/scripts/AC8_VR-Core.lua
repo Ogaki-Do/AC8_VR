@@ -197,6 +197,12 @@ pcall(function()
     ui.text(curEnabled and 'Status: ACTIVE' or 'Status: DISABLED (Zero Overhead)')
     ui.text('(Requires Script Reload or Game Restart if changed)')
    end
+   if curEnabled and R.toggleCinematicMode and ui.button then
+    if ui.button('Toggle 2D Mask / 3D Mode (Test)') then
+     R.toggleCinematicMode()
+     print('[AC8-VR] Cinematic mode toggled via ScriptUI button')
+    end
+   end
 
    if ui.separator then ui.separator() end
    if ui.checkbox then

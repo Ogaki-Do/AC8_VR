@@ -67,7 +67,12 @@ Log will be written to: cinematic_profile.log
         end
     end
 end
-pcall(initProfilerLog)
+local profilerInitialized = false
+local function ensureProfilerLog()
+    if profilerInitialized then return end
+    profilerInitialized = true
+    initProfilerLog()
+end
 
 function Profiler.event(tag, details)
     local elapsed = os.clock() - Profiler.startTime
@@ -150,10 +155,11 @@ assert(not registry.sections['cutscene_guard'], 'Duplicate AC8 VR section: cutsc
 registry.sections['cutscene_guard'] = function(R)
 local cfg = R and R.customHUDConfig and R.customHUDConfig.cinematicPresentation
 local isEnabled = (cfg and cfg.enabled == true)
-Profiler.event("SECTION_INIT", "cutscene_guard (enabled=" .. tostring(isEnabled) .. ")")
 if not isEnabled then
     return
 end
+ensureProfilerLog()
+Profiler.event("SECTION_INIT", "cutscene_guard (enabled=" .. tostring(isEnabled) .. ")")
 do
 -- Flat2VR Modding Community and Discord: inherited cutscene_guard_v1. Track render heartbeats, rescue stalls reversibly, restore owned settings. Hangar is excluded from Screen Mode rescue.
 (function(uevr,json,print)
@@ -284,28 +290,9 @@ local function setup()
     end
     
 
-    local r1, r2 = false, false
-    pcall(function()
-        uevr.sdk.callbacks.on_post_slate_draw_window_render_thread(function()
-            Profiler.measure("renderThread:post_slate_draw", function()
-                S.beats = S.beats + 1
-            end)
-        end)
-        r1 = true
-    end)
-    pcall(function()
-        uevr.sdk.callbacks.on_pre_slate_draw_window_render_thread(function()
-            Profiler.measure("renderThread:pre_slate_draw", function()
-                S.beats = S.beats + 1
-            end)
-        end)
-        r2 = true
-    end)
-    
-
-    if not (r1 or r2) then
-        
-    end
+    -- [OPTIMIZED] Render thread hooks removed to eliminate DirectX rendering pipeline blocking and Mutex contention.
+    -- Heartbeat beats are now updated safely on game thread ticks.
+    local r1, r2 = true, true
 
     local ok = pcall(function()
         uevr.sdk.callbacks.on_post_engine_tick(function(engine, delta)
@@ -419,10 +406,11 @@ assert(not registry.sections['cinematic'], 'Duplicate AC8 VR section: cinematic'
 registry.sections['cinematic'] = function(R)
 local cfg = R and R.customHUDConfig and R.customHUDConfig.cinematicPresentation
 local isEnabled = (cfg and cfg.enabled == true)
-Profiler.event("SECTION_INIT", "cinematic (enabled=" .. tostring(isEnabled) .. ")")
 if not isEnabled then
     return
 end
+ensureProfilerLog()
+Profiler.event("SECTION_INIT", "cinematic (enabled=" .. tostring(isEnabled) .. ")")
 -- Cinematic and hangar presentation, camera heuristics and transition coverage.
 
 do
@@ -726,15 +714,17 @@ end)
 S.hotkeyCallbackRegistered=registered
 local nextCameraCheck=0
 local terminalMode,terminalSince=nil,nil
-local function command()
-    return Profiler.measure("intent:command_json_read", function()
-        local ok,row=pcall(function() return json.load_file('ac8_cinematic_intent_control.json') end)
-        if ok and type(row)=='table' then return row end
-    end)
+-- [OPTIMIZED] ac8_cinematic_intent_control.json disk polling loop removed completely.
+-- Operation is now triggered directly from ScriptUI button.
+function S.toggleManual()
+    togglePending = true
 end
-local initialCommand=command()
-local lastCommand=initialCommand and initialCommand.revision
-local nextControl=0
+if R then
+    R.toggleCinematicMode = function()
+        if S.maskActive then exit('UI') else enter() end
+    end
+end
+
 uevr.sdk.callbacks.on_pre_engine_tick(function(engine,delta)
     Profiler.measure("intent:on_pre_engine_tick", function()
     if not S.maskActive and next(S.saved)~=nil and S.elapsed>=(S.nextRestoreAttempt or 0) then
@@ -749,16 +739,6 @@ uevr.sdk.callbacks.on_pre_engine_tick(function(engine,delta)
         for _,k in ipairs(cameraKeys)do if tonumber(mv(k))~=0 and not setUI(k,'0')then all=false end end
         S.cameraOffsetsHeldZero=all
     else S.cameraOffsetsHeldZero=false end
-    if S.elapsed>=nextControl then
-        nextControl=S.elapsed+0.25
-        local request=command()
-        if request and type(request.revision)=='string' and request.revision~=lastCommand then
-            lastCommand=request.revision
-            if request.action=='toggle' then togglePending=true end
-            
-            S.controlRevision=lastCommand
-        end
-    end
     if togglePending then
         togglePending=false
         if S.maskActive then exit('F7') else enter() end
