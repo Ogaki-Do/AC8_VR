@@ -1,0 +1,137 @@
+{
+  "groups": {
+    "ladder": {
+      "enabled": true,
+      "scale": 0.75,
+      "x": 170,
+      "y": 30
+    },
+    "radar": {
+      "enabled": true,
+      "scale": 0.76,
+      "x": -220,
+      "y": 45.72210714885517
+    },
+    "info": {
+      "enabled": true,
+      "scale": 0.6,
+      "x": 124,
+      "y": -80
+    }
+  },
+  "components": {
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+      "enabled": true,
+      "x": -306,
+      "y": 1872.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+      "enabled": true,
+      "x": -1050,
+      "y": 660,
+      "scale": 0.35
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+      "enabled": false,
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+      "enabled": true,
+      "x": -212,
+      "y": 1762.2690905507932,
+      "scale": 0.7
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+      "enabled": false,
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+      "enabled": false,
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "WidgetTree.WBP_LocatorWidget": {
+      "enabled": false,
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "WidgetTree.WBP_TargetSelectionDraw": {
+      "enabled": false,
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    }
+  },
+  "canvas": {
+    "enabled": false,
+    "x": 0,
+    "y": 0,
+    "scale": 1,
+    "extraWidth": 0,
+    "extraHeight": 0,
+    "inheritClip": false
+  },
+  "revision": "release-default",
+  "rescan": 0
+}

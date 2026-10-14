@@ -1,0 +1,50 @@
+# Build/editor output
+**/build/
+.vs/
+.vscode/
+*.obj
+*.pdb
+*.exp
+*.lib
+*.ilk
+*.pyc
+__pycache__/
+# Private development content
+**/tests/
+**/test/
+**/developer/
+**/captures/
+**/backups/
+**/private/
+work/
+outputs/
+*.log
+*.sav
+*.mp4
+*.wpix
+*.zip
+*diagnostic*
+*probe*
+*fixture*
+test-*
+verify-*
+# Generated local state
+data/*restore*.json
+data/*status*.json
+!data/ac8_wingman_status_controls.json
+data/*snapshot*.json
+data/*capture*.json
+data/*trace*.json
+data/*baseline*.json
+data/ac8_hud_layout_cache.json
+data/ac8_ladder.json
+ac8_ladder_fix.txt
+log.txt
+imgui.ini
+cache/
+# Runtime DLL and renderer assets are intentionally tracked.
+
+*.pak
+*.utoc
+*.ucas
+aes-key*

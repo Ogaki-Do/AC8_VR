@@ -1,0 +1,8 @@
+{
+  "cinematic": "src/cinematic/cinematic-game-hooks.cpp",
+  "escort": "src/hud/world-targets.cpp",
+  "glow": "src/renderer/hud-renderer.cpp",
+  "warning": "src/hud/hud-tick-guards.cpp",
+  "arrow": "src/hud/offscreen-indicators.cpp",
+  "lock": "src/hud/target-lock-reticle.cpp"
+}
