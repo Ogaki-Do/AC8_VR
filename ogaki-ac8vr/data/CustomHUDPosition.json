@@ -1,7 +1,7 @@
 {
   "version": 1,
   "cinematicPresentation": {
-    "enabled": false
+    "enabled": true
   },
   "hudElements": {}
 }
