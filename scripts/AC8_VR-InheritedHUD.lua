@@ -408,6 +408,9 @@ local function assert_pins(slow)
             pcall(function() C.base.Visibility = 0 end)
         end
     end
+    if AC8Runtime and AC8Runtime.applyAllHUDCustomPositions then
+        pcall(AC8Runtime.applyAllHUDCustomPositions)
+    end
     return n
 end
 
