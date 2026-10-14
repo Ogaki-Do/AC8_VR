@@ -27,7 +27,7 @@ World targets and aiming
 
 Camera, menus and transitions
 - Detects the current player aircraft through its owned first-person camera component.
-- Applies absolute per-plane UEVR forward/right/up offsets from an editable Lua data file.
+- Applies absolute per-plane UEVR forward/right/up offsets from an editable Lua data file that users can tweak.
 - Includes tuned F/A-18C and F-4E values and commented aircraft catalog identifiers for future tuning.
 - Preserves manual camera adjustments between aircraft/configuration/ownership changes.
 - Gives cinematic/hangar presentation camera priority and restores saved settings afterward.
