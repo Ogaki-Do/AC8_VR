@@ -39,7 +39,6 @@ These files live under `data`. Keep valid JSON syntax and edit one setting at a 
 | File | Purpose |
 |---|---|
 | `ac8_workshop_v2_controls.json` | Group and individual widget placement/scale using stable widget paths. |
-| `ac8_workshop_effect_controls.json` | Optional inherited HUD material/effect treatment. |
 | `ac8_workshop_target_controls.json` | World-target box, label/font scales and line spacing. |
 | `ac8_world_target_controls.json` | Flat-style label offsets, left-label drop and cyan target-material saturation. |
 | `ac8_offscreen_group_controls.json` | Whole off-screen group horizontal offset/scale. |
@@ -48,9 +47,7 @@ These files live under `data`. Keep valid JSON syntax and edit one setting at a 
 | `ac8_bomb_landing_controls.json` | Landing projection FOV adjustment. |
 | `ac8_hangar_coverage_controls.json` | Horizontal/vertical cinematic and hangar coverage. |
 | `ac8_pause_controls.json` | Scoped pause duplicate-tick guard. |
-| `ac8_transition_controls.json` | Optional transition controls and native fade response; dedicated mission-loading ownership remains independent. |
 | `ac8_tutorial_fill_controls.json` | Tutorial frame/background scale, alpha and inset. |
-| `ac8_cinematic_intent_control.json` | Optional manual command with a new string `revision` and `action="toggle"`; F7 is simpler. |
 | `ac8_escort_draw_scale_enabled.flag` | Enables native billboard scale support; preserve the supplied file. |
 
 Generated `ac8_cinematic_ui_restore.json` and `ac8_hangar_restore_v48.json` are recovery journals, not defaults to share. `ac8_hud_layout_cache.json` stores local calibration. A legacy `ac8_ladder.json` may be read for custom instrument values; fresh installs use supplied controls and built-in defaults.

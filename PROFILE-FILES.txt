@@ -4,16 +4,13 @@ config.txt
 cvars_data.txt
 data/AC8_VR-PerPlaneCameraOffsets.lua
 data/ac8_bomb_landing_controls.json
-data/ac8_cinematic_intent_control.json
 data/ac8_escort_draw_scale_enabled.flag
 data/ac8_hangar_coverage_controls.json
 data/ac8_offscreen_group_controls.json
 data/ac8_pause_controls.json
 data/ac8_target_arrow_shift_controls.json
-data/ac8_transition_controls.json
 data/ac8_tutorial_fill_controls.json
 data/ac8_wingman_status_controls.json
-data/ac8_workshop_effect_controls.json
 data/ac8_workshop_target_controls.json
 data/ac8_workshop_v2_controls.json
 data/ac8_world_target_controls.json
