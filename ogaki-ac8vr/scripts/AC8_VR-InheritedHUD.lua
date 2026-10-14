@@ -641,7 +641,7 @@ local function discover()
     
     
     C.keep = nil; C.base = nil; C.wtsc = nil; C.maincv = nil; C.cp = nil
-    C.ts = nil; C.ta = nil; C.vicon = nil; C.vel = nil; C.whisky = nil
+    C.ts = nil; C.ta = nil; C.vicon = nil; C.vel = nil; C.whisky = nil; C.altimeter = nil; C.campaign = nil
     C.radar = {}; C.radar_main = nil; C.pins = {}
     C.resid = nil; C.prof = nil
 
@@ -705,9 +705,11 @@ local function discover()
     C.cp = find_desc(wtsc, "ChroniclePersistent", 3)
     C.vicon  = find_desc(wtsc, "VelocityIcon", 12, true)
     C.vel    = find_desc(wtsc, "Velocity", 12, true)
+    C.altimeter = find_desc(wtsc, "Altimeter", 12, true)
     C.whisky = find_desc(wtsc, "WhiskyMarkPanel", 12, true)
     C.ts     = find_desc(wtsc, "SpeedTachometerCenterPanel", 14, true)
     C.ta     = find_desc(wtsc, "AltitudeTachometerCenterPanel", 14, true)
+    C.campaign = find_desc(C.keep, "CampaignInfo", 14, false)
     C.radar  = collect_radar(C.maincv)
     if #C.radar > 0 then
         
@@ -717,7 +719,22 @@ local function discover()
         end
         if C.radar_main == nil then C.radar_main = C.radar[1] end
     end
-    AC8Runtime.hudLayoutRefs={radar=C.radar_main,root=C.keep}
+    AC8Runtime.hudLayoutRefs={
+        radar=C.radar_main,
+        root=C.keep,
+        wtsc=C.wtsc,
+        maincv=C.maincv,
+        cp=C.cp,
+        vicon=C.vicon,
+        vel=C.vel,
+        altimeter=C.altimeter,
+        whisky=C.whisky,
+        ts=C.ts,
+        ta=C.ta,
+        campaign=C.campaign,
+        radarList=C.radar,
+        epoch=C.hudEpoch
+    }
 
     sweep_residual(false)
     match_tach_k()

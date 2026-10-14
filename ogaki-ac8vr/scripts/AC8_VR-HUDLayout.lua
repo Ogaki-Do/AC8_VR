@@ -131,33 +131,28 @@ function S.restore()
 end
 local function discard()S.base=nil;S.row=nil;S.widgets=nil end
 local function discover()
-    local found={}
-    local cls=call(api,'find_uobject','Class /Script/UMG.Widget')
-    for _,w in ipairs(call(cls,'get_objects_matching',false) or {}) do
-        local n=full(w) or '';local key=n:match('%.([^%.]+)$')
-        if n:find('/Engine/Transient.',1,true) and n:find('WBP_HUD_Chronicle_MainFlight_000_C_',1,true)
-            and n:find('WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C_',1,true)
-            and (key=='TargetText' or key=='TargetInfoText' or key=='PrivateScore' or key=='TimeText') then
-            
-            local rootPath=n:match('^[^ ]+ (.-WBP_HUD_Chronicle_MainFlight_000_C_%d+)%.')
-            local root=rootPath and call(api,'find_uobject','WBP_HUD_Chronicle_MainFlight_000_C '..rootPath)
-            if call(root,'IsInViewport')==true then
-                found[rootPath]=found[rootPath] or {};found[rootPath][key]=w
+    -- Fast path: use shared HUD refs from InheritedHUD
+    local refs = AC8Runtime and AC8Runtime.hudLayoutRefs
+    local camp = refs and refs.campaign
+    if camp and AC8Runtime.isLiveObject(camp) then
+        local targetText = call(camp, 'get_property', 'TargetText')
+        local targetInfo = call(camp, 'get_property', 'TargetInfoText')
+        local privateScore = call(camp, 'get_property', 'PrivateScore')
+        local timeText = call(camp, 'get_property', 'TimeText')
+        if targetText and targetInfo and privateScore and timeText then
+            local row = call(targetText, 'GetParent')
+            if row and full(row) == full(call(targetInfo, 'GetParent')) then
+                local t, sc = transform(row)
+                if t and sc then
+                    S.widgets = { TargetText = targetText, TargetInfoText = targetInfo, PrivateScore = privateScore, TimeText = timeText }
+                    S.row = row
+                    S.base = { name = full(row), translation = t, scale = sc }
+                    return
+                end
             end
         end
     end
-    local matches={}
-    for _,w in pairs(found) do
-        local row=call(w.TargetText,'GetParent')
-        if row and full(row)==full(call(w.TargetInfoText,'GetParent')) and w.PrivateScore and w.TimeText then
-            matches[#matches+1]={widgets=w,row=row}
-        end
-    end
-    if #matches~=1 then S.status='waiting for one active campaign target row';return end
-    S.widgets=matches[1].widgets;S.row=matches[1].row
-    local t,sc=transform(S.row)
-    if not t or not sc then S.row=nil;S.widgets=nil;S.status='row transform unavailable';return end
-    S.base={name=full(S.row),translation=t,scale=sc}
+    S.status = 'waiting for shared campaign info ref'
 end
 local function apply()
     if S.stopped then return end
@@ -295,24 +290,18 @@ function S.restore()
 end
 local function discard()S.velocity=nil;S.icon=nil;S.altimeter=nil;S.root=nil;S.originals=nil;S.lastIconPin=nil end
 local function discover()
-    local sets={}
-    for _,w in ipairs(call(call(api,'find_uobject','Class /Script/UMG.Widget'),'get_objects_matching',false) or {})do
-        local n=full(w) or '';local leaf=n:match('%.([^%.]+)$')
-        if (leaf=='Velocity' or leaf=='VelocityIcon' or leaf=='Altimeter') and n:find('.WBP_ChroniclePersistent.',1,true) then
-            local path=n:match('^[^ ]+ (.-WBP_HUD_Chronicle_MainFlight_000_C_%d+)%.')
-            local root=path and call(api,'find_uobject','WBP_HUD_Chronicle_MainFlight_000_C '..path)
-            if call(root,'IsInViewport')==true then sets[path]=sets[path] or {root=root};sets[path][leaf]=w end
+    -- Fast path: use shared HUD refs from InheritedHUD
+    local refs = AC8Runtime and AC8Runtime.hudLayoutRefs
+    if refs and refs.vel and refs.vicon and refs.altimeter and refs.root then
+        local originals = {}
+        for _, o in ipairs({ refs.vel, refs.vicon }) do
+            local t, sc = transform(o)
+            if not t or not sc then return end
+            originals[#originals + 1] = { object = o, name = full(o), translation = t, scale = sc }
         end
+        S.velocity = refs.vel; S.icon = refs.vicon; S.altimeter = refs.altimeter; S.root = refs.root; S.originals = originals
+        return
     end
-    local found={}
-    for _,w in pairs(sets)do if w.Velocity and w.VelocityIcon and w.Altimeter then found[#found+1]=w end end
-    if #found~=1 then return end
-    local w=found[1];local originals={}
-    for _,o in ipairs({w.Velocity,w.VelocityIcon})do
-        local t,sc=transform(o);if not t or not sc then return end
-        originals[#originals+1]={object=o,name=full(o),translation=t,scale=sc}
-    end
-    S.velocity=w.Velocity;S.icon=w.VelocityIcon;S.altimeter=w.Altimeter;S.root=w.root;S.originals=originals
 end
 local function apply()
     if S.stopped then return end
