@@ -95,11 +95,16 @@ function R.contextTick(advance)
  if identityChanged then R.context.epoch=R.context.epoch+1;R.context.changedAt=R.tick;R.context.identity=identity end
  R.context.pc=pc;R.context.hud=hud;R.context.root=root;R.context.hudName=hn;R.context.rootName=rn;R.context.flight=hn:match('^LiveMainHUDParent4K_C ')~=nil
 
- if (R.tick % 30 == 0 or identityChanged) and R.applyActiveCameraOffset then
-  local curPlane = R.getCurrentPlaneName and R.getCurrentPlaneName()
-  if curPlane ~= R.context.planeName or identityChanged then
-   R.context.planeName = curPlane
-   pcall(R.applyActiveCameraOffset)
+ if (R.tick % 30 == 0 or identityChanged) then
+  if R.applyActiveCameraOffset then
+   local curPlane = R.getCurrentPlaneName and R.getCurrentPlaneName()
+   if curPlane ~= R.context.planeName or identityChanged then
+    R.context.planeName = curPlane
+    pcall(R.applyActiveCameraOffset)
+   end
+  end
+  if R.applyMultiRadar and R.customHUDConfig and R.customHUDConfig.multiRadar and R.customHUDConfig.multiRadar.enabled then
+   pcall(R.applyMultiRadar)
   end
  end
 end
@@ -155,6 +160,15 @@ local function ensureCustomHUDDefaults(cfg)
   cfg.cameraOffsets.default = { forward = -18.0, right = 0.0, up = 5.0 }
  end
  if not cfg.cameraOffsets.planes then cfg.cameraOffsets.planes = {} end
+ if not cfg.multiRadar then
+  cfg.multiRadar = { enabled = false, mode = 'search', x = 0.40, y = 0.25, scale = 0.85, opacity = 0.95 }
+ end
+ if cfg.multiRadar.enabled == nil then cfg.multiRadar.enabled = false end
+ if not cfg.multiRadar.mode then cfg.multiRadar.mode = 'search' end
+ if cfg.multiRadar.x == nil then cfg.multiRadar.x = 0.40 end
+ if cfg.multiRadar.y == nil then cfg.multiRadar.y = 0.25 end
+ if cfg.multiRadar.scale == nil then cfg.multiRadar.scale = 0.85 end
+ if cfg.multiRadar.opacity == nil then cfg.multiRadar.opacity = 0.95 end
  return cfg
 end
 
@@ -241,6 +255,100 @@ function R.applyAllHUDCustomPositions()
  local wingman = rawget(_G, 'AC8_WingmanCommandWidget') or (refs and refs.wingman)
  if wingman and he.wingman then
   R.applyHUDCustomElement('wingman', wingman, he.wingman, true)
+ end
+
+ -- 7. Multi-Radar / Secondary Map (P2)
+ if R.applyMultiRadar then
+  pcall(R.applyMultiRadar)
+ end
+end
+
+-- Secondary Multi-Radar Management (P2)
+R.secondaryRadarWidgets = nil
+function R.findSecondaryRadarWidgets()
+ local refs = R.hudLayoutRefs
+ local root = (refs and refs.maincv) or (refs and refs.root) or R.context.root
+ if not root or not R.isLiveObject(root) then return end
+ local found = {}
+ local seen = {}
+ local function rec(w, d)
+  if not w or d > 16 then return end
+  local p = tostring(w)
+  if seen[p] then return end
+  seen[p] = true
+  local n = R.objectCall(w, 'get_full_name') or ''
+  local sn = n:match('([^.]+)$') or n
+  if sn == 'MiniMapSearchWidget' or sn:find('MiniMapSearchWidget', 1, true) then found.search = w end
+  if sn == 'MiniMapEnlargedWidget' or sn:find('MiniMapEnlargedWidget', 1, true) then found.enlarged = w end
+  if sn == 'MiniMapWholeWidget' or sn:find('MiniMapWholeWidget', 1, true) then found.whole = w end
+  if sn == 'MiniMapSearchCorners' or sn:find('MiniMapSearchCorners', 1, true) then found.corners = w end
+
+  local count = R.objectCall(w, 'GetChildrenCount') or 0
+  if type(count) == 'number' and count > 0 then
+   for i = 0, count - 1 do
+    local c = R.objectCall(w, 'GetChildAt', i)
+    if c then rec(c, d + 1) end
+   end
+  end
+  local wt = R.objectCall(w, 'get_property', 'WidgetTree')
+  if wt then
+   local rw = R.objectCall(wt, 'get_property', 'RootWidget')
+   if rw then rec(rw, d + 1) end
+  end
+ end
+ rec(root, 0)
+ R.secondaryRadarWidgets = found
+end
+
+function R.applyMultiRadar()
+ local mr = R.customHUDConfig and R.customHUDConfig.multiRadar
+ if not mr then return end
+ local widgets = R.secondaryRadarWidgets
+ if not widgets or not widgets.search or not R.isLiveObject(widgets.search) then
+  R.findSecondaryRadarWidgets()
+  widgets = R.secondaryRadarWidgets
+ end
+ if not widgets then return end
+
+ local mode = mr.mode or 'search'
+ local targetWidget = (mode == 'enlarged' and widgets.enlarged)
+    or (mode == 'whole' and widgets.whole)
+    or widgets.search
+
+ if mr.enabled then
+  for k, w in pairs(widgets) do
+   if k ~= 'corners' and w and R.isLiveObject(w) and w ~= targetWidget then
+    pcall(function() w:SetVisibility(1) end) -- 1 = Collapsed
+   end
+  end
+  if targetWidget and R.isLiveObject(targetWidget) then
+   pcall(function()
+    targetWidget:SetVisibility(0) -- 0 = Visible
+    targetWidget:SetRenderOpacity(mr.opacity or 0.95)
+    local tx = (mr.x or 0.40) * 960.0
+    local ty = (mr.y or 0.25) * 540.0
+    targetWidget:SetRenderTranslation({ X = tx, Y = ty })
+    local sc = mr.scale or 0.85
+    targetWidget:SetRenderScale({ X = sc, Y = sc })
+   end)
+  end
+  if widgets.corners and R.isLiveObject(widgets.corners) and mode == 'search' then
+   pcall(function()
+    widgets.corners:SetVisibility(0)
+    widgets.corners:SetRenderOpacity(mr.opacity or 0.95)
+    local tx = (mr.x or 0.40) * 960.0
+    local ty = (mr.y or 0.25) * 540.0
+    widgets.corners:SetRenderTranslation({ X = tx, Y = ty })
+    local sc = mr.scale or 0.85
+    widgets.corners:SetRenderScale({ X = sc, Y = sc })
+   end)
+  end
+ else
+  for k, w in pairs(widgets) do
+   if w and R.isLiveObject(w) then
+    pcall(function() w:SetVisibility(1) end) -- 1 = Collapsed
+   end
+  end
  end
 end
 
@@ -492,6 +600,62 @@ pcall(function()
     R.saveCustomHUDConfig()
     R.applyActiveCameraOffset()
     print('[AC8-VR] Camera offsets reset to defaults')
+   end
+   if ui.tree_pop then ui.tree_pop() end
+  end
+
+  -- =========================================================================
+  -- SECTION 4: Multi-Radar / Dual Map System (P2)
+  -- =========================================================================
+  if ui.tree_node and ui.tree_node('Multi-Radar / Dual Map System (P2)') then
+   local mr = R.customHUDConfig and R.customHUDConfig.multiRadar
+   if mr then
+    if ui.checkbox then
+     local changed, newVal = ui.checkbox('Enable Multi-Radar (Dual Radar Display)', mr.enabled == true)
+     if changed and newVal ~= nil then
+      mr.enabled = newVal
+      R.saveCustomHUDConfig()
+      R.applyMultiRadar()
+      print(string.format('[AC8-VR] Multi-Radar set to: %s', tostring(newVal)))
+     end
+    end
+
+    if mr.enabled then
+     if ui.text then
+      ui.text('Simultaneously displays a secondary wide-range radar alongside combat radar.')
+     end
+     if ui.separator then ui.separator() end
+
+     -- Mode selector (Search / Enlarged / Whole)
+     if ui.text then ui.text('Secondary Map Mode: ' .. tostring(mr.mode or 'search')) end
+     if ui.button and ui.same_line then
+      if ui.button('Search (索敵広域)') then mr.mode = 'search'; R.saveCustomHUDConfig(); R.applyMultiRadar() end
+      ui.same_line()
+      if ui.button('Enlarged (拡大)') then mr.mode = 'enlarged'; R.saveCustomHUDConfig(); R.applyMultiRadar() end
+      ui.same_line()
+      if ui.button('Whole (全体マップ)') then mr.mode = 'whole'; R.saveCustomHUDConfig(); R.applyMultiRadar() end
+     end
+
+     renderRatioSliderWithNudge(ui, 'Secondary Pos X Ratio (-1.0 ~ 1.0)', mr, 'x', -1.0, 1.0, 0.40, 'mr')
+     renderRatioSliderWithNudge(ui, 'Secondary Pos Y Ratio (-1.0 ~ 1.0)', mr, 'y', -1.0, 1.0, 0.25, 'mr')
+
+     local sChanged, sVal = ui.slider_float('Secondary Scale (0.2 ~ 3.0)##mr', mr.scale or 0.85, 0.2, 3.0)
+     if sChanged and sVal ~= nil then mr.scale = sVal; R.saveCustomHUDConfig(); R.applyMultiRadar() end
+
+     local oChanged, oVal = ui.slider_float('Secondary Opacity (0.0 ~ 1.0)##mr', mr.opacity or 0.95, 0.0, 1.0)
+     if oChanged and oVal ~= nil then mr.opacity = oVal; R.saveCustomHUDConfig(); R.applyMultiRadar() end
+
+     if ui.button and ui.button('Reset Multi-Radar to Defaults##mr') then
+      mr.mode = 'search'
+      mr.x = 0.40
+      mr.y = 0.25
+      mr.scale = 0.85
+      mr.opacity = 0.95
+      R.saveCustomHUDConfig()
+      R.applyMultiRadar()
+      print('[AC8-VR] Multi-Radar reset to defaults')
+     end
+    end
    end
    if ui.tree_pop then ui.tree_pop() end
   end
