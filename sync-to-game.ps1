@@ -22,7 +22,11 @@ foreach ($folder in $foldersToSync) {
     $dstFolder = Join-Path $dst $folder
     if (Test-Path $srcFolder) {
         Write-Host "Syncing $folder/ ..." -ForegroundColor Cyan
-        Copy-Item -Path "$srcFolder\*" -Destination $dstFolder -Recurse -Force
+        try {
+            Copy-Item -Path "$srcFolder\*" -Destination $dstFolder -Recurse -Force -ErrorAction Stop
+        } catch {
+            Write-Warning "Could not copy some files in $folder (possibly in-use by running game/UEVR): $_"
+        }
     }
 }
 
