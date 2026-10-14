@@ -173,14 +173,22 @@ local function apply()
         end
     end
     local w=S.widgets
-    local cfgOK,cfg=pcall(function()return json.load_file('ac8_workshop_v2_controls.json')end)
-    local revision=cfgOK and type(cfg)=='table'and cfg.revision or nil
+    if S.cachedWorkshopCfg == nil then
+        local cfgOK, cfg = pcall(function() return json.load_file('ac8_workshop_v2_controls.json') end)
+        S.cachedWorkshopCfg = (cfgOK and type(cfg) == 'table') and cfg or false
+    end
+    local cfg = S.cachedWorkshopCfg ~= false and S.cachedWorkshopCfg or nil
+    local revision=cfg and cfg.revision or nil
     local rowName=full(S.row)or '';local scope=(rowName:match('^(%S+)')or '')..':'..(rowName:match('%.([^%.]+)$')or rowName:match('%s(.+)$')or '')
     if S.cacheRow~=rowName then
         S.cacheRow=rowName
-        local ok,cached=pcall(function()return json.load_file('ac8_hud_layout_cache.json')end)
+        if S.cachedLayoutData == nil then
+            local ok, cached = pcall(function() return json.load_file('ac8_hud_layout_cache.json') end)
+            S.cachedLayoutData = (ok and type(cached) == 'table') and cached or false
+        end
+        local cached = S.cachedLayoutData ~= false and S.cachedLayoutData or nil
         local _,scoreScale=transform(w.PrivateScore)
-        if ok and type(cached)=='table'and cached.version==1 and revision and cached.revision==revision and cached.scope==scope
+        if cached and type(cached)=='table'and cached.version==1 and revision and cached.revision==revision and cached.scope==scope
             and type(cached.x)=='number'and type(cached.y)=='number'and math.abs(cached.x)<4000 and math.abs(cached.y)<4000
             and scoreScale and type(cached.scale)=='table'and type(cached.scale.X)=='number'and type(cached.scale.Y)=='number'
             and math.abs(cached.scale.X-scoreScale.X)<.001 and math.abs(cached.scale.Y-scoreScale.Y)<.001 then

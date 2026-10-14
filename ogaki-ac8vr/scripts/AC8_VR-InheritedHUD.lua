@@ -855,7 +855,7 @@ local function fingerprint_check()
 end
 
 local CAM_ANIM_KILL = true     
-local CAM_KILL_EVERY = 1       
+local CAM_KILL_EVERY = 30      
 local cam_kill_oklog  = false  
 local cam_kill_faillog = false 
 local cam_kill_path   = ""     

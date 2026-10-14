@@ -96,8 +96,7 @@ end
 function R.connect(key)
  if R.connected[key]then return end;R.connected[key]=true
  real.sdk.callbacks[key](function(...)
-  if key=='on_pre_engine_tick'then R.contextTick()
-  elseif key=='on_post_engine_tick'or key=='on_pre_viewport_client_draw'then R.contextTick(false)end
+  if key=='on_pre_engine_tick'then R.contextTick() end
   for _,domain in ipairs(order)do
    local rows=(domain~='layout'or R.layoutEnabled)and R.domains[domain]and R.domains[domain][key]
    for _,row in ipairs(rows or {})do
