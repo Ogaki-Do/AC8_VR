@@ -13,7 +13,7 @@ A UEVR profile and companion plugin for Ace Combat 8, focused on cockpit HUD pla
 - [Compatibility](docs/COMPATIBILITY.md)
 - [Credits and third-party notices](THIRD_PARTY_NOTICES.md)
 
-Requires **UEVR** and the **Bypass EAC (Easy Anti-cheat) mod**. Instructions for setting up the bypass yourself are available in the **Flat2VR Modding Discord**. Neither prerequisite is included here.
+Requires **UEVR** and the **Bypass EAC (Easy Anti-cheat) mod**. Instructions for setting up the bypass yourself are available in the **Flat2VR Modding Discord** (https://discord.gg/flat2vr). Neither prerequisite is included here.
 
 Use the compatible UEVR build described in the compatibility guide, with **OpenXR, DirectX 12 and Native Stereo**. Native hooks validate specific game/backend binaries; another UEVR build may inject successfully while some enhancements remain disabled.
 
