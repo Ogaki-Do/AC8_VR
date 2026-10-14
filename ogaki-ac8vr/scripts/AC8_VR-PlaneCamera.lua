@@ -119,6 +119,7 @@ local function update()
  if S.lastTick==R.tick then return end;S.lastTick=R.tick
  readConfig()
  local status={mode='uevr_absolute',state='waiting',configError=S.configError,writes=S.writes};S.status=status
+ if not S.config.enabled and not S.owned then status.state='disabled';return end
  local ci=rawget(_G,'AC8_CinematicIntent')
  if presentationOwns(ci)then S.selection=nil;status.state='cinematic/hangar owns camera';return end
  local target=call(R.context.pc,'GetViewTarget')
@@ -134,7 +135,6 @@ local function update()
   not S.config.planes[class]and 'aircraft has no configured override' or 'configured current aircraft'
  local desired=S.config.default;local selection='default'
  if S.config.enabled and cockpit and S.config.planes[class]then desired=S.config.planes[class];selection=class end
- if not S.config.enabled and not S.owned then status.state='disabled';return end
  local key=selection..':'..S.revision..':'..(cockpit and name or '')
  if S.selection~=key then
   if R.tick<(S.retryAt or 0)then status.state='waiting to retry UEVR write';return end

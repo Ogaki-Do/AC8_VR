@@ -31,6 +31,7 @@ local function visible(o)
 end
 local statics
 local function update()
+ if R.context.flight and not S.active then return end
  if not R.isLiveObject(statics)then statics=call(uevr.api,'find_uobject','GameplayStatics /Script/Engine.Default__GameplayStatics')end
  local gi=call(statics,'GetGameInstance',R.context.pc);local gin=full(gi)
  if not gin then S.subsystem=nil;S.gameInstance=nil;S.nextScan=0;clear('no current game instance');return end
@@ -74,7 +75,6 @@ local function update()
 end
 local host=R.host('utility','mission loading ownership')
 host.sdk.callbacks.on_pre_engine_tick(update)
-host.sdk.callbacks.on_post_engine_tick(update)
 end
 
 
@@ -245,7 +245,6 @@ local function update(_,delta)
     
 end
 uevr.sdk.callbacks.on_pre_engine_tick(update)
-uevr.sdk.callbacks.on_post_engine_tick(function()if not S.stopped then update(nil,0)end end)
 
 end)(AC8Runtime.host('utility','general_vr_transitions.lua'),AC8Runtime.json,AC8Runtime.log)
 end

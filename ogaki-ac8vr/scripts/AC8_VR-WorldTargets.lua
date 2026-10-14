@@ -167,7 +167,8 @@ end)
 uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
  if S.stopped then return end;S.ticks=S.ticks+1
  local controls=json.load_file('ac8_workshop_target_controls.json')
- local factor=type(controls)=='table'and controls.enabled and tonumber(controls.boxScale)or 1
+ if not (type(controls)=='table' and controls.enabled==true) then return end
+ local factor=tonumber(controls.boxScale)or 1
  if not factor or factor<.1 or factor>2 then return end
  local hud=call(call(api,'get_player_controller',0),'GetHUD');local hn=full(hud)or''
  local level=hn:match('^LiveMainHUDParent4K_C (.+%.PersistentLevel)%.');local seen={}
