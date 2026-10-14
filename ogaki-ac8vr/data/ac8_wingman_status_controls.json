@@ -1,0 +1,11 @@
+{
+  "version": 80,
+  "enabled": true,
+  "x": 0,
+  "y": 1460,
+  "width": 440,
+  "height": 96,
+  "liveAdjust": true,
+  "followRadarTop": true,
+  "radarGap": 24
+}

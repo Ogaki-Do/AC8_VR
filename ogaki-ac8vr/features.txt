@@ -1,0 +1,55 @@
+AC8 VR features
+
+HUD layout and presentation
+- Repositions/scales radar, pitch ladder, flight information, campaign rows and communication portrait for VR.
+- Aligns velocity/flight marker and forward locator with the adjusted HUD.
+- Places wingman command status above the radar, left aligned, following its painted geometry as radar mode changes.
+- Repositions the loading indicator to the center of the screen so it's easier to tell something's happening in VR.
+- Reduces/shifts the off-screen target group for better edge clearance.
+- Shares native off-screen/forward locator scale while preserving independent centers.
+- Scales supported target-lock seeker artwork after validating its native size convention.
+- Reconstructs authored HUD glow and blends it against each eye's current scene.
+- Uses visible, clipped widget geometry for local blending policies instead of fixed screen rectangles.
+- Keeps radio text on the common authored glow path without a separate bright rectangular boundary.
+- Retains tutorial background controls and portrait-border treatment; removes extra decorative dots from ordinary HUD composition.
+- Provides editable UEVR HUD depth, scale and curvature defaults applied once per Lua session.
+- Preserves later manual HUD adjustments until restart or script reload.
+
+World targets and aiming
+- Adjusts world-target box sizes and text spacing for VR.
+- Uses flat-style label positioning with an independent left-label vertical correction.
+- Preserves native large-to-small target introduction animation and avoids double-scaling temporary metrics.
+- Scales assignment/escort billboard artwork without compounding previous changes.
+- Uses native target material brightness and modest saturation increase on eligible cyan target-owned materials.
+- Does not apply broad blue-pixel recoloring to flattened movies, oceans or HUD text.
+- Attaches bomb trajectory origin to the painted velocity icon, sharing horizontal attachment with landing geometry.
+- Corrects scoped bomb-circle camera matrices while preserving native prediction, ground normal and styling.
+
+Camera, menus and transitions
+- Detects the current player aircraft through its owned first-person camera component.
+- Applies absolute per-plane UEVR forward/right/up offsets from an editable Lua data file that users can tweak.
+- Includes tuned F/A-18C and F-4E values and commented aircraft catalog identifiers for future tuning.
+- Preserves manual camera adjustments between aircraft/configuration/ownership changes.
+- Gives cinematic/hangar presentation camera priority and restores saved settings afterward.
+- Presents authored cinematic/hangar cameras with controlled stereo windows and coverage.
+- Press F7 to manually enable or disable cinematic viewing mode.
+- Holds black mission-loading cover using the current subsystem's actual screen, even after the flight HUD appears.
+- Connects native fade opacity to VR transition presentation.
+- Prevents duplicate pause-menu ticks from skipping entries with keyboard/controller navigation.
+- Preserves warning/message state by suppressing only the verified extra viewport tick.
+- Guards the verified menu call site that can receive a missing gauge image.
+- Shortens allowlisted startup notices and seeks known startup/menu movies; scanning stops after the startup window.
+
+Maintainability and runtime work
+- One AC8_VR-Runtime.dll with separate, clearly named Lua modules.
+- Explicit section startup order independent of filesystem load order.
+- Shared same-tick HUD discovery and owner-scoped lookups where available.
+- Cached pause-query metadata and unchanged policy serialization/parsing, retaining live state/heartbeat checks.
+- Object lifetime, identity, build-signature, image-ownership and GPU-fence guards.
+- Commented Lua/C++/shader source with configuration, installation and maintainer guides.
+
+Known limits
+- Other aircraft identifiers are not tested offsets or decoded display-name guarantees. I haven't earned all of the jets yet so I haven't filled in the custom camera positions for those yet but you sure can.
+- Wingman placement can briefly lag radar geometry changes.
+- Some tutorial/movie glow, dark-transition emission regions and bottom-edge off-screen clipping remain.
+- Game/UEVR updates require compatibility validation; no measured FPS improvement is claimed.
