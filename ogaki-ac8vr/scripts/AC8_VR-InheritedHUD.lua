@@ -799,6 +799,26 @@ local function discover()
     return true
 end
 
+-- Expose HUD layout rediscovery globally and via AC8Runtime
+rawset(_G, 'AC8_RefreshHUDCache', function()
+    C.ready = false
+    local ok = discover()
+    if ok then
+        if rawget(_G, 'AC8_RefreshUICache') then pcall(rawget(_G, 'AC8_RefreshUICache'), true) end
+    end
+    return ok
+end)
+if type(AC8Runtime) == 'table' then
+    AC8Runtime.refreshHUDCache = function()
+        C.ready = false
+        local ok = discover()
+        if ok then
+            if type(AC8Runtime.refreshUICache) == 'function' then pcall(AC8Runtime.refreshUICache, true) end
+        end
+        return ok
+    end
+end
+
 local function validate()
     for _, e in ipairs({ C.keep, C.base, C.wtsc, C.cp }) do
         if e ~= nil then

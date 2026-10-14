@@ -157,6 +157,8 @@ local function kind(n,w)
 end
 
 -- Rebuild UI cache function: can be called anytime externally or on demand
+local rebuildUIRectangles
+
 local function rebuildUICache(force)
     if not force and S.candidates and #S.candidates > 0 and S.root and full(S.root) == S.rootName then
         return true
@@ -214,17 +216,95 @@ local function rebuildUICache(force)
         if pa~=pb then return pa<pb end;return a.name<b.name
     end)
     while #S.candidates>128 do table.remove(S.candidates)end
+    if #S.candidates > 0 and rebuildUIRectangles then
+        rebuildUIRectangles(true)
+    end
     return #S.candidates > 0
 end
 local discover = rebuildUICache
 
--- Expose UI cache rebuild function globally and via AC8Runtime
+-- Compute and cache UI policy rectangles: eliminates per-frame Slate matrix transforms
+rebuildUIRectangles = function(force)
+    if not force and S.cachedRectangles and #S.cachedRectangles > 0 and S.root and full(S.root) == S.rootName then
+        return S.cachedRectangles
+    end
+    if not S.root or full(S.root) ~= S.rootName or not S.candidates or #S.candidates == 0 then
+        return S.cachedRectangles or {}
+    end
+    local g = geometry(S.root)
+    local size = xy(call(slate, 'GetLocalSize', g))
+    if not size or size.X <= 0 or size.Y <= 0 then
+        return S.cachedRectangles or {}
+    end
+
+    local rectangles = {}
+    local function add(r, flags, name, category)
+        if not r then return end
+        for i = #rectangles, 1, -1 do
+            local a = rectangles[i]; local same = true
+            for j = 1, 4 do if flags[j] ~= a.flags[j] then same = false end end
+            if same then
+                if r[1] >= a.bounds[1] and r[2] >= a.bounds[2] and r[3] <= a.bounds[3] and r[4] <= a.bounds[4] then return end
+                if a.bounds[1] >= r[1] and a.bounds[2] >= r[2] and a.bounds[3] <= r[3] and a.bounds[4] <= r[4] then table.remove(rectangles, i) end
+            end
+        end
+        rectangles[#rectangles + 1] = { bounds = r, flags = flags }
+    end
+
+    for _, c in ipairs(S.candidates) do
+        if full(c.widget) == c.name then
+            local usable = true
+            if c.category == 'portrait' then
+                local brush = call(c.widget, 'GetBrush') or call(c.widget, 'get_property', 'Brush')
+                local resource = field(brush, 'ResourceObject')
+                local color = call(c.widget, 'GetColorAndOpacity') or call(c.widget, 'get_property', 'ColorAndOpacity')
+                local alpha = field(color, 'A')
+                usable = resource ~= nil and (type(alpha) ~= 'number' or alpha > 0)
+            end
+            local r = usable and bounds(c.widget, g, size, c.inset, c.ancestors)
+            if r then
+                add(r, c.flags, c.name, c.category)
+                if c.category == 'portrait' then
+                    local outer = bounds(c.widget, g, size, 0, c.ancestors)
+                    local inner = rawBounds(c.widget, g, size, c.inset)
+                    if outer and inner then
+                        local strips = {
+                            { outer[1], outer[2], outer[3], inner[2] },
+                            { outer[1], inner[4], outer[3], outer[4] },
+                            { outer[1], inner[2], inner[1], inner[4] },
+                            { inner[3], inner[2], outer[3], inner[4] }
+                        }
+                        for _, strip in ipairs(strips) do
+                            add(intersection(strip, outer), { 0, 0, 3, 0 }, c.name, 'portrait-border')
+                        end
+                    end
+                end
+            end
+        end
+    end
+    if #rectangles > 48 then rectangles = {}; S.overflow = true else S.overflow = false end
+    S.cachedRectangles = rectangles
+    S.lastRectCalc = S.elapsed
+    return rectangles
+end
+
+-- Expose UI cache and rectangle rebuild functions globally and via AC8Runtime
 rawset(_G, 'AC8_RefreshUICache', function(force)
-    return rebuildUICache(force == nil or force == true)
+    local ok = rebuildUICache(force == nil or force == true)
+    if ok and rebuildUIRectangles then rebuildUIRectangles(true) end
+    return ok
+end)
+rawset(_G, 'AC8_RefreshUIRectangles', function(force)
+    return rebuildUIRectangles(force == nil or force == true)
 end)
 if type(AC8Runtime) == 'table' then
     AC8Runtime.refreshUICache = function(force)
-        return rebuildUICache(force == nil or force == true)
+        local ok = rebuildUICache(force == nil or force == true)
+        if ok and rebuildUIRectangles then rebuildUIRectangles(true) end
+        return ok
+    end
+    AC8Runtime.refreshUIRectangles = function(force)
+        return rebuildUIRectangles(force == nil or force == true)
     end
 end
 
@@ -262,60 +342,19 @@ local function update(delta)
     if S.lastEpoch ~= currentEpoch then
         S.lastEpoch = currentEpoch
         rebuildUICache(true)
+        rebuildUIRectangles(true)
     elseif (not S.candidates or #S.candidates == 0) and (S.elapsed >= (S.nextRetry or 0)) then
-        if not rebuildUICache(false) then
+        if rebuildUICache(false) then
+            rebuildUIRectangles(true)
+        else
             S.nextRetry = S.elapsed + 3.0
         end
+    elseif not S.cachedRectangles or #S.cachedRectangles == 0 then
+        rebuildUIRectangles(false)
     end
 
-    local rectangles={}
-    local function add(r,flags,name,category)
-        if not r then return end
-
-        for i=#rectangles,1,-1 do
-            local a=rectangles[i];local same=true
-            for j=1,4 do if flags[j]~=a.flags[j]then same=false end end
-            if same then
-                if r[1]>=a.bounds[1] and r[2]>=a.bounds[2] and r[3]<=a.bounds[3] and r[4]<=a.bounds[4]then return end
-                if a.bounds[1]>=r[1] and a.bounds[2]>=r[2] and a.bounds[3]<=r[3] and a.bounds[4]<=r[4]then table.remove(rectangles,i)end
-            end
-        end
-        rectangles[#rectangles+1]={bounds=r,flags=flags}
-    end
-    if S.root and full(S.root)==S.rootName and S.candidates then
-        local g=geometry(S.root);local size=xy(call(slate,'GetLocalSize',g))
-        if size and size.X>0 and size.Y>0 then
-            for _,c in ipairs(S.candidates)do
-                if full(c.widget)==c.name then
-                    local usable=true
-                    if c.category=='portrait' then
-                        local brush=call(c.widget,'GetBrush') or call(c.widget,'get_property','Brush')
-                        local resource=field(brush,'ResourceObject')
-                        local color=call(c.widget,'GetColorAndOpacity') or call(c.widget,'get_property','ColorAndOpacity')
-                        local alpha=field(color,'A')
-                        usable=resource~=nil and (type(alpha)~='number' or alpha>0)
-                    end
-                    local r=usable and bounds(c.widget,g,size,c.inset,c.ancestors)
-                    if r then
-                        add(r,c.flags,c.name,c.category)
-                        if c.category=='portrait' then
-                            local outer=bounds(c.widget,g,size,0,c.ancestors);local inner=rawBounds(c.widget,g,size,c.inset)
-                            if outer and inner then
-                                local strips={{outer[1],outer[2],outer[3],inner[2]},
-                                    {outer[1],inner[4],outer[3],outer[4]},
-                                    {outer[1],inner[2],inner[1],inner[4]},
-                                    {inner[3],inner[2],outer[3],inner[4]}}
-                                for _,strip in ipairs(strips)do add(intersection(strip,outer),{0,0,3,0},c.name,'portrait-border')end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    
-    if #rectangles>48 then rectangles={};S.overflow=true else S.overflow=false end
-    publishPolicy(rectangles)
+    -- Zero Slate geometry calculations on regular frames: send cached policy to C++ heartbeat
+    publishPolicy(S.cachedRectangles or {})
 
 end
 uevr.sdk.callbacks.on_post_engine_tick(function(_,delta)update(delta)end)
