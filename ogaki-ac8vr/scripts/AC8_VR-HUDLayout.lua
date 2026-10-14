@@ -811,28 +811,64 @@ local function restore()
  S.small=nil;S.large=nil;S.expanded=nil;S.searchWidget=nil
 end
 local function find()
- local prefix=(R.context.rootName or''):match('^%S+ (.+)$');if not prefix then return end
+ local root = R.context.root
+ local prefix=(R.context.rootName or''):match('^%S+ (.+)$');if not prefix or not R.isLiveObject(root) then return end
  S.discoveries=S.discoveries+1
- local owned=R.ownedWidgets(R.context.root)
- local function objects(class)
-  if owned then return owned end
-  local cls=call(uevr.api,'find_uobject','Class /Script/UMG.'..class)
-  return call(cls,'get_objects_matching',false)or{}
+
+ -- Direct targeted tree lookup
+ local function findChild(w, target, maxd)
+  local seen, found = {}, nil
+  local function rec(node, d)
+   if not node or found or d > maxd then return end
+   local addr = tostring(node)
+   if seen[addr] then return end
+   seen[addr] = true
+   local fn = full(node) or ''
+   if fn:match(target) then found = node; return end
+   local cc = call(node, 'GetChildrenCount') or 0
+   for i = 0, cc - 1 do rec(call(node, 'GetChildAt', i), d + 1) end
+   local wt = field(node, 'WidgetTree')
+   if wt then rec(field(wt, 'RootWidget'), d + 1) end
+  end
+  rec(w, 0)
+  return found
  end
- for _,o in ipairs(objects('CanvasPanel'))do
-  local n=full(o)or''
-  if n:match('^CanvasPanel ')and n:find(' '..prefix..'.',1,true)then
-   if n:match('%.AlwaysVisibleCanvas$')then S.canvas=o end
-   if n:find('.WBP_HUD_Command_Wingman_000.',1,true)and n:match('%.Command_S$')then S.widget=o;S.name=n end
-   if n:find('.MiniMapLayer.',1,true)then
-    if n:match('%.MiniMapCornerCanvas$')then S.large=o end
-    if n:match('%.MiniMapEnlargedCorners$')then S.expanded=o end
+
+ S.canvas = findChild(root, '%.AlwaysVisibleCanvas$', 8)
+ S.widget = findChild(root, '%.WBP_HUD_Command_Wingman_000%..*%.Command_S$', 10)
+ if S.widget then S.name = full(S.widget) end
+ S.large = findChild(root, '%.MiniMapLayer%..*%.MiniMapCornerCanvas$', 10)
+ S.expanded = findChild(root, '%.MiniMapLayer%..*%.MiniMapEnlargedCorners$', 10)
+ local smallBorder = findChild(root, '%.MiniMapLayer%..*%.RadarBoundingArea$', 10)
+ if smallBorder then
+  S.small = smallBorder
+  local tree = call(smallBorder, 'get_outer')
+  if (full(tree) or ''):match('^WidgetTree ') then S.searchWidget = call(tree, 'get_outer') end
+ end
+
+ -- Fallback only if direct search failed
+ if not S.canvas or not S.widget then
+  local owned=R.ownedWidgets(R.context.root)
+  local function objects(class)
+   if owned then return owned end
+   local cls=call(uevr.api,'find_uobject','Class /Script/UMG.'..class)
+   return call(cls,'get_objects_matching',false)or{}
+  end
+  for _,o in ipairs(objects('CanvasPanel'))do
+   local n=full(o)or''
+   if n:match('^CanvasPanel ')and n:find(' '..prefix..'.',1,true)then
+    if n:match('%.AlwaysVisibleCanvas$')then S.canvas=o end
+    if n:find('.WBP_HUD_Command_Wingman_000.',1,true)and n:match('%.Command_S$')then S.widget=o;S.name=n end
+    if n:find('.MiniMapLayer.',1,true)then
+     if n:match('%.MiniMapCornerCanvas$')then S.large=o end
+     if n:match('%.MiniMapEnlargedCorners$')then S.expanded=o end
+    end
    end
   end
- end
- for _,o in ipairs(objects('Border'))do local n=full(o)or''
-  if n:match('^Border ')and n:find(' '..prefix..'.',1,true)and n:find('.MiniMapLayer.',1,true)and n:match('%.RadarBoundingArea$')then
-   S.small=o;local tree=call(o,'get_outer');if(full(tree)or''):match('^WidgetTree ')then S.searchWidget=call(tree,'get_outer')end
+  for _,o in ipairs(objects('Border'))do local n=full(o)or''
+   if n:match('^Border ')and n:find(' '..prefix..'.',1,true)and n:find('.MiniMapLayer.',1,true)and n:match('%.RadarBoundingArea$')then
+    S.small=o;local tree=call(o,'get_outer');if(full(tree)or''):match('^WidgetTree ')then S.searchWidget=call(tree,'get_outer')end
+   end
   end
  end
  if not S.canvas or not S.widget then S.status='waiting for Command_S and stable canvas';return end

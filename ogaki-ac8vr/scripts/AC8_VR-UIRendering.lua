@@ -156,6 +156,63 @@ local function kind(n,w)
 
 end
 
+-- Direct hierarchy discovery helpers: walk only the target widget's branch
+local function iterChildren(w)
+    local children = {}
+    if not w then return children end
+    local okc, cc = pcall(function() return call(w, 'GetChildrenCount') or 0 end)
+    if okc and type(cc) == 'number' and cc > 0 then
+        for i = 0, cc - 1 do
+            local ok2, c = pcall(function() return call(w, 'GetChildAt', i) end)
+            if ok2 and c then children[#children + 1] = c end
+        end
+    end
+    local wt = field(w, 'WidgetTree')
+    if wt then
+        local r = field(wt, 'RootWidget')
+        if r then children[#children + 1] = r end
+    end
+    return children
+end
+
+local function findDesc(root, target, maxd, exact)
+    if not root then return nil end
+    local seen, found = {}, nil
+    local function rec(w, d)
+        if not w or found or d > maxd then return end
+        local addr = tostring(w)
+        if seen[addr] then return end
+        seen[addr] = true
+        local fn = full(w) or ''
+        local nm = fn:match('%.([^%.]+)$') or fn:match('^%S+ (.+)$') or fn
+        local hit = exact and (nm == target) or (not exact and nm:find(target, 1, true) ~= nil)
+        if hit then found = w; return end
+        for _, c in ipairs(iterChildren(w)) do rec(c, d + 1) end
+    end
+    rec(root, 0)
+    return found
+end
+
+local function findDescAll(root, targetPattern, maxd)
+    local results = {}
+    if not root then return results end
+    local seen = {}
+    local function rec(w, d)
+        if not w or d > maxd then return end
+        local addr = tostring(w)
+        if seen[addr] then return end
+        seen[addr] = true
+        local fn = full(w) or ''
+        local nm = fn:match('%.([^%.]+)$') or fn:match('^%S+ (.+)$') or fn
+        if nm:match(targetPattern) then
+            results[#results + 1] = w
+        end
+        for _, c in ipairs(iterChildren(w)) do rec(c, d + 1) end
+    end
+    rec(root, 0)
+    return results
+end
+
 -- Rebuild UI cache function: can be called anytime externally or on demand
 local rebuildUIRectangles
 
@@ -164,58 +221,122 @@ local function rebuildUICache(force)
         return true
     end
     S.candidates={};S.roots={};S.root=nil
-    local hud=call(call(api,'get_player_controller',0),'GetHUD');S.root=call(hud,'get_property','HudWidget');S.rootName=full(S.root)
+    local pc = call(api, 'get_player_controller', 0)
+    local hud = pc and call(pc, 'GetHUD')
+    if not hud then return false end
+    local hudWidget = call(hud, 'get_property', 'HudWidget')
+    local msgWidget = call(hud, 'get_property', 'HUDMessageWidget')
+    S.root = hudWidget
+    S.rootName = full(S.root)
     if not S.rootName then return false end
-    local roots=call(call(api,'find_uobject','Class /Script/UMG.UserWidget'),'get_objects_matching',false) or {}
-    local prefixes,ownedRoots={},{}
-    local function addRoot(w)
-        local n=full(w) or '';local path=n:match('^%S+ (.+)$')
-        if path and path:find('/Engine/Transient.',1,true) and not S.roots[n] then S.roots[n]=true;prefixes[#prefixes+1]=path;ownedRoots[#ownedRoots+1]=w end
+
+    -- [FAST PATH] Targeted direct hierarchy lookup: 0 UMG.Widget global scans
+    local fastCandidates = {}
+    local function addCandidate(w, category, inset, flags)
+        if not w then return end
+        local n = full(w)
+        if not n then return end
+        local ancestors = chain(w)
+        if ancestors then
+            fastCandidates[#fastCandidates + 1] = {
+                widget = w,
+                name = n,
+                category = category,
+                inset = inset,
+                flags = flags,
+                ancestors = ancestors
+            }
+        end
     end
 
-    for _,key in ipairs({'HudWidget','SubtitleWidget','HUDMessageWidget','NonGlowWidget','GlowWidgetPtr','NonGlowFrontWidgetPtr','NonGlowBackWidgetPtr'})do
-        addRoot(call(hud,'get_property',key))
+    -- 1. Radio portrait & banner: direct under HUDMessageWidget
+    if msgWidget then
+        local portrait = findDesc(msgWidget, 'Portrait', 8, true)
+        if portrait then addCandidate(portrait, 'portrait', 2, {1, 1, 0, 1}) end
+        local banner = findDesc(msgWidget, 'LayerTwoBackground', 8, true)
+        if banner then addCandidate(banner, 'banner', 0, {1, 0, 1, 1}) end
     end
-    for _,w in ipairs(roots)do
-        local n=full(w) or '';local path=n:match('^%S+ (.+)$')
-        if path and path:find('/Engine/Transient.',1,true) and
-            (call(w,'IsInViewport')==true or (S.elapsed<(S.nativeRootsUntil or 0) and S.nativeRootPaths[path]))then
+
+    -- 2. Player state, weapons, flares, chaff: direct under HudWidget
+    if hudWidget then
+        local planeBg = findDesc(hudWidget, 'PlaneIconBackGround', 12, true)
+        if planeBg then addCandidate(planeBg, 'plane-linework', 0, {0, 0, 1, 0}) end
+
+        local missiles = findDescAll(hudWidget, '^MissilePB%d+$', 14)
+        for _, m in ipairs(missiles) do addCandidate(m, 'missile-art', 0, {0, 0, 1, 0}) end
+
+        local flares = findDescAll(hudWidget, '^FlarePB%d+$', 14)
+        for _, f in ipairs(flares) do addCandidate(f, 'countermeasure-art', 0, {0, 0, 1, 0}) end
+
+        local chaffs = findDescAll(hudWidget, '^ChaffPB%d+$', 14)
+        for _, c in ipairs(chaffs) do addCandidate(c, 'countermeasure-art', 0, {0, 0, 1, 0}) end
+    end
+
+    if #fastCandidates > 0 then
+        local priority = {portrait = 1, ['plane-linework'] = 2, ['missile-art'] = 3, ['countermeasure-art'] = 3, banner = 4, ['radio-normal-glow'] = 5}
+        table.sort(fastCandidates, function(a, b)
+            local pa, pb = priority[a.category] or 9, priority[b.category] or 9
+            if pa ~= pb then return pa < pb end
+            return a.name < b.name
+        end)
+        while #fastCandidates > 128 do table.remove(fastCandidates) end
+        S.candidates = fastCandidates
+        S.directHits = (S.directHits or 0) + 1
+        if rebuildUIRectangles then rebuildUIRectangles(true) end
+        return true
+    end
+
+    -- [FALLBACK PATH] Bounded scan only if direct tree lookup yielded nothing
+    local roots = call(call(api, 'find_uobject', 'Class /Script/UMG.UserWidget'), 'get_objects_matching', false) or {}
+    local prefixes, ownedRoots = {}, {}
+    local function addRoot(w)
+        local n = full(w) or ''; local path = n:match('^%S+ (.+)$')
+        if path and path:find('/Engine/Transient.', 1, true) and not S.roots[n] then S.roots[n] = true; prefixes[#prefixes + 1] = path; ownedRoots[#ownedRoots + 1] = w end
+    end
+
+    for _, key in ipairs({'HudWidget', 'SubtitleWidget', 'HUDMessageWidget', 'NonGlowWidget', 'GlowWidgetPtr', 'NonGlowFrontWidgetPtr', 'NonGlowBackWidgetPtr'}) do
+        addRoot(call(hud, 'get_property', key))
+    end
+    for _, w in ipairs(roots) do
+        local n = full(w) or ''; local path = n:match('^%S+ (.+)$')
+        if path and path:find('/Engine/Transient.', 1, true) and
+            (call(w, 'IsInViewport') == true or (S.elapsed < (S.nativeRootsUntil or 0) and S.nativeRootPaths[path])) then
             addRoot(w)
         end
     end
-    local widgets,seen={},{}
-    local complete=true
-    for _,root in ipairs(ownedRoots)do
-        local owned=AC8Runtime.ownedWidgets(root)
-        if not owned then complete=false;break end
-        for _,w in ipairs(owned)do
-            local n=full(w)
-            if n and not seen[n]then seen[n]=true;widgets[#widgets+1]=w end
+    local widgets, seen = {}, {}
+    local complete = true
+    for _, root in ipairs(ownedRoots) do
+        local owned = AC8Runtime.ownedWidgets(root)
+        if not owned then complete = false; break end
+        for _, w in ipairs(owned) do
+            local n = full(w)
+            if n and not seen[n] then seen[n] = true; widgets[#widgets + 1] = w end
         end
     end
     if not complete then
-        widgets=call(call(api,'find_uobject','Class /Script/UMG.Widget'),'get_objects_matching',false) or {}
-        S.fallbackScans=(S.fallbackScans or 0)+1
-    else S.ownedScans=(S.ownedScans or 0)+1 end
-    for i,w in ipairs(widgets)do
-        if i>32768 then break end
-        local n=full(w) or '';local category,inset,flags=kind(n,w);local path=n:match('^%S+ (.+)$')
+        widgets = call(call(api, 'find_uobject', 'Class /Script/UMG.Widget'), 'get_objects_matching', false) or {}
+        S.fallbackScans = (S.fallbackScans or 0) + 1
+    else S.ownedScans = (S.ownedScans or 0) + 1 end
+    for i, w in ipairs(widgets) do
+        if i > 32768 then break end
+        local n = full(w) or ''; local category, inset, flags = kind(n, w); local path = n:match('^%S+ (.+)$')
         if category and path then
-            for _,prefix in ipairs(prefixes)do
-                if path==prefix or path:sub(1,#prefix+1)==prefix..'.'then
-                    local ancestors=chain(w)
-                    if ancestors then S.candidates[#S.candidates+1]={widget=w,name=n,category=category,inset=inset,flags=flags,ancestors=ancestors}end
+            for _, prefix in ipairs(prefixes) do
+                if path == prefix or path:sub(1, #prefix + 1) == prefix .. '.' then
+                    local ancestors = chain(w)
+                    if ancestors then S.candidates[#S.candidates + 1] = {widget = w, name = n, category = category, inset = inset, flags = flags, ancestors = ancestors} end
                     break
                 end
             end
         end
     end
-    local priority={portrait=1,['plane-linework']=2,['missile-art']=3,['countermeasure-art']=3,banner=4,['radio-normal-glow']=5}
-    table.sort(S.candidates,function(a,b)
-        local pa,pb=priority[a.category] or 9,priority[b.category] or 9
-        if pa~=pb then return pa<pb end;return a.name<b.name
+    local priority = {portrait = 1, ['plane-linework'] = 2, ['missile-art'] = 3, ['countermeasure-art'] = 3, banner = 4, ['radio-normal-glow'] = 5}
+    table.sort(S.candidates, function(a, b)
+        local pa, pb = priority[a.category] or 9, priority[b.category] or 9
+        if pa ~= pb then return pa < pb end; return a.name < b.name
     end)
-    while #S.candidates>128 do table.remove(S.candidates)end
+    while #S.candidates > 128 do table.remove(S.candidates) end
     if #S.candidates > 0 and rebuildUIRectangles then
         rebuildUIRectangles(true)
     end
