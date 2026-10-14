@@ -17,6 +17,21 @@ Write-Host "=== Syncing ogaki-ac8vr to UEVR Profile (Robust Mode) ===" -Foregrou
 Write-Host "From: $src"
 Write-Host "To:   $dst`n"
 
+# 0. Increment VERSION hex suffix (e.g. 0.1.0.01 -> 0.1.0.02 -> 0.1.0.0A)
+$versionFile = Join-Path $src "VERSION"
+if (Test-Path $versionFile) {
+    $currentVer = (Get-Content $versionFile -Raw).Trim()
+    if ($currentVer -match "^(.*[._])?([0-9A-Fa-f]{2})$") {
+        $prefix = $matches[1]
+        $hexSuffix = $matches[2]
+        $num = [Convert]::ToInt32($hexSuffix, 16) + 1
+        $newSuffix = "{0:X2}" -f ($num % 256)
+        $newVer = "$prefix$newSuffix"
+        Set-Content -Path $versionFile -Value $newVer
+        Write-Host "Bumped VERSION: $currentVer -> $newVer`n" -ForegroundColor Yellow
+    }
+}
+
 # 1. Folders to sync: scripts, data, plugins, docs
 $foldersToSync = @("scripts", "data", "plugins", "docs")
 foreach ($folder in $foldersToSync) {
