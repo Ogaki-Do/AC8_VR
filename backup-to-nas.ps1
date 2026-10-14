@@ -11,44 +11,60 @@ if (-not $Message) {
 }
 
 Write-Host "=== Ace-uevr-test NAS Backup ===" -ForegroundColor Cyan
+Write-Host "Commit Message: $Message`n"
 
-# 1. Check ogaki-ac8vr git status
+# 1. Commit and push in ogaki-ac8vr (MOD repo)
 $ac8vrDir = Join-Path $root "ogaki-ac8vr"
 if (Test-Path $ac8vrDir) {
+    Write-Host "--- [1/2] Backing up ogaki-ac8vr (MOD Repository) ---" -ForegroundColor Cyan
     Push-Location $ac8vrDir
     try {
+        $ac8vrBranch = (git rev-parse --abbrev-ref HEAD).Trim()
+        Write-Host "Current branch: $ac8vrBranch"
+        
         $ac8vrStatus = git status --porcelain
         if ($ac8vrStatus) {
-            Write-Host "[Info] ogaki-ac8vr has uncommitted changes:" -ForegroundColor Yellow
-            $ac8vrStatus | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
-            Write-Host "  (Reminder: commit in ogaki-ac8vr before creating pull requests)" -ForegroundColor DarkGray
+            Write-Host "Changes detected in ogaki-ac8vr. Staging and committing..." -ForegroundColor Yellow
+            git add .
+            git commit -m "$Message"
         } else {
-            Write-Host "[OK] ogaki-ac8vr is clean." -ForegroundColor Green
+            Write-Host "No uncommitted changes in ogaki-ac8vr." -ForegroundColor DarkGray
         }
+
+        Write-Host "Pushing ogaki-ac8vr ($ac8vrBranch) to NAS..." -ForegroundColor Cyan
+        git push origin HEAD
+        Write-Host "[OK] ogaki-ac8vr backed up successfully.`n" -ForegroundColor Green
+    } catch {
+        Write-Warning "Failed to push ogaki-ac8vr to NAS: $_"
     } finally {
         Pop-Location
     }
 }
 
-# 2. Commit and push in root workspace
+# 2. Commit and push in root workspace (Ace-uevr-test)
+Write-Host "--- [2/2] Backing up Ace-uevr-test (Root Workspace) ---" -ForegroundColor Cyan
 Push-Location $root
 try {
-    Write-Host "[1/3] Adding workspace changes..." -ForegroundColor Cyan
+    $rootBranch = (git rev-parse --abbrev-ref HEAD).Trim()
+    Write-Host "Current branch: $rootBranch"
+
+    Write-Host "Adding workspace changes..." -ForegroundColor Cyan
     git add .
 
     $rootStatus = git status --porcelain
     if ($rootStatus) {
-        Write-Host "[2/3] Committing with message: '$Message'..." -ForegroundColor Cyan
+        Write-Host "Committing with message: '$Message'..." -ForegroundColor Cyan
         git commit -m "$Message"
     } else {
-        Write-Host "[2/3] No new changes to commit in workspace root." -ForegroundColor DarkGray
+        Write-Host "No new changes to commit in workspace root." -ForegroundColor DarkGray
     }
 
-    Write-Host "[3/3] Pushing to NAS (\\Ogaki_NAS\OgakisProject\gits\AC8VR)..." -ForegroundColor Cyan
-    git push origin main
-    Write-Host "`n=== Backup to NAS completed successfully! ===" -ForegroundColor Green
+    Write-Host "Pushing workspace root ($rootBranch) to NAS..." -ForegroundColor Cyan
+    git push origin HEAD
+    Write-Host "`n=== All backups to NAS completed successfully! ===" -ForegroundColor Green
 } catch {
-    Write-Host "`n[Error] Backup failed: $_" -ForegroundColor Red
+    Write-Host "`n[Error] Workspace backup failed: $_" -ForegroundColor Red
 } finally {
     Pop-Location
 }
+

@@ -7,3 +7,7 @@ $RECYCLE.BIN/
 *.bak
 .vscode/
 .idea/
+
+# Large media files
+スクショ　動画/
+スクショ*

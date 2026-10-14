@@ -1,0 +1,28 @@
+====================================================================
+  ACE COMBAT 8 VR : P0 PERFORMANCE & BOTTLENECK PROFILE DUMP
+  Timestamp: 2026-10-14 17:44:09 | Total Sampled Frames: 300
+====================================================================
+
+1. REAL-TIME RENDERING METRICS:
+  Current Measured FPS  : 77.4 FPS
+  Frame Delta Time      : Avg=15.65 ms | Min=8.00 ms | Max=664.00 ms
+  Target for 90 Hz VR   : 11.11 ms per frame
+  Target for 72 Hz VR   : 13.88 ms per frame
+
+2. LUA CALLBACK OVERHEAD (Measured baseline):
+  on_pre_engine_tick          : Calls=   300 | Last=0.000 ms | Avg=0.000 ms | Max=0.000 ms
+  on_post_engine_tick         : Calls=   300 | Last=0.000 ms | Avg=0.000 ms | Max=0.000 ms
+  on_pre_viewport_client_draw : Calls=   300 | Last=0.000 ms | Avg=0.000 ms | Max=0.000 ms
+
+3. LIVE UOBJECT POPULATION IN SCENE:
+  Active Actors         : 263
+  Active Widgets (UMG)  : 3651
+  Active UserWidgets    : 1188
+  Current HUD Class     : BP_LiveMenuHUD_C /Game/Maps/Menu/PL_MainMenu.PL_MainMenu.PersistentLevel.BP_LiveMenuHUD_C_2147481054 (InFlight=false)
+
+4. IDENTIFIED HIGH-LOAD CALL SITES (Source Code Static Audit):
+  [CRITICAL] AC8_VR-UIRendering.lua: calls get_objects_matching on UMG.Widget (3651 objects)
+  [CRITICAL] AC8_VR-UIRendering.lua: performs 32-ancestor Slate geometry tree walk in on_pre_viewport_client_draw
+  [CRITICAL] AC8_VR-HUDLayout.lua vs InheritedHUD.lua: duplicate SetRenderTranslation contention on Altimeter/Velocity
+  [WARNING]  AC8_VR-Core.lua: R.contextTick broadcast 3 times per single engine frame
+====================================================================
