@@ -7,9 +7,9 @@
 return {
     mode = "uevr_absolute",
     enabled = true,
-    default = { forward = -18, right = 0, up = 5 },
+    default = { forward = 0, right = 0, up = 0 },
     planes = {
-        ["BP_PlayerPlane_PP0007_f18c_C"] = { forward = -18, right = 0, up = 5 },
+        ["BP_PlayerPlane_PP0007_f18c_C"] = { forward = 0, right = 0, up = 0 },
         ["BP_PlayerPlane_PP0003_f04e_C"] = { forward = -10, right = 0, up = 5 },
 
         -- Verified catalog identifiers; uncomment an entry after tuning its position.

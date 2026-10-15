@@ -1,9 +1,9 @@
 {
   "cameraOffsets": {
     "default": {
-      "forward": -18.0,
+      "forward": 0.0,
       "right": 0.0,
-      "up": 5.0
+      "up": 0.0
     },
     "planes": null
   },

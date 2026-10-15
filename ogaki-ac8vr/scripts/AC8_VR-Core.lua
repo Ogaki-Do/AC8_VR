@@ -213,10 +213,10 @@ local function ensureCustomHUDDefaults(cfg)
  if not he.drawcanvas then he.drawcanvas = { scale = 1.0, opacity = 0.95 } end
 
  if not cfg.cameraOffsets then
-  cfg.cameraOffsets = { default = { forward = -18.0, right = 0.0, up = 5.0 }, planes = {} }
+  cfg.cameraOffsets = { default = { forward = 0.0, right = 0.0, up = 0.0 }, planes = {} }
  end
  if not cfg.cameraOffsets.default then
-  cfg.cameraOffsets.default = { forward = -18.0, right = 0.0, up = 5.0 }
+  cfg.cameraOffsets.default = { forward = 0.0, right = 0.0, up = 0.0 }
  end
  if not cfg.cameraOffsets.planes then cfg.cameraOffsets.planes = {} end
  return cfg
@@ -778,9 +778,9 @@ pcall(function()
     if psChanged and psVal ~= nil then
      if psVal then
       co.planes[plane] = {
-       forward = co.default.forward or -18.0,
+       forward = co.default.forward or 0.0,
        right = co.default.right or 0.0,
-       up = co.default.up or 5.0
+       up = co.default.up or 0.0
       }
      else
       co.planes[plane] = nil
@@ -827,10 +827,10 @@ pcall(function()
     if ui.button('+1.0cm##u') then activeTarget.up = (activeTarget.up or 0) + 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
    end
 
-   if ui.button and ui.button('Reset Camera to Defaults (-18, 0, +5 cm)') then
-    activeTarget.forward = -18.0
+   if ui.button and ui.button('Reset Camera to Defaults (0, 0, 0 cm)') then
+    activeTarget.forward = 0.0
     activeTarget.right = 0.0
-    activeTarget.up = 5.0
+    activeTarget.up = 0.0
     R.saveCustomHUDConfig()
     R.applyActiveCameraOffset()
     print('[AC8-VR] Camera offsets reset to defaults')
