@@ -106,6 +106,10 @@ function R.contextTick(advance)
  if R.updateInstantAwakeCycle then
   R.updateInstantAwakeCycle()
  end
+ if R.pendingLocatorSyncTick and R.tick >= R.pendingLocatorSyncTick then
+  R.pendingLocatorSyncTick = nil
+  pcall(R.syncLocatorConfigToDLL)
+ end
  if R.pendingSaveTick and R.tick >= R.pendingSaveTick then
   R.pendingSaveTick = nil
   pcall(R.saveCustomHUDConfig)
@@ -221,14 +225,30 @@ local function ensureCustomHUDDefaults(cfg)
  return cfg
 end
 
-local function loadCustomHUDConfig()
- local paths={'data/CustomHUDPosition.json','CustomHUDPosition.json'}
- for _,p in ipairs(paths)do
-  local ok,data=pcall(function()return realJSON.load_file(p)end)
-  if ok and type(data)=='table'then return ensureCustomHUDDefaults(data),p end
+local function getDataDir()
+ local appdata = os.getenv('APPDATA')
+ if appdata and appdata ~= '' then
+  return appdata:gsub('\\', '/') .. '/UnrealVRMod/AceCombat8/data'
  end
- return ensureCustomHUDDefaults({}),'data/CustomHUDPosition.json'
+ return 'C:/Users/Ogaki/AppData/Roaming/UnrealVRMod/AceCombat8/data'
 end
+R.getDataDir = getDataDir
+
+local function loadCustomHUDConfig()
+ local dir = getDataDir()
+ local absPath = dir .. '/CustomHUDPosition.json'
+ local paths = { absPath, 'CustomHUDPosition.json', 'data/CustomHUDPosition.json' }
+ for _, p in ipairs(paths) do
+  local ok, data = pcall(function() return realJSON.load_file(p) end)
+  if ok and type(data) == 'table' then
+   print('[AC8-VR] Loaded HUD config from ' .. tostring(p))
+   return ensureCustomHUDDefaults(data), p
+  end
+ end
+ print('[AC8-VR] Initialized default HUD config (target: ' .. absPath .. ')')
+ return ensureCustomHUDDefaults({}), absPath
+end
+
 function R.syncLocatorConfigToDLL()
  local he = R.customHUDConfig and R.customHUDConfig.hudElements
  local loc = he and he.locator
@@ -244,17 +264,33 @@ function R.syncLocatorConfigToDLL()
  local oy = -950.0 - ly - locY
  local sc = locSc * lsc
 
- local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
- local groupCfg = { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }
+ local arrowJson = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "offsetY": %.1f,\n  "scale": %.2f\n}\n', ox, oy, sc)
+ local groupJson = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0, sc * 0.96)
+
+ local dir = getDataDir()
+ local arrowAbs = dir .. '/ac8_target_arrow_shift_controls.json'
+ local groupAbs = dir .. '/ac8_offscreen_group_controls.json'
+
+ -- 1. Lua io.open で OS レベル絶対パスに直接上書き（DLL監視タイムスタンプ即時更新）
+ local fa = io.open(arrowAbs, 'w')
+ if fa then fa:write(arrowJson); fa:close() end
+ local fg = io.open(groupAbs, 'w')
+ if fg then fg:write(groupJson); fg:close() end
+
+ -- 2. UEVR json.dump_file も呼ぶ（絶対パス ＆ 相対ファイル名単体）
  local j = R.realJSON or realJSON or rawget(_G, 'json')
  if j and j.dump_file then
-  pcall(function() j.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
-  pcall(function() j.dump_file('data/ac8_offscreen_group_controls.json', groupCfg, 2) end)
+  local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
+  local groupCfg = { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }
+  pcall(function() j.dump_file(arrowAbs, arrowCfg, 2) end)
+  pcall(function() j.dump_file('ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
+  pcall(function() j.dump_file(groupAbs, groupCfg, 2) end)
+  pcall(function() j.dump_file('ac8_offscreen_group_controls.json', groupCfg, 2) end)
  end
- print(string.format('[AC8-VR] Synced Locator to DLL: offsetX=%.1f, offsetY=%.1f, scale=%.2f', ox, oy, sc))
+ print(string.format('[AC8-VR] Synced Locator to DLL: ox=%.1f, oy=%.1f, sc=%.2f -> %s', ox, oy, sc, arrowAbs))
 end
 
-R.customHUDConfig,R.customHUDConfigPath=loadCustomHUDConfig()
+R.customHUDConfig, R.customHUDConfigPath = loadCustomHUDConfig()
 pcall(R.syncLocatorConfigToDLL)
 
 function R.isCinematicEnabled()
@@ -264,11 +300,12 @@ end
 
 function R.saveCustomHUDConfig()
  if not R.customHUDConfig then return end
- local p=R.customHUDConfigPath or 'data/CustomHUDPosition.json'
- pcall(function()realJSON.dump_file(p,R.customHUDConfig,2)end)
- pcall(function()realJSON.dump_file('CustomHUDPosition.json',R.customHUDConfig,2)end)
+ local dir = getDataDir()
+ local absPath = dir .. '/CustomHUDPosition.json'
+ pcall(function() realJSON.dump_file(absPath, R.customHUDConfig, 2) end)
+ pcall(function() realJSON.dump_file('CustomHUDPosition.json', R.customHUDConfig, 2) end)
  pcall(R.syncLocatorConfigToDLL)
- print('[AC8-VR] Configuration saved to ' .. p)
+ print('[AC8-VR] Configuration saved to ' .. absPath)
 end
 
 function R.reloadCustomHUDConfig()
@@ -481,6 +518,7 @@ local function renderSteppedSlider(ui, label, tableRef, key, min_v, max_v, step,
  if ui.text then ui.text(string.format(' %s: %+.0f px', label, cur)) end
  if changed then
   tableRef[key] = cur
+  R.pendingLocatorSyncTick = R.tick + 2
   R.pendingSaveTick = R.tick + 30
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
@@ -506,6 +544,7 @@ local function renderSteppedScale(ui, label, tableRef, key, min_v, max_v, step, 
  if ui.text then ui.text(string.format(' %s: %.2fx', label, cur)) end
  if changed then
   tableRef[key] = cur
+  R.pendingLocatorSyncTick = R.tick + 2
   R.pendingSaveTick = R.tick + 30
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
@@ -705,12 +744,12 @@ pcall(function()
       h.locator = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.drawcanvas = { scale = 1.0, opacity = 0.95 }
+      R.pendingSaveTick = nil
       pcall(R.syncLocatorConfigToDLL)
-      pcall(R.saveCustomHUDConfig)
       if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
       elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
-      hudActionMsg = '[RESET] Reset to base defaults & synced to DLL/disk.'
-      print('[AC8-VR] All HUD elements reset to base defaults and synced to DLL/disk.')
+      hudActionMsg = '[RESET] Reset to base defaults (Unsaved. Press Save to persist).'
+      print('[AC8-VR] All HUD elements reset to base defaults in memory. (Not saved to disk until Save is pressed)')
      end
     end
    end
