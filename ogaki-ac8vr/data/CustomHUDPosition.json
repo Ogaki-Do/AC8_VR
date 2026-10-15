@@ -64,5 +64,16 @@
       "y": 0.0
     }
   },
-  "version": 2
+  "specialWeapons": {
+    "bombFOV": 9.0
+  },
+  "version": 2,
+  "worldTargets": {
+    "blueSaturation": 1.1,
+    "boxScale": 0.25,
+    "fontScale": 1.0,
+    "labelRaise": 0.0,
+    "labelScale": 0.25,
+    "lineSpacing": 15.0
+  }
 }

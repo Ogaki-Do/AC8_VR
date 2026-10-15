@@ -23,13 +23,17 @@ local function valid(v,lo,hi)return type(v)=='number'and v==v and v>=lo and v<=h
 local function update()
  local c=R.context;local level=c.flight and call(c.hud,'get_outer');local address=R.isLiveObject(level)and call(level,'get_address')or 0
  if not address then address=0 end
+ local wt = R.customHUDConfig and R.customHUDConfig.worldTargets
  local t=cfgTarget
  local w=cfgWorld
- local box,label,font,spacing=t.boxScale,t.labelScale,t.fontScale or 1,t.lineSpacing or 0
+ local box = (wt and type(wt.boxScale)=='number') and wt.boxScale or t.boxScale
+ local label = (wt and type(wt.labelScale)=='number') and wt.labelScale or t.labelScale
+ local font = (wt and type(wt.fontScale)=='number') and wt.fontScale or t.fontScale or 1
+ local spacing = (wt and type(wt.lineSpacing)=='number') and wt.lineSpacing or t.lineSpacing or 0
  if not valid(box,.1,2)or not valid(label,.1,2)or not valid(font,.1,2)or not valid(spacing,-200,200)then box,label,font,spacing=1,1,1,0 end
- local raise=valid(w.labelRaise,-200,200)and w.labelRaise or 0
+ local raise = (wt and type(wt.labelRaise)=='number') and wt.labelRaise or (valid(w.labelRaise,-200,200)and w.labelRaise or 0)
  local leftDrop=valid(w.leftLabelDrop,-200,200)and w.leftLabelDrop or 0
- local on=address~=0 and t.enabled==true and w.enabled~=false
+ local on=address~=0 and (wt~=nil or t.enabled==true) and w.enabled~=false
  local packet=string.format('%d|%d|%.9g|%.9g|%.9g|%.9g|%d|%.9g|%.9g',address,on and 1 or 0,box,label,font,spacing,w.useFlatLabelOffsets~=false and 1 or 0,raise,leftDrop)
  if packet~=S.packet then call(uevr.api,'dispatch_custom_event','AC8_WorldTargetLayout',packet);S.packet=packet end
  S.controls={enabled=on,boxScale=box,labelScale=label,fontScale=font,lineSpacing=spacing,useFlatLabelOffsets=w.useFlatLabelOffsets~=false,labelRaise=raise,leftLabelDrop=leftDrop}
@@ -69,7 +73,8 @@ uevr.sdk.callbacks.on_post_engine_tick(function()
  if S.epoch~=ctx.epoch then restore();S.epoch=ctx.epoch end
  if not ctx.flight then return end
  local control=cfgControl
- local factor=control.enabled==true and tonumber(control.boxScale)or 1
+ local wt = R.customHUDConfig and R.customHUDConfig.worldTargets
+ local factor=(wt and type(wt.boxScale)=='number') and wt.boxScale or (control.enabled==true and tonumber(control.boxScale)or 1)
  if not factor or factor~=factor or factor<.1 or factor>2 then return end
  if factor==1 and not next(S.rows)then return end
  local level=(ctx.hudName or''):match('^LiveMainHUDParent4K_C (.+%.PersistentLevel)%.');if not level then return end
@@ -168,7 +173,8 @@ end
 uevr.sdk.callbacks.on_pre_engine_tick(function()
  if S.stopped then return end
  local controls=cfgTarget
- local factor=type(controls)=='table'and controls.enabled and tonumber(controls.boxScale)or 1
+ local wt = R.customHUDConfig and R.customHUDConfig.worldTargets
+ local factor=(wt and type(wt.boxScale)=='number') and wt.boxScale or (type(controls)=='table'and controls.enabled and tonumber(controls.boxScale)or 1)
  if not factor or factor~=factor or factor<.1 or factor>2 then return end
  if S.nativeScale~=factor then call(api,'dispatch_custom_event','AC8_WorldPipScale',tostring(factor));S.nativeScale=factor end
 end)
@@ -176,8 +182,9 @@ uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
  if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('targetPinsDraw') end
  if S.stopped then return end;S.ticks=S.ticks+1
  local controls=cfgTarget
- if not (type(controls)=='table' and controls.enabled==true) then return end
- local factor=tonumber(controls.boxScale)or 1
+ local wt = R.customHUDConfig and R.customHUDConfig.worldTargets
+ if not (wt~=nil or (type(controls)=='table' and controls.enabled==true)) then return end
+ local factor=(wt and type(wt.boxScale)=='number') and wt.boxScale or (tonumber(controls.boxScale)or 1)
  if not factor or factor<.1 or factor>2 then return end
  local hud=call(call(api,'get_player_controller',0),'GetHUD');local hn=full(hud)or''
  local level=hn:match('^LiveMainHUDParent4K_C (.+%.PersistentLevel)%.');local seen={}
@@ -263,7 +270,8 @@ local function apply(m,kind,factor)
 end
 uevr.sdk.callbacks.on_post_engine_tick(function()
  S.ticks=S.ticks+1;local c=R.context;local level=(c.hudName or''):match('^LiveMainHUDParent4K_C (.+%.PersistentLevel)%.')
- local factor=fixedFactor
+ local wt = R.customHUDConfig and R.customHUDConfig.worldTargets
+ local factor=(wt and type(wt.blueSaturation)=='number') and wt.blueSaturation or fixedFactor
  S.factor=factor
  if S.epoch~=c.epoch then reset();S.epoch=c.epoch;S.components={};S.nextScan=0 end
  if not level or control.enabled==false or factor==1 then reset();return end

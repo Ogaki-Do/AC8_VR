@@ -4,7 +4,7 @@
 
 ---
 
-## 📚 ドキュメント構成（全6巻）
+## 📚 ドキュメント構成（全7巻）
 
 ### 0. [総合タスクリスト ＆ リファクタリング計画書 (TASK_LIST.md)](TASK_LIST.md)
 - **インクリメンタル検証の原則**: 「1手ずつ変更 ➔ sync-to-game ➔ 壊れたら即ロールバック」。
@@ -81,6 +81,19 @@
   - 除外ブラックリスト（`source_code/`、キャッシュ、個人パス等）。
 - **バージョニング規則**: `VERSION` ファイルとドキュメントの一貫性維持。
 - **リリース前 実機検証チェックリスト**: 起動・ポーズ・機体切替・戦闘・カットシーン・終了の確認項目。
+
+---
+
+### 6. [コミュニティ最新解析書：HIT/DESTROYED復元 ＆ FPM追従数理モデル (COMMUNITY_BREAKTHROUGHS_HIT_AND_FPM.md)](COMMUNITY_BREAKTHROUGHS_HIT_AND_FPM.md)
+- **HIT / DESTROYED / SHOOT インジケータ復元**:
+  - `RetainerBox_Additive` の加算マテリアル（Alpha=0.0）と UEVR アルファブレンドの衝突メカニズム。
+  - `SubtitleWidget` および `HUDMessageWidget` 傘下の深さ24階層探索と、`SetEffectMaterial(nil)` / `SetRetainRendering(false)` による Slate パススルー化。
+  - ゲーム内BPアニメーションによる再適用に対抗する 2フレーム周期無力化パルス。
+- **FPM（Flight Path Marker / 速度ベクトル）ピッチラダー追従数理モデル**:
+  - ネイティブ4Kキャンバス原点 $(1920, 1080)$ と VRピッチラダー目標位置 $(L_X, L_Y)$ の線形座標変換式 $T = L - S \times C + O$。
+  - `Velocity` コンテナのスケール 1.0 固定によるクリッピング消失防止と、`VelocityIcon` の独立 1.481 拡縮。
+  - 4フレーム周期・差分 0.01 ガード、および先祖 8 階層 `RetainerBox:RequestRender()` によるゴースト描画防止。
+- **`ogaki-ac8vr` への統合設計**: `AC8_VR-UIRendering.lua` と `AC8_VR-HUDLayout.lua` へのモジュール配置と競合排除。
 
 ---
 

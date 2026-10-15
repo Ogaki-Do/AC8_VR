@@ -807,8 +807,111 @@ host.sdk.callbacks.on_post_engine_tick(function()
  S.root=name;S.inViewport=attached
 end)
 end
+end
 
+assert(not registry.sections['hit_destroyed_restore'], 'Duplicate AC8 VR section: hit_destroyed_restore')
+registry.sections['hit_destroyed_restore'] = function(R)
+-- Community Breakthrough: Restore invisible HIT / DESTROYED / SHOOT text indicators
+-- Neutralises Additive RetainerBox material and retain rendering to enable standard Slate alpha pass-through
+do
+local host = R.host('utility', 'hit destroyed indicator restore')
+local additive_retainers = {}
+local next_discover_tick = 0
+local seen_addresses = {}
 
+local function short_name(obj)
+    local fn = R.objectCall(obj, 'get_full_name') or ''
+    return fn:match('([^.]+)$') or fn
+end
+
+local function walk_widgets(widget, depth)
+    if not widget or depth <= 0 or not R.isLiveObject(widget) then return end
+    local addr = R.objectCall(widget, 'get_address') or 0
+    if addr ~= 0 then
+        if seen_addresses[addr] then return end
+        seen_addresses[addr] = true
+    end
+
+    local sName = short_name(widget)
+    if sName:find('RetainerBox_Additive', 1, true) then
+        additive_retainers[#additive_retainers + 1] = widget
+    end
+
+    local count = R.objectCall(widget, 'GetChildrenCount') or 0
+    if type(count) == 'number' and count > 0 then
+        for i = 0, count - 1 do
+            local child = R.objectCall(widget, 'GetChildAt', i)
+            if child then
+                walk_widgets(child, depth - 1)
+            end
+        end
+    end
+end
+
+local function discover_additive_retainers()
+    additive_retainers = {}
+    seen_addresses = {}
+    local c = R.context
+    if not c or not c.pc then return end
+
+    -- Root 1: SubtitleWidget from PlayerController HUD
+    local hud = c.hud
+    if hud and R.isLiveObject(hud) then
+        local subtitleWidget = R.objectCall(hud, 'get_field', 'SubtitleWidget') or R.objectCall(hud, 'get_property', 'SubtitleWidget')
+        if subtitleWidget then
+            walk_widgets(subtitleWidget, 24)
+        end
+    end
+
+    -- Root 2: HUDMessageWidget from MainFlight HUD
+    local keep = c.root or (R.hudLayoutRefs and R.hudLayoutRefs.root)
+    if keep and R.isLiveObject(keep) then
+        local count = R.objectCall(keep, 'GetChildrenCount') or 0
+        if type(count) == 'number' and count > 0 then
+            for i = 0, count - 1 do
+                local child = R.objectCall(keep, 'GetChildAt', i)
+                if child then
+                    local sn = short_name(child)
+                    if sn:find('HUDMessage', 1, true) or sn:find('Subtitle', 1, true) then
+                        walk_widgets(child, 24)
+                    else
+                        walk_widgets(child, 8)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function neutralise_additive_retainers()
+    for i = #additive_retainers, 1, -1 do
+        local w = additive_retainers[i]
+        if w and R.isLiveObject(w) then
+            pcall(function() w:SetEffectMaterial(nil) end)
+            pcall(function() w.EffectMaterial = nil end)
+            pcall(function() w:SetRetainRendering(false) end)
+            pcall(function() w.bRetainRender = false end)
+        else
+            table.remove(additive_retainers, i)
+        end
+    end
+end
+
+host.sdk.callbacks.on_post_engine_tick(function()
+    local tick = R.tick or 0
+    -- 300フレーム周期 (~5.0秒) で動的ウィジェット探索
+    if tick >= next_discover_tick then
+        next_discover_tick = tick + 300
+        discover_additive_retainers()
+    end
+
+    -- 2フレーム周期 (~33ms) で加算ブレンド無力化パルス
+    if tick % 2 == 0 and #additive_retainers > 0 then
+        neutralise_additive_retainers()
+    end
+end)
+end
 end
 
 if registry.start then registry.start() end
+
