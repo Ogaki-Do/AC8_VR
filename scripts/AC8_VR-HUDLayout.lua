@@ -251,6 +251,7 @@ end)(AC8Runtime.host('layout','ac8_campaign_target_row.lua'),AC8Runtime.json,AC8
 end
 end
 
+if false then
 do
 -- ac8 velocity alignment
 (function(uevr,json,print)
@@ -364,6 +365,7 @@ end)
 pcall(function()uevr.sdk.callbacks.on_script_reset(S.restore)end)
 
 end)(AC8Runtime.host('layout','ac8_velocity_alignment.lua'),AC8Runtime.json,AC8Runtime.log)
+end
 end
 
 if false then
@@ -1131,7 +1133,7 @@ function R.applyHUDLayoutIntegrated()
         applyElementDirect(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 1-1. Heading (Velocity / VelocityIcon) - Altimeter relative VR reference frame
+    -- 1-1. Heading (Velocity / VelocityIcon) - Base-relative VR reference frame
     local headingWidgets = cachedTargets.headingList
     if not headingWidgets or #headingWidgets == 0 or not R.isLiveObject(headingWidgets[1]) then
         headingWidgets = {}
@@ -1147,13 +1149,12 @@ function R.applyHUDLayoutIntegrated()
         local lx = lcfg.x or 0.0
         local ly = lcfg.y or 0.0
         local lsc = lcfg.scale or 1.0
-        -- Altimeter base (690, 756) + Heading base offset (-1913, -1200) = (-1223, -444)
-        local tx = -1223.0 + lx + (cfg.x or 0.0)
-        local ty = -444.0 - ly - (cfg.y or 0.0)
+        local ox = lx + (cfg.x or 0.0)
+        local oy = ly + (cfg.y or 0.0)
         local sc = lsc * (cfg.scale or 1.0)
         local op = cfg.opacity or 0.95
         for _, hw in ipairs(headingWidgets) do
-            applyElementDirect(hw, tx, ty, sc, op, true)
+            applyElementWithBase(hw, ox, oy, sc, op, true, nil)
         end
     end
 
@@ -1282,8 +1283,7 @@ function R.applyHUDLayoutIntegrated()
         local oy = cfg.y or 0.0
         local sc = cfg.scale or 1.0
         local op = cfg.opacity or 0.95
-        local pivot = { X = 0.5, Y = 0.5 }
-        applyElementWithBase(wingmanWidget, ox, oy, sc, op, true, pivot)
+        applyElementWithBase(wingmanWidget, ox, oy, sc, op, true, nil)
     end
 
     -- 7. Draw canvas (Background)
