@@ -1075,11 +1075,8 @@ local function pruneNested(list)
     return keep
 end
 
-local function applyElementDirect(widget, tx, ty, sc, op, applyPos, pivot)
+local function applyElementDirect(widget, tx, ty, sc, op, applyPos)
     if not widget or not R.isLiveObject(widget) then return end
-    if pivot then
-        pcall(function() widget:SetRenderTransformPivot(pivot) end)
-    end
     if applyPos ~= false and type(tx) == 'number' and type(ty) == 'number' then
         pcall(function() widget:SetRenderTranslation({ X = tx, Y = ty }) end)
     end
@@ -1146,13 +1143,10 @@ local function getViewportSize()
     return cachedViewportSize
 end
 
-local function applyElementWithBase(widget, ox, oy, scaleFactor, opacity, applyPos, pivot)
+local function applyElementWithBase(widget, ox, oy, scaleFactor, opacity, applyPos)
     if not widget or not R.isLiveObject(widget) then return end
     local base = getBaseTransform(widget)
     if not base then return end
-    if pivot then
-        pcall(function() widget:SetRenderTransformPivot(pivot) end)
-    end
     if applyPos ~= false and type(ox) == 'number' and type(oy) == 'number' then
         local final_x = base.x + ox
         local final_y = base.y - oy
@@ -1189,8 +1183,7 @@ function R.applyHUDLayoutIntegrated()
     if ladderWidget then
         local tx = 690.0 + lx
         local ty = 756.0 - ly
-        local centerPivot = { X = 0.5, Y = 0.5 }
-        applyElementDirect(ladderWidget, tx, ty, lsc, lop, true, centerPivot)
+        applyElementDirect(ladderWidget, tx, ty, lsc, lop, true)
     end
 
     -- 1-1. WhiskyMarkPanel (Direct child of Altimeter!)
@@ -1210,8 +1203,7 @@ function R.applyHUDLayoutIntegrated()
         local tx = 0.0 + wx
         local ty = 0.0 - wy
         local sc = (lsc or 1.0) * wsc
-        local centerPivot = { X = 0.5, Y = 0.5 }
-        applyElementDirect(whiskyWidget, tx, ty, sc, wop, true, centerPivot)
+        applyElementDirect(whiskyWidget, tx, ty, sc, wop, true)
     end
 
     -- 1-2. Heading (Flight Path Marker / VelocityIcon)
