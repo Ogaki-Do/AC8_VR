@@ -710,11 +710,16 @@ end
 -- final accepted bomb calibration. No key capture or telemetry.
 do
 local R=AC8Runtime;local host=R.host('layout','accepted bomb projection')
-local cfg=R.read('ac8_bomb_landing_controls.json')or{};local v=tonumber(cfg.fovAdjustmentDegrees)or 9
-if v~=v or v< -40 or v>40 then v=9 end
 local last
 host.sdk.callbacks.on_post_engine_tick(function()
- local packet=(cfg.enabled~=false and'1'or'0')..'|'..tostring(v)..'|0|'..(R.context.flight and'1'or'0')
+ local sw = R.customHUDConfig and R.customHUDConfig.specialWeapons
+ local v = (sw and type(sw.bombFOV) == 'number') and sw.bombFOV or nil
+ if not v then
+  local cfg=R.read('ac8_bomb_landing_controls.json')or{}
+  v = tonumber(cfg.fovAdjustmentDegrees) or 9
+ end
+ if v~=v or v< -40 or v>40 then v=9 end
+ local packet='1|'..tostring(v)..'|0|'..(R.context.flight and'1'or'0')
  if packet~=last then uevr.api:dispatch_custom_event('AC8_BombProjectionControls',packet);last=packet end
 end)
 host.sdk.callbacks.on_script_reset(function()uevr.api:dispatch_custom_event('AC8_BombProjectionControls','0|0|0|0')end)

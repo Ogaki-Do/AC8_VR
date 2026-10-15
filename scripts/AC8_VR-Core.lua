@@ -14,7 +14,7 @@ registry.sections['core'] = function(R)
 -- AC8 utility services and inherited Flat2VR adaptations.
 -- Inherited code is attributed in the sections below; original history is backed up.
 local real=uevr;local realJSON=json
-local R={version=94,tick=0,domains={},connected={},context={epoch=0},cache={},errors={},inheritedSetup={},layoutEnabled=false}
+local R={version=94,modVersion='0.1.0.44-WIP',tick=0,domains={},connected={},context={epoch=0},cache={},errors={},inheritedSetup={},layoutEnabled=false}
 _G.AC8Runtime=R
 local order={'presentation','layout','utility','intro'}
 local function invoke(o,k,...)local ok,v=pcall(function(...)return o[k](o,...)end,...);if ok then return v end end
@@ -212,6 +212,22 @@ local function ensureCustomHUDDefaults(cfg)
  if not he.wingman then he.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.drawcanvas then he.drawcanvas = { scale = 1.0, opacity = 0.95 } end
 
+ if not cfg.worldTargets or type(cfg.worldTargets) ~= 'table' then
+  cfg.worldTargets = {
+   boxScale = 0.25,
+   labelScale = 0.25,
+   fontScale = 1.0,
+   lineSpacing = 15.0,
+   labelRaise = 0.0,
+   blueSaturation = 1.1
+  }
+ end
+ if not cfg.specialWeapons or type(cfg.specialWeapons) ~= 'table' then
+  cfg.specialWeapons = {
+   bombFOV = 9.0
+  }
+ end
+
  if not cfg.cameraOffsets then
   cfg.cameraOffsets = { default = { forward = 0.0, right = 0.0, up = 0.0 }, planes = {} }
  end
@@ -295,16 +311,52 @@ function R.isCinematicEnabled()
  return cfg and cfg.enabled==true
 end
 
+function R.syncWorldTargetsToFiles()
+ local cfg = R.customHUDConfig
+ if not cfg then return end
+ local j = R.realJSON or realJSON or rawget(_G, 'json')
+ if not j or not j.dump_file then return end
+ if cfg.worldTargets then
+  local wt = cfg.worldTargets
+  local targetCtrl = {
+   boxScale = wt.boxScale or 0.25,
+   enabled = true,
+   fontScale = wt.fontScale or 1.0,
+   labelScale = wt.labelScale or 0.25,
+   lineSpacing = wt.lineSpacing or 15.0
+  }
+  local worldCtrl = {
+   enabled = true,
+   useFlatLabelOffsets = true,
+   labelRaise = wt.labelRaise or 0.0,
+   leftLabelDrop = 3,
+   blueSaturation = wt.blueSaturation or 1.1
+  }
+  pcall(function() j.dump_file('ac8_workshop_target_controls.json', targetCtrl, 2) end)
+  pcall(function() j.dump_file('ac8_world_target_controls.json', worldCtrl, 2) end)
+ end
+ if cfg.specialWeapons and cfg.specialWeapons.bombFOV then
+  local bombCtrl = {
+   enabled = true,
+   fovAdjustmentDegrees = cfg.specialWeapons.bombFOV or 9.0,
+   version = 76
+  }
+  pcall(function() j.dump_file('ac8_bomb_landing_controls.json', bombCtrl, 2) end)
+ end
+end
+
 function R.saveCustomHUDConfig()
  if not R.customHUDConfig then return end
  pcall(function() realJSON.dump_file('CustomHUDPosition.json', R.customHUDConfig, 2) end)
  pcall(R.syncLocatorConfigToDLL)
+ pcall(R.syncWorldTargetsToFiles)
  print('[AC8-VR] Configuration saved to CustomHUDPosition.json')
 end
 
 function R.reloadCustomHUDConfig()
  R.customHUDConfig, R.customHUDConfigPath = loadCustomHUDConfig()
  pcall(R.syncLocatorConfigToDLL)
+ pcall(R.syncWorldTargetsToFiles)
  if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated) end
  if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  if R.applyActiveCameraOffset then pcall(R.applyActiveCameraOffset) end
@@ -594,6 +646,11 @@ pcall(function()
   local ui=rawget(_G,'imgui')
   if not ui then return end
 
+  if ui.text_colored then
+   ui.text_colored('=== AC8 VR Tuning Suite (' .. tostring(R.modVersion or 'v0.1.0.44-WIP') .. ') ===', 0.2, 0.8, 1.0, 1.0)
+   if ui.separator then ui.separator() end
+  end
+
   -- =========================================================================
   -- SECTION 1: AC8 VR Master Settings
   -- =========================================================================
@@ -764,30 +821,138 @@ pcall(function()
   end
 
   -- =========================================================================
-  -- SECTION 3: Cockpit Head / Camera Position (P1)
+  -- SECTION 3: 3D World Targets & Special Weapons (P2)
   -- =========================================================================
-  if ui.tree_node and ui.tree_node('Cockpit Head Position / Camera Offset (P1)') then
-   local plane = R.getCurrentPlaneName()
-   if ui.text then
-    ui.text('Current Aircraft: ' .. (plane or 'Unknown / Outside Cockpit'))
+  if ui.tree_node and ui.tree_node('3D World Targets & Special Weapons (P2)') then
+   local wt = R.customHUDConfig and R.customHUDConfig.worldTargets
+   local sw = R.customHUDConfig and R.customHUDConfig.specialWeapons
+   if wt then
+    if ui.text then ui.text('--- 3D Target Boxes & Labels (敵機ロック枠・文字) ---') end
+    -- Target Box Scale
+    local bChanged, bVal = ui.slider_float('Target Box Scale (敵機ロック枠倍率)', wt.boxScale or 0.25, 0.1, 2.0)
+    if bChanged and bVal ~= nil then wt.boxScale = bVal; R.pendingSaveTick = R.tick + 60 end
+    if ui.button and ui.same_line then
+     if ui.button('-0.05##tb') then wt.boxScale = math.max(0.1, (wt.boxScale or 0.25) - 0.05); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('+0.05##tb') then wt.boxScale = math.min(2.0, (wt.boxScale or 0.25) + 0.05); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('Default (0.25)##tb_def') then wt.boxScale = 0.25; R.pendingSaveTick = R.tick + 60 end
+    end
+
+    -- Target Label Scale
+    local lChanged, lVal = ui.slider_float('Target Label Scale (文字・距離倍率)', wt.labelScale or 0.25, 0.1, 2.0)
+    if lChanged and lVal ~= nil then wt.labelScale = lVal; R.pendingSaveTick = R.tick + 60 end
+    if ui.button and ui.same_line then
+     if ui.button('-0.05##tl') then wt.labelScale = math.max(0.1, (wt.labelScale or 0.25) - 0.05); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('+0.05##tl') then wt.labelScale = math.min(2.0, (wt.labelScale or 0.25) + 0.05); R.pendingSaveTick = R.tick + 60 end
+    end
+
+    -- Label Height Offset (labelRaise)
+    local rChanged, rVal = ui.slider_float('Label Height Offset (ラベル高さ px)', wt.labelRaise or 0.0, -200.0, 200.0)
+    if rChanged and rVal ~= nil then wt.labelRaise = rVal; R.pendingSaveTick = R.tick + 60 end
+    if ui.button and ui.same_line then
+     if ui.button('-5px##lr') then wt.labelRaise = (wt.labelRaise or 0) - 5; R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('+5px##lr') then wt.labelRaise = (wt.labelRaise or 0) + 5; R.pendingSaveTick = R.tick + 60 end
+    end
+
+    -- Ally Blue Saturation
+    local satChanged, satVal = ui.slider_float('Ally Blue Saturation (味方水色彩度ブースト)', wt.blueSaturation or 1.1, 1.0, 1.5)
+    if satChanged and satVal ~= nil then wt.blueSaturation = satVal; R.pendingSaveTick = R.tick + 60 end
+    if ui.button and ui.same_line then
+     if ui.button('-0.05##sat') then wt.blueSaturation = math.max(1.0, (wt.blueSaturation or 1.1) - 0.05); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('+0.05##sat') then wt.blueSaturation = math.min(1.5, (wt.blueSaturation or 1.1) + 0.05); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('Default (1.1)##sat_def') then wt.blueSaturation = 1.1; R.pendingSaveTick = R.tick + 60 end
+    end
    end
 
+   if sw then
+    if ui.separator then ui.separator() end
+    if ui.text then ui.text('--- Special Weapons (特殊兵装・爆撃照準) ---') end
+    -- Bomb CCIP Ground FOV
+    local fovChanged, fovVal = ui.slider_float('Bomb CCIP Ground FOV (爆撃レティクル投影補正角 deg)', sw.bombFOV or 9.0, 0.0, 20.0)
+    if fovChanged and fovVal ~= nil then sw.bombFOV = fovVal; R.pendingSaveTick = R.tick + 60 end
+    if ui.button and ui.same_line then
+     if ui.button('-0.5°##bf') then sw.bombFOV = math.max(0.0, (sw.bombFOV or 9.0) - 0.5); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('+0.5°##bf') then sw.bombFOV = math.min(20.0, (sw.bombFOV or 9.0) + 0.5); R.pendingSaveTick = R.tick + 60 end
+     ui.same_line()
+     if ui.button('Default (9.0°)##bf_def') then sw.bombFOV = 9.0; R.pendingSaveTick = R.tick + 60 end
+    end
+   end
+
+   if ui.separator then ui.separator() end
+   if ui.button and ui.same_line then
+    if ui.button('Save Target & Weapon Settings##btn_tw_save') then
+     R.pendingSaveTick = nil
+     R.saveCustomHUDConfig()
+     hudActionMsg = '[OK] Target & Weapon settings saved to disk.'
+     print('[AC8-VR] Target & Weapon settings saved to disk.')
+    end
+    ui.same_line()
+    if ui.button('Reset Target & Weapon Defaults##btn_tw_reset') then
+     if wt then
+      wt.boxScale = 0.25
+      wt.labelScale = 0.25
+      wt.fontScale = 1.0
+      wt.lineSpacing = 15.0
+      wt.labelRaise = 0.0
+      wt.blueSaturation = 1.1
+     end
+     if sw then sw.bombFOV = 9.0 end
+     pcall(R.syncWorldTargetsToFiles)
+     hudActionMsg = '[RESET] Target & Weapon settings reset to defaults (Unsaved).'
+     print('[AC8-VR] Target & Weapon settings reset to defaults.')
+    end
+   end
+   if ui.tree_pop then ui.tree_pop() end
+  end
+
+  -- =========================================================================
+  -- SECTION 4: Cockpit Head / Camera Position (P1 & P3)
+  -- =========================================================================
+  if ui.tree_node and ui.tree_node('Cockpit Head Position / Camera Offset (P1 & P3)') then
+   local plane = R.getCurrentPlaneName()
    local co = R.customHUDConfig.cameraOffsets
    local isPlaneSpecific = (plane and co.planes and co.planes[plane] ~= nil)
-   if plane and ui.checkbox then
-    local psChanged, psVal = ui.checkbox('Save specific offset for this plane (' .. plane .. ')', isPlaneSpecific)
-    if psChanged and psVal ~= nil then
-     if psVal then
-      co.planes[plane] = {
-       forward = co.default.forward or 0.0,
-       right = co.default.right or 0.0,
-       up = co.default.up or 0.0
-      }
+
+   if ui.text then
+    ui.text('Current Aircraft: ' .. (plane or 'Unknown / Outside Cockpit'))
+    if plane then
+     if isPlaneSpecific then
+      ui.text('Status: [Custom Offset ACTIVE for ' .. plane .. ']')
      else
-      co.planes[plane] = nil
+      ui.text('Status: [Default (0, 0, 0 cm) in use]')
      end
+    end
+   end
+
+   if plane and ui.button and ui.same_line then
+    if ui.button('Save for Current Plane (' .. plane .. ')##btn_plane_save') then
+     if not co.planes then co.planes = {} end
+     local activeTarget = (isPlaneSpecific and co.planes[plane]) or co.default
+     co.planes[plane] = {
+      forward = activeTarget.forward or 0.0,
+      right = activeTarget.right or 0.0,
+      up = activeTarget.up or 0.0
+     }
      R.saveCustomHUDConfig()
      R.applyActiveCameraOffset()
+     camActionMsg = string.format('[OK] Saved custom offset for plane %s: (%.1f, %.1f, %.1f cm)', plane, co.planes[plane].forward, co.planes[plane].right, co.planes[plane].up)
+     print('[AC8-VR] ' .. camActionMsg)
+    end
+    ui.same_line()
+    if isPlaneSpecific then
+     if ui.button('Clear Plane Offset (Use Default)##btn_plane_clear') then
+      co.planes[plane] = nil
+      R.saveCustomHUDConfig()
+      R.applyActiveCameraOffset()
+      camActionMsg = string.format('[CLEARED] Custom offset removed for %s. Using default.', plane)
+      print('[AC8-VR] ' .. camActionMsg)
+     end
     end
    end
 
@@ -832,7 +997,7 @@ pcall(function()
 
    -- ACTION BUTTONS (Save, Load Saved, Reset Camera to Defaults)
    if ui.button and ui.same_line then
-    if ui.button('Save##btn_cam_save') then
+    if ui.button('Save Default Offsets##btn_cam_save') then
      R.pendingSaveTick = nil
      R.saveCustomHUDConfig()
      camActionMsg = '[OK] Camera offsets saved to disk.'
@@ -871,7 +1036,7 @@ end
 
 -- Registering files in any order produces the explicit initialization order.
 -- A failed initializer is never retried in-place: restart the script environment.
-local required = {'core','cutscene_guard','inherited_hud','mission_loading','glow_lifecycle','target_labels','target_animation','target_pins','target_materials','hud_policy','tutorial_fill','pause_attachment','transitions','plane_camera','cinematic','hud_layout','startup_movies'}
+local required = {'core','cutscene_guard','inherited_hud','mission_loading','glow_lifecycle','target_labels','target_animation','target_pins','target_materials','hud_policy','tutorial_fill','pause_attachment','hit_destroyed_restore','transitions','plane_camera','cinematic','hud_layout','startup_movies'}
 registry.required = required
 function registry.start()
  if registry.state == 'failed' or registry.state == 'starting' then return end
