@@ -1521,6 +1521,9 @@ end)end)
 -- widget reflection/writes run on the game thread. The old pre-Slate
 -- callback could retain dead flight widgets and block the shared Lua lock.
 
+-- Legacy Workshop subsystem (Bypassed: interfered with score, time and radar positioning)
+local workshop_after, workshop_poll
+if false then
 local WS = {revision="none", groups={}, components={}, catalog={}, entries={}, originals={},
     groupbase={}, states={}, elapsed=0, scan_elapsed=15, rescan=-1, restore=false}
 local WS_GROUPS = {ladder=true, radar=true, info=true}
@@ -1835,6 +1838,7 @@ workshop_poll=function()
     end
 end
 pcall(ws_identify)
+end
 
 local layoutEpoch=-1
 layout_scope_sync=function()
@@ -1843,8 +1847,6 @@ layout_scope_sync=function()
   layoutEpoch=context.epoch
   -- Forget old-world pointers without trying to restore destroyed widgets.
   for _,t in ipairs(TARGETS)do t.objs=nil;t.items=nil;t.applied=false;t.opApplied=nil;t.scApplied=nil end
-  WS.entries={};WS.originals={};WS.catalog={};WS.canvasRoot=nil;WS.canvasBase=nil
-  WS.needScan=true;WS.elapsed=19;WS.scan_elapsed=20;WS.acquireUntil=AC8Runtime.tick+120
   if context.flight then pcall(resolve_all,false)end
  end
  -- 飛行中にラダーが未解決の場合は即座に再取得（チュートリアル復帰直後の遅延生成対策）
@@ -1857,7 +1859,7 @@ local ticks = 0
 pcall(function()
     uevr.sdk.callbacks.on_post_engine_tick(function()
         if not layout_scope_sync()then return end
-        if workshop_poll then pcall(workshop_poll) end
+        -- if workshop_poll then pcall(workshop_poll) end
         lt14_apply("post_engine_tick")
         ticks = ticks + 1
 

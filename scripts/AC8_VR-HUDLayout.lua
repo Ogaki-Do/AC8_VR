@@ -1132,48 +1132,43 @@ function R.applyHUDLayoutIntegrated()
         applyElementDirect(whiskyWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 2. Radar (MiniMapLayer, RadarCircleCanvasPanel, MIniMapCanvas) - Base relative
-    if he.radar then
+    -- 2. Radar (Parent container: MiniMapLayer) - Single root container
+    local radarWidget = refs.radar or cachedTargets.radar
+    if not radarWidget or not R.isLiveObject(radarWidget) then
+        radarWidget = findDescendantByName(root, 'MiniMapLayer')
+            or findDescendantByName(root, 'MIniMapCanvas')
+            or refs.radar
+        cachedTargets.radar = radarWidget
+    end
+    if radarWidget and he.radar then
         local cfg = he.radar
-        local radarWidgets = cachedTargets.radarList
-        if not radarWidgets or #radarWidgets == 0 or not R.isLiveObject(radarWidgets[1]) then
-            radarWidgets = findAllDescendantsByNames(root, { 'MiniMapLayer', 'MIniMapCanvas', 'RadarCircleCanvasPanel', 'MiniMapCornerCanvas' })
-            if #radarWidgets == 0 and refs.radar then table.insert(radarWidgets, refs.radar) end
-            cachedTargets.radarList = radarWidgets
-        end
         local ox = cfg.x or 0.0
         local oy = cfg.y or 0.0
         local sc = cfg.scale or 1.0
         local op = cfg.opacity or 0.95
         local pivot = { X = 0.5, Y = 0.5 }
-        for _, rw in ipairs(radarWidgets) do
-            applyElementWithBase(rw, ox, oy, sc, op, true, pivot)
-        end
+        applyElementWithBase(radarWidget, ox, oy, sc, op, true, pivot)
     end
 
-    -- 3. AircraftInfo (WBP_PlayerStateWidget + PlaneCanvas, IconsCanvas, etc.) - Base relative
-    if he.info then
+    -- 3. AircraftInfo (Top-level player status container: WBP_PlayerStateWidget) - Single root container
+    local infoWidget = cachedTargets.info
+    if not infoWidget or not R.isLiveObject(infoWidget) then
+        infoWidget = findDescendantByName(root, 'WBP_PlayerStateWidget')
+            or refs.info
+            or findDescendantByName(root, 'PlaneCanvas')
+        cachedTargets.info = infoWidget
+    end
+    if infoWidget and he.info then
         local cfg = he.info
-        local infoWidgets = cachedTargets.infoList
-        if not infoWidgets or #infoWidgets == 0 or not R.isLiveObject(infoWidgets[1]) then
-            infoWidgets = findAllDescendantsByNames(root, {
-                'WBP_PlayerStateWidget', 'PlaneCanvas', 'IconsCanvas',
-                'PlaneIconStatPanel', 'PlaneTextStatPanel', 'Weapons'
-            })
-            if #infoWidgets == 0 and refs.info then table.insert(infoWidgets, refs.info) end
-            cachedTargets.infoList = infoWidgets
-        end
         local ox = cfg.x or 0.0
         local oy = cfg.y or 0.0
         local sc = cfg.scale or 1.0
         local op = cfg.opacity or 0.95
         local pivot = { X = 0.5, Y = 0.5 }
-        for _, iw in ipairs(infoWidgets) do
-            applyElementWithBase(iw, ox, oy, sc, op, true, pivot)
-        end
+        applyElementWithBase(infoWidget, ox, oy, sc, op, true, pivot)
     end
 
-    -- 4. Score / MissionInfo (United CampaignInfo container) - Base relative with stable pivot
+    -- 4. Score / MissionInfo (United CampaignInfo container) - Single root container with stable right-top pivot
     local scoreWidget = refs.campaign or cachedTargets.score
     if not scoreWidget or not R.isLiveObject(scoreWidget) then
         scoreWidget = findDescendantByName(root, 'WBP_HUD_SubWidgets_Parts_CampaignInfo')
@@ -1227,23 +1222,22 @@ function R.applyHUDLayoutIntegrated()
         end
     end
 
-    -- 6. Wingman (Formation Command: WBP_HUD_Command_Wingman / Command_S) - Base relative
-    if he.wingman then
+    -- 6. Wingman (Formation Command container: WBP_HUD_Command_Wingman) - Single root container
+    local wingmanWidget = cachedTargets.wingman
+    if not wingmanWidget or not R.isLiveObject(wingmanWidget) then
+        wingmanWidget = findDescendantByName(root, 'WBP_HUD_Command_Wingman')
+            or findDescendantByName(root, 'Command_S')
+            or refs.wingman
+        cachedTargets.wingman = wingmanWidget
+    end
+    if wingmanWidget and he.wingman then
         local cfg = he.wingman
-        local wingmanWidgets = cachedTargets.wingmanList
-        if not wingmanWidgets or #wingmanWidgets == 0 or not R.isLiveObject(wingmanWidgets[1]) then
-            wingmanWidgets = findAllDescendantsByNames(root, { 'WBP_HUD_Command_Wingman', 'Command_S' })
-            if #wingmanWidgets == 0 and refs.wingman then table.insert(wingmanWidgets, refs.wingman) end
-            cachedTargets.wingmanList = wingmanWidgets
-        end
         local ox = cfg.x or 0.0
         local oy = cfg.y or 0.0
         local sc = cfg.scale or 1.0
         local op = cfg.opacity or 0.95
         local pivot = { X = 0.5, Y = 0.5 }
-        for _, ww in ipairs(wingmanWidgets) do
-            applyElementWithBase(ww, ox, oy, sc, op, true, pivot)
-        end
+        applyElementWithBase(wingmanWidget, ox, oy, sc, op, true, pivot)
     end
 
     -- 7. Draw canvas (Background)
