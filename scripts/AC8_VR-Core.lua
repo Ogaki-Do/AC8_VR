@@ -500,7 +500,7 @@ local function renderSteppedOpacity(ui, label, tableRef, key, min_v, max_v, step
  end
 end
 
-local function renderElementBlock(ui, title, elemKey, hasPos)
+local function renderElementBlock(ui, title, elemKey, hasPos, hasOpacity)
  local he = R.customHUDConfig and R.customHUDConfig.hudElements
  local elem = he and he[elemKey]
  if not elem then return end
@@ -510,7 +510,9 @@ local function renderElementBlock(ui, title, elemKey, hasPos)
    renderSteppedSlider(ui, title .. ' X', elem, 'x', -2500.0, 2500.0, 5.0, elemKey .. '_x')
    renderSteppedSlider(ui, title .. ' Y (Up+ / Dn-)', elem, 'y', -2500.0, 2500.0, 5.0, elemKey .. '_y')
   end
-  renderSteppedOpacity(ui, 'Opacity', elem, 'opacity', 0.0, 1.0, 0.05, elemKey .. '_op')
+  if hasOpacity ~= false then
+   renderSteppedOpacity(ui, 'Opacity', elem, 'opacity', 0.0, 1.0, 0.05, elemKey .. '_op')
+  end
   if ui.tree_pop then ui.tree_pop() end
  end
 end
@@ -621,8 +623,8 @@ pcall(function()
    -- 4. Score / MissionInfo
    renderElementBlock(ui, 'Score / MissionInfo (スコア・作戦目標・タイマー一括)', 'score', true)
 
-   -- 5. Locator (Screen-edge arrows)
-   renderElementBlock(ui, 'Locator (画面外ターゲット矢印 / C++頂点フック)', 'locator', true)
+   -- 5. Locator (Screen-edge arrows - C++ native geometry)
+   renderElementBlock(ui, 'Locator (画面外ターゲット矢印 / C++頂点フック)', 'locator', true, false)
 
    -- 6. Wingman (Formation Command / 僚機コマンド)
    renderElementBlock(ui, 'Wingman (編隊指示 / 僚機コマンド)', 'wingman', true)
