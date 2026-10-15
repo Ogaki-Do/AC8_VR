@@ -1,9 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "cinematicPresentation": {
     "enabled": false
   },
-  "hudElements": {},
+  "hudElements": {
+    "ladder": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "heading": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "whisky": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "radar": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "info": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "score": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "drawcanvas": { "scale": 1.0, "opacity": 0.95 }
+  },
   "cameraOffsets": {
     "default": {
       "forward": -18.0,
@@ -11,13 +19,5 @@
       "up": 5.0
     },
     "planes": {}
-  },
-  "multiRadar": {
-    "enabled": false,
-    "mode": "search",
-    "x": 0.4,
-    "y": 0.25,
-    "scale": 0.85,
-    "opacity": 0.95
   }
 }

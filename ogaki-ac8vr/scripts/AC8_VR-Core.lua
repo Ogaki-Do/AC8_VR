@@ -95,16 +95,11 @@ function R.contextTick(advance)
  if identityChanged then R.context.epoch=R.context.epoch+1;R.context.changedAt=R.tick;R.context.identity=identity end
  R.context.pc=pc;R.context.hud=hud;R.context.root=root;R.context.hudName=hn;R.context.rootName=rn;R.context.flight=hn:match('^LiveMainHUDParent4K_C ')~=nil
 
- if (R.tick % 30 == 0 or identityChanged) then
-  if R.applyActiveCameraOffset then
-   local curPlane = R.getCurrentPlaneName and R.getCurrentPlaneName()
-   if curPlane ~= R.context.planeName or identityChanged then
-    R.context.planeName = curPlane
-    pcall(R.applyActiveCameraOffset)
-   end
-  end
-  if R.applyMultiRadar and R.customHUDConfig and R.customHUDConfig.multiRadar and R.customHUDConfig.multiRadar.enabled then
-   pcall(R.applyMultiRadar)
+ if (R.tick % 30 == 0 or identityChanged) and R.applyActiveCameraOffset then
+  local curPlane = R.getCurrentPlaneName and R.getCurrentPlaneName()
+  if curPlane ~= R.context.planeName or identityChanged then
+   R.context.planeName = curPlane
+   pcall(R.applyActiveCameraOffset)
   end
  end
 
@@ -145,18 +140,59 @@ R.json={load_file=R.read,dump_file=function(name,value,indent)
 end}
 function R.log(_)end -- Legacy adapters receive a quiet logger; errors stay in R.errors.
 
--- Custom HUD and Cinematic configuration (P1 Full Integration)
+-- Helper for finding descendants by substring
+local function findDescendantByName(root, targetName)
+ if not root or not R.isLiveObject(root) then return nil end
+ local found = nil
+ local seen = {}
+ local function rec(w, d)
+  if not w or found or d > 16 then return end
+  local p = tostring(w)
+  if seen[p] then return end
+  seen[p] = true
+  local n = R.objectCall(w, 'get_full_name') or ''
+  local sn = n:match('([^.]+)$') or n
+  if sn == targetName or sn:find(targetName, 1, true) then
+   found = w
+   return
+  end
+  local count = R.objectCall(w, 'GetChildrenCount') or 0
+  if type(count) == 'number' and count > 0 then
+   for i = 0, count - 1 do
+    local c = R.objectCall(w, 'GetChildAt', i)
+    if c then rec(c, d + 1) end
+   end
+  end
+  local wt = R.objectCall(w, 'get_property', 'WidgetTree')
+  if wt then
+   local rw = R.objectCall(wt, 'get_property', 'RootWidget')
+   if rw then rec(rw, d + 1) end
+  end
+ end
+ rec(root, 0)
+ return found
+end
+
+-- Custom HUD and Cinematic configuration (Legacy TARGETS Compatible)
 local function ensureCustomHUDDefaults(cfg)
- cfg.version = cfg.version or 1
+ cfg.version = 2
  if not cfg.cinematicPresentation then cfg.cinematicPresentation = { enabled = false } end
  if not cfg.hudElements then cfg.hudElements = {} end
  local he = cfg.hudElements
- if not he.pitchLadder then he.pitchLadder = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 } end
- if not he.radar then he.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 } end
- if not he.aircraftInfo then he.aircraftInfo = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 } end
- if not he.drawCanvas then he.drawCanvas = { scale = 1.0, opacity = 1.0 } end
- if not he.locatorArrow then he.locatorArrow = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 } end
- if not he.wingman then he.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 } end
+
+ -- Backward compatibility migration
+ if he.pitchLadder and not he.ladder then he.ladder = he.pitchLadder end
+ if he.aircraftInfo and not he.info then he.info = he.aircraftInfo end
+ if he.drawCanvas and not he.drawcanvas then he.drawcanvas = he.drawCanvas end
+
+ if not he.ladder then he.ladder = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.heading then he.heading = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.whisky then he.whisky = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.radar then he.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.info then he.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.score then he.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.drawcanvas then he.drawcanvas = { scale = 1.0, opacity = 0.95 } end
+
  if not cfg.cameraOffsets then
   cfg.cameraOffsets = { default = { forward = -18.0, right = 0.0, up = 5.0 }, planes = {} }
  end
@@ -164,15 +200,6 @@ local function ensureCustomHUDDefaults(cfg)
   cfg.cameraOffsets.default = { forward = -18.0, right = 0.0, up = 5.0 }
  end
  if not cfg.cameraOffsets.planes then cfg.cameraOffsets.planes = {} end
- if not cfg.multiRadar then
-  cfg.multiRadar = { enabled = false, mode = 'search', x = 0.40, y = 0.25, scale = 0.85, opacity = 0.95 }
- end
- if cfg.multiRadar.enabled == nil then cfg.multiRadar.enabled = false end
- if not cfg.multiRadar.mode then cfg.multiRadar.mode = 'search' end
- if cfg.multiRadar.x == nil then cfg.multiRadar.x = 0.40 end
- if cfg.multiRadar.y == nil then cfg.multiRadar.y = 0.25 end
- if cfg.multiRadar.scale == nil then cfg.multiRadar.scale = 0.85 end
- if cfg.multiRadar.opacity == nil then cfg.multiRadar.opacity = 0.95 end
  return cfg
 end
 
@@ -191,13 +218,19 @@ function R.isCinematicEnabled()
  return cfg and cfg.enabled==true
 end
 
-local savePending = false
 function R.saveCustomHUDConfig()
  if not R.customHUDConfig then return end
  local p=R.customHUDConfigPath or 'data/CustomHUDPosition.json'
  pcall(function()realJSON.dump_file(p,R.customHUDConfig,2)end)
  pcall(function()realJSON.dump_file('CustomHUDPosition.json',R.customHUDConfig,2)end)
- savePending = false
+ print('[AC8-VR] Configuration saved to ' .. p)
+end
+
+function R.reloadCustomHUDConfig()
+ R.customHUDConfig, R.customHUDConfigPath = loadCustomHUDConfig()
+ if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+ if R.applyActiveCameraOffset then pcall(R.applyActiveCameraOffset) end
+ print('[AC8-VR] Configuration reloaded from ' .. tostring(R.customHUDConfigPath))
 end
 
 -- Base transforms storage for clean offset layering without feedback drift
@@ -234,130 +267,65 @@ function R.applyAllHUDCustomPositions()
  local he = R.customHUDConfig and R.customHUDConfig.hudElements
  if not he then return end
 
- -- 1. Pitch Ladder (Altimeter / Horizon)
- if refs.altimeter and he.pitchLadder then
-  R.applyHUDCustomElement('pitchLadder', refs.altimeter, he.pitchLadder, true)
+ -- 1. PitchLadder (Altimeter / PitchMeter)
+ local ladderWidget = refs.altimeter or refs.wtsc
+ if ladderWidget and he.ladder then
+  R.applyHUDCustomElement('ladder', ladderWidget, he.ladder, true)
  end
+
+ -- 1-1. Heading (Velocity / VelocityIcon)
+ local headingWidget = refs.vicon or refs.vel
+ if headingWidget and he.heading then
+  R.applyHUDCustomElement('heading', headingWidget, he.heading, true)
+ end
+
+ -- 1-2. WhiskyMarkPanel
+ if refs.whisky and he.whisky then
+  R.applyHUDCustomElement('whisky', refs.whisky, he.whisky, true)
+ end
+
  -- 2. Radar (MiniMap)
  if refs.radar and he.radar then
   R.applyHUDCustomElement('radar', refs.radar, he.radar, true)
  end
- -- 3. Aircraft Info (Weapons / HP)
- if refs.wtsc and he.aircraftInfo then
-  R.applyHUDCustomElement('aircraftInfo', refs.wtsc, he.aircraftInfo, true)
- end
- -- 4. Draw Canvas (Main UI Boundary)
- if refs.maincv and he.drawCanvas then
-  R.applyHUDCustomElement('drawCanvas', refs.maincv, he.drawCanvas, false)
- end
- -- 5. Offscreen Locator Arrow
- local locator = rawget(_G, 'AC8_OffscreenLocatorWidget') or (refs and refs.locator)
- if locator and he.locatorArrow then
-  R.applyHUDCustomElement('locatorArrow', locator, he.locatorArrow, true)
- end
- -- 6. Wingman Command Formation
- local wingman = rawget(_G, 'AC8_WingmanCommandWidget') or (refs and refs.wingman)
- if wingman and he.wingman then
-  R.applyHUDCustomElement('wingman', wingman, he.wingman, true)
- end
-
- -- 7. Multi-Radar / Secondary Map (P2)
- if R.applyMultiRadar then
-  pcall(R.applyMultiRadar)
- end
-end
-
--- Secondary Multi-Radar Management (P2)
-R.secondaryRadarWidgets = nil
-function R.findSecondaryRadarWidgets()
- local refs = R.hudLayoutRefs
- local root = (refs and refs.maincv) or (refs and refs.root) or R.context.root
- if not root or not R.isLiveObject(root) then return end
- local found = {}
- local seen = {}
- local function rec(w, d)
-  if not w or d > 16 then return end
-  local p = tostring(w)
-  if seen[p] then return end
-  seen[p] = true
-  local n = R.objectCall(w, 'get_full_name') or ''
-  local sn = n:match('([^.]+)$') or n
-  if sn == 'MiniMapSearchWidget' or sn:find('MiniMapSearchWidget', 1, true) then found.search = w end
-  if sn == 'MiniMapEnlargedWidget' or sn:find('MiniMapEnlargedWidget', 1, true) then found.enlarged = w end
-  if sn == 'MiniMapWholeWidget' or sn:find('MiniMapWholeWidget', 1, true) then found.whole = w end
-  if sn == 'MiniMapSearchCorners' or sn:find('MiniMapSearchCorners', 1, true) then found.corners = w end
-
-  local count = R.objectCall(w, 'GetChildrenCount') or 0
-  if type(count) == 'number' and count > 0 then
-   for i = 0, count - 1 do
-    local c = R.objectCall(w, 'GetChildAt', i)
-    if c then rec(c, d + 1) end
+ if refs.radarList and type(refs.radarList) == 'table' and he.radar then
+  for _, rw in ipairs(refs.radarList) do
+   if rw and rw ~= refs.radar then
+    R.applyHUDCustomElement('radarExtra', rw, he.radar, true)
    end
   end
-  local wt = R.objectCall(w, 'get_property', 'WidgetTree')
-  if wt then
-   local rw = R.objectCall(wt, 'get_property', 'RootWidget')
-   if rw then rec(rw, d + 1) end
-  end
  end
- rec(root, 0)
- R.secondaryRadarWidgets = found
-end
 
-function R.applyMultiRadar()
- local mr = R.customHUDConfig and R.customHUDConfig.multiRadar
- if not mr then return end
- local widgets = R.secondaryRadarWidgets
- if not widgets or not widgets.search or not R.isLiveObject(widgets.search) then
-  R.findSecondaryRadarWidgets()
-  widgets = R.secondaryRadarWidgets
+ -- 3. AircraftInfo (WBP_PlayerStateWidget / PlaneCanvas)
+ local infoWidget = refs.info
+ if not infoWidget or not R.isLiveObject(infoWidget) then
+  local root = refs.root or (R.context and R.context.root)
+  infoWidget = findDescendantByName(root, 'WBP_PlayerStateWidget') or findDescendantByName(root, 'PlaneCanvas') or findDescendantByName(root, 'PlayerStatus')
+  refs.info = infoWidget
  end
- if not widgets then return end
+ if infoWidget and he.info then
+  R.applyHUDCustomElement('info', infoWidget, he.info, true)
+ end
 
- local mode = mr.mode or 'search'
- local targetWidget = (mode == 'enlarged' and widgets.enlarged)
-    or (mode == 'whole' and widgets.whole)
-    or widgets.search
+ -- 4. Score / MissionInfo (CampaignInfo)
+ local scoreWidget = refs.score or refs.campaign
+ if not scoreWidget or not R.isLiveObject(scoreWidget) then
+  local root = refs.root or (R.context and R.context.root)
+  scoreWidget = findDescendantByName(root, 'CampaignInfo') or findDescendantByName(root, 'WBP_HUD_SubWidgets_Parts_CampaignInfo')
+  refs.score = scoreWidget
+ end
+ if scoreWidget and he.score then
+  R.applyHUDCustomElement('score', scoreWidget, he.score, true)
+ end
 
- if mr.enabled then
-  for k, w in pairs(widgets) do
-   if k ~= 'corners' and w and R.isLiveObject(w) and w ~= targetWidget then
-    pcall(function() w:SetVisibility(1) end) -- 1 = Collapsed
-   end
-  end
-  if targetWidget and R.isLiveObject(targetWidget) then
-   pcall(function()
-    targetWidget:SetVisibility(0) -- 0 = Visible
-    targetWidget:SetRenderOpacity(mr.opacity or 0.95)
-    local tx = (mr.x or 0.40) * 960.0
-    local ty = (mr.y or 0.25) * 540.0
-    targetWidget:SetRenderTranslation({ X = tx, Y = ty })
-    local sc = mr.scale or 0.85
-    targetWidget:SetRenderScale({ X = sc, Y = sc })
-   end)
-  end
-  if widgets.corners and R.isLiveObject(widgets.corners) and mode == 'search' then
-   pcall(function()
-    widgets.corners:SetVisibility(0)
-    widgets.corners:SetRenderOpacity(mr.opacity or 0.95)
-    local tx = (mr.x or 0.40) * 960.0
-    local ty = (mr.y or 0.25) * 540.0
-    widgets.corners:SetRenderTranslation({ X = tx, Y = ty })
-    local sc = mr.scale or 0.85
-    widgets.corners:SetRenderScale({ X = sc, Y = sc })
-   end)
-  end
- else
-  for k, w in pairs(widgets) do
-   if w and R.isLiveObject(w) then
-    pcall(function() w:SetVisibility(1) end) -- 1 = Collapsed
-   end
-  end
+ -- 5. Draw canvas (LowestPriorityDynamicDrawCanvas / MainCanvas)
+ if refs.maincv and he.drawcanvas then
+  R.applyHUDCustomElement('drawcanvas', refs.maincv, he.drawcanvas, false)
  end
 end
 
 -- =========================================================================
--- Instant Awake: All-Elements Unlocker (P3)
+-- Emergency: Force Show ALL HUD (4-frame dormant elements unlocker)
 -- =========================================================================
 local instantCycleActive = false
 local instantCycleFrame = 0
@@ -365,34 +333,20 @@ local instantCycleFrame = 0
 function R.triggerInstantAwake()
  instantCycleActive = true
  instantCycleFrame = 0
- print('[AC8-VR] Triggered Instant Awake sequence...')
+ print('[AC8-VR] Emergency: Force Show ALL HUD cycle triggered...')
 end
 
-function R.setAllHUDVisibility(hide)
- local visCode = hide and 1 or 4 -- 1 = Collapsed, 4 = SelfHitTestInvisible
- local refs = R.hudLayoutRefs
- local candidates = {}
- if refs and refs.root and R.isLiveObject(refs.root) then candidates[#candidates+1] = refs.root end
- if refs and refs.maincv and R.isLiveObject(refs.maincv) then candidates[#candidates+1] = refs.maincv end
- if R.context.root and R.isLiveObject(R.context.root) then candidates[#candidates+1] = R.context.root end
-
- if #candidates == 0 and real.api then
-  local umg = real.api:find_uobject('Class /Script/UMG.Widget')
-  if umg then
-   local ok, objs = pcall(function() return umg:get_objects_matching(false) end)
-   if ok and type(objs) == 'table' then
-    for _, w in ipairs(objs) do
-     local fn = R.objectCall(w, 'get_full_name') or ''
-     if fn:find('/Engine/Transient', 1, true) and fn:find('MainFlight', 1, true) then
-      candidates[#candidates+1] = w
-     end
-    end
-   end
+local function setAllHUDVisibilityCode(visCode)
+ if not real.api then return end
+ local umg = real.api:find_uobject('Class /Script/UMG.Widget')
+ if not umg then return end
+ local ok, objs = pcall(function() return umg:get_objects_matching(false) end)
+ if not ok or type(objs) ~= 'table' then return end
+ for _, w in ipairs(objs) do
+  local fn = R.objectCall(w, 'get_full_name') or ''
+  if fn:find('/Engine/Transient', 1, true) and fn:find('MainFlight', 1, true) then
+   pcall(function() w:SetVisibility(visCode) end)
   end
- end
-
- for _, w in ipairs(candidates) do
-  pcall(function() w:SetVisibility(visCode) end)
  end
 end
 
@@ -400,13 +354,15 @@ function R.updateInstantAwakeCycle()
  if not instantCycleActive then return end
  instantCycleFrame = instantCycleFrame + 1
  if instantCycleFrame == 1 then
-  R.setAllHUDVisibility(true)
+  -- Frame 1: Collapse all MainFlight widgets to clear stale engine state
+  setAllHUDVisibilityCode(1)
  elseif instantCycleFrame >= 4 then
-  R.setAllHUDVisibility(false)
+  -- Frame 4: Restore SelfHitTestInvisible (wake up all dormant HUD elements!)
+  setAllHUDVisibilityCode(4)
   instantCycleActive = false
   instantCycleFrame = 0
   if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
-  print('[AC8-VR] Instant Awake complete! All HUD elements unlocked.')
+  print('[AC8-VR] Emergency: Force Show ALL HUD complete! All dormant elements awakened.')
  end
 end
 
@@ -494,7 +450,7 @@ local function renderElementUI(ui, title, elemKey, hasPos)
   if ui.button and ui.button('Reset ' .. title .. ' to Defaults##' .. elemKey) then
    if hasPos ~= false then elem.x = 0.0; elem.y = 0.0 end
    elem.scale = 1.0
-   elem.opacity = 1.0
+   elem.opacity = 0.95
    R.saveCustomHUDConfig()
    R.applyAllHUDCustomPositions()
    print('[AC8-VR] Reset ' .. title .. ' to defaults')
@@ -554,35 +510,103 @@ pcall(function()
   end
 
   -- =========================================================================
-  -- SECTION 2: HUD Element Customizer (P1 Core Feature)
+  -- SECTION 2: HUD Element Customizer (Legacy TARGETS Compatible)
   -- =========================================================================
-  if ui.tree_node and ui.tree_node('HUD Element Customizer (P1 Position & Scale)') then
+  if ui.tree_node and ui.tree_node('HUD Element Customizer (In-Game UI)') then
    if ui.text then
+    ui.text('Controls PitchLadder, Heading, Radar, AircraftInfo, Score, DrawCanvas.')
     ui.text('Positions are normalized screen ratios: (-1.0 = Left/Top, 0.0 = Center, +1.0 = Right/Bottom)')
-    ui.text('Fine-tuning buttons nudge by +-0.005 / +-0.01. Auto-saves to data/CustomHUDPosition.json')
    end
    if ui.separator then ui.separator() end
 
-   renderElementUI(ui, 'Pitch Ladder / Artificial Horizon (人工水平儀)', 'pitchLadder', true)
-   renderElementUI(ui, 'Radar / MiniMap (レーダー)', 'radar', true)
-   renderElementUI(ui, 'Aircraft Info (残弾数 / HP / 武装情報)', 'aircraftInfo', true)
-   renderElementUI(ui, 'Draw Canvas (全体描画領域)', 'drawCanvas', false)
-   renderElementUI(ui, 'Off-screen Locator Arrow (画面外矢印)', 'locatorArrow', true)
-   renderElementUI(ui, 'Wingman Formation (編隊指示)', 'wingman', true)
+   -- 1. PitchLadder & Children
+   if ui.tree_node and ui.tree_node('PitchLadder (人工水平儀)##tree_ladder') then
+    local elem = R.customHUDConfig.hudElements.ladder
+    if elem then
+     renderRatioSliderWithNudge(ui, 'Ladder Pos X Ratio', elem, 'x', -1.0, 1.0, 0.0, 'ladder')
+     renderRatioSliderWithNudge(ui, 'Ladder Pos Y Ratio', elem, 'y', -1.0, 1.0, 0.0, 'ladder')
+     local sChanged, sVal = ui.slider_float('Scale (0.2 ~ 3.0)##ladder', elem.scale or 1.0, 0.2, 3.0)
+     if sChanged and sVal ~= nil then elem.scale = sVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+     local oChanged, oVal = ui.slider_float('Opacity (0.0 ~ 1.0)##ladder', elem.opacity or 0.95, 0.0, 1.0)
+     if oChanged and oVal ~= nil then elem.opacity = oVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+
+     -- Child 1: PichHeading
+     if ui.tree_node and ui.tree_node('PichHeading (進行方向 / Child)##tree_heading') then
+      local hElem = R.customHUDConfig.hudElements.heading
+      if hElem then
+       renderRatioSliderWithNudge(ui, 'Heading Pos X Ratio', hElem, 'x', -1.0, 1.0, 0.0, 'heading')
+       renderRatioSliderWithNudge(ui, 'Heading Pos Y Ratio', hElem, 'y', -1.0, 1.0, 0.0, 'heading')
+       local hsChanged, hsVal = ui.slider_float('Scale (0.2 ~ 3.0)##heading', hElem.scale or 1.0, 0.2, 3.0)
+       if hsChanged and hsVal ~= nil then hElem.scale = hsVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+       local hoChanged, hoVal = ui.slider_float('Opacity (0.0 ~ 1.0)##heading', hElem.opacity or 0.95, 0.0, 1.0)
+       if hoChanged and hoVal ~= nil then hElem.opacity = hoVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+      end
+      if ui.tree_pop then ui.tree_pop() end
+     end
+
+     -- Child 2: WhiskyMarkPanel
+     if ui.tree_node and ui.tree_node('WhiskyMarkPanel (正面Wマーク / Child)##tree_whisky') then
+      local wElem = R.customHUDConfig.hudElements.whisky
+      if wElem then
+       renderRatioSliderWithNudge(ui, 'Whisky Pos X Ratio', wElem, 'x', -1.0, 1.0, 0.0, 'whisky')
+       renderRatioSliderWithNudge(ui, 'Whisky Pos Y Ratio', wElem, 'y', -1.0, 1.0, 0.0, 'whisky')
+       local wsChanged, wsVal = ui.slider_float('Scale (0.2 ~ 3.0)##whisky', wElem.scale or 1.0, 0.2, 3.0)
+       if wsChanged and wsVal ~= nil then wElem.scale = wsVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+       local woChanged, woVal = ui.slider_float('Opacity (0.0 ~ 1.0)##whisky', wElem.opacity or 0.95, 0.0, 1.0)
+       if woChanged and woVal ~= nil then wElem.opacity = woVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+      end
+      if ui.tree_pop then ui.tree_pop() end
+     end
+    end
+    if ui.tree_pop then ui.tree_pop() end
+   end
+
+   -- 2. Radar
+   renderElementUI(ui, 'Radar (レーダー / ミニマップ)', 'radar', true)
+
+   -- 3. AircraftInfo
+   renderElementUI(ui, 'AircraftInfo (機体情報 / 残弾・武装・HP)', 'info', true)
+
+   -- 4. Score / MissionInfo
+   renderElementUI(ui, 'Score / MissionInfo (スコア・作戦目標)', 'score', true)
+
+   -- 5. Draw canvas (Background)
+   renderElementUI(ui, 'Draw canvas (Background / メイン背景)', 'drawcanvas', false)
 
    if ui.separator then ui.separator() end
-   if ui.button and ui.button('>> Reset All HUD Elements to Factory Defaults <<') then
-    local he = R.customHUDConfig.hudElements
-    he.pitchLadder = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 }
-    he.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 }
-    he.aircraftInfo = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 }
-    he.drawCanvas = { scale = 1.0, opacity = 1.0 }
-    he.locatorArrow = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 }
-    he.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 1.0 }
-    R.saveCustomHUDConfig()
-    R.applyAllHUDCustomPositions()
-    print('[AC8-VR] All HUD elements reset to factory defaults')
+
+   -- ACTION BUTTONS (Save, Load Saved, Reset ALL to base, Emergency Force Show)
+   if ui.button and ui.same_line then
+    if ui.button('Save##btn_save') then
+     R.saveCustomHUDConfig()
+    end
+    ui.same_line()
+    if ui.button('Load Saved##btn_load') then
+     R.reloadCustomHUDConfig()
+    end
+    ui.same_line()
+    if ui.button('Reset ALL to base##btn_reset_all') then
+     local he = R.customHUDConfig.hudElements
+     he.ladder = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+     he.heading = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+     he.whisky = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+     he.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+     he.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+     he.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+     he.drawcanvas = { scale = 1.0, opacity = 0.95 }
+     R.saveCustomHUDConfig()
+     R.applyAllHUDCustomPositions()
+     print('[AC8-VR] All HUD elements reset to base defaults')
+    end
    end
+
+   if ui.button and ui.button('>> Emergency: Force Show ALL HUD <<') then
+    R.triggerInstantAwake()
+   end
+   if ui.text then
+    ui.text('Emergency recovery: Toggles HUD off & on in 4 frames to wake up all dormant elements.')
+   end
+
    if ui.tree_pop then ui.tree_pop() end
   end
 
@@ -658,90 +682,6 @@ pcall(function()
     R.saveCustomHUDConfig()
     R.applyActiveCameraOffset()
     print('[AC8-VR] Camera offsets reset to defaults')
-   end
-   if ui.tree_pop then ui.tree_pop() end
-  end
-
-  -- =========================================================================
-  -- SECTION 4: Multi-Radar / Dual Map System (P2)
-  -- =========================================================================
-  if ui.tree_node and ui.tree_node('Multi-Radar / Dual Map System (P2)') then
-   local mr = R.customHUDConfig and R.customHUDConfig.multiRadar
-   if mr then
-    if ui.checkbox then
-     local changed, newVal = ui.checkbox('Enable Multi-Radar (Dual Radar Display)', mr.enabled == true)
-     if changed and newVal ~= nil then
-      mr.enabled = newVal
-      R.saveCustomHUDConfig()
-      R.applyMultiRadar()
-      print(string.format('[AC8-VR] Multi-Radar set to: %s', tostring(newVal)))
-     end
-    end
-
-    if mr.enabled then
-     if ui.text then
-      ui.text('Simultaneously displays a secondary wide-range radar alongside combat radar.')
-     end
-     if ui.separator then ui.separator() end
-
-     -- Mode selector (Search / Enlarged / Whole)
-     if ui.text then ui.text('Secondary Map Mode: ' .. tostring(mr.mode or 'search')) end
-     if ui.button and ui.same_line then
-      if ui.button('Search (索敵広域)') then mr.mode = 'search'; R.saveCustomHUDConfig(); R.applyMultiRadar() end
-      ui.same_line()
-      if ui.button('Enlarged (拡大)') then mr.mode = 'enlarged'; R.saveCustomHUDConfig(); R.applyMultiRadar() end
-      ui.same_line()
-      if ui.button('Whole (全体マップ)') then mr.mode = 'whole'; R.saveCustomHUDConfig(); R.applyMultiRadar() end
-     end
-
-     renderRatioSliderWithNudge(ui, 'Secondary Pos X Ratio (-1.0 ~ 1.0)', mr, 'x', -1.0, 1.0, 0.40, 'mr')
-     renderRatioSliderWithNudge(ui, 'Secondary Pos Y Ratio (-1.0 ~ 1.0)', mr, 'y', -1.0, 1.0, 0.25, 'mr')
-
-     local sChanged, sVal = ui.slider_float('Secondary Scale (0.2 ~ 3.0)##mr', mr.scale or 0.85, 0.2, 3.0)
-     if sChanged and sVal ~= nil then mr.scale = sVal; R.saveCustomHUDConfig(); R.applyMultiRadar() end
-
-     local oChanged, oVal = ui.slider_float('Secondary Opacity (0.0 ~ 1.0)##mr', mr.opacity or 0.95, 0.0, 1.0)
-     if oChanged and oVal ~= nil then mr.opacity = oVal; R.saveCustomHUDConfig(); R.applyMultiRadar() end
-
-     if ui.button and ui.button('Reset Multi-Radar to Defaults##mr') then
-      mr.mode = 'search'
-      mr.x = 0.40
-      mr.y = 0.25
-      mr.scale = 0.85
-      mr.opacity = 0.95
-      R.saveCustomHUDConfig()
-      R.applyMultiRadar()
-      print('[AC8-VR] Multi-Radar reset to defaults')
-     end
-    end
-   end
-   if ui.tree_pop then ui.tree_pop() end
-  end
-
-  -- =========================================================================
-  -- SECTION 5: Instant Awake & HUD Visibility (P3)
-  -- =========================================================================
-  if ui.tree_node and ui.tree_node('Instant Awake & HUD Visibility (P3)') then
-   if ui.text then
-    ui.text('Toggles HUD visibility off and on for 4 frames to unlock all sleeping/hidden')
-    ui.text('gauges, locator elements, and flight indicators at once.')
-   end
-   if ui.separator then ui.separator() end
-
-   if ui.button and ui.button('>> Instant Awake (Unlock All Elements) <<') then
-    R.triggerInstantAwake()
-   end
-
-   if ui.separator then ui.separator() end
-   if ui.button and ui.same_line then
-    if ui.button('Force Show HUD') then
-     R.setAllHUDVisibility(false)
-     if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
-    end
-    ui.same_line()
-    if ui.button('Force Hide HUD') then
-     R.setAllHUDVisibility(true)
-    end
    end
    if ui.tree_pop then ui.tree_pop() end
   end
