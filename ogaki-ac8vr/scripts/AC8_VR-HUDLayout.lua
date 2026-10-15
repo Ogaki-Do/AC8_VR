@@ -1189,13 +1189,13 @@ function R.applyHUDLayoutIntegrated()
     if ladderWidget then
         local tx = 690.0 + lx
         local ty = 756.0 - ly
-        applyElementDirect(ladderWidget, tx, ty, lsc, lop, true)
+        local centerPivot = { X = 0.5, Y = 0.5 }
+        applyElementDirect(ladderWidget, tx, ty, lsc, lop, true, centerPivot)
     end
 
     -- 1-1. WhiskyMarkPanel (Direct child of Altimeter!)
-    -- In vanilla, WhiskyMarkPanel is a direct child of Altimeter at local offset (10.0, 6.0).
-    -- When Altimeter moves by (lx, -ly), WhiskyMarkPanel automatically tracks it in screen space.
-    -- We ONLY apply the relative adjustment (cfg.x, cfg.y) inside Altimeter, avoiding double-offset drift.
+    -- In vanilla, WhiskyMarkPanel tracks Altimeter.
+    -- Set base to 0.0, 0.0 matching legacy ac8_ladder_fix_v19 to eliminate the 10px right drift!
     local whiskyWidget = refs.whisky or cachedTargets.whisky
     if not whiskyWidget or not R.isLiveObject(whiskyWidget) then
         whiskyWidget = findDescendantByName(root, 'WhiskyMarkPanel')
@@ -1207,10 +1207,11 @@ function R.applyHUDLayoutIntegrated()
         local wy = cfg.y or 0.0
         local wsc = cfg.scale or 1.0
         local wop = cfg.opacity or 0.95
-        local tx = 10.0 + wx
-        local ty = 6.0 - wy
+        local tx = 0.0 + wx
+        local ty = 0.0 - wy
         local sc = (lsc or 1.0) * wsc
-        applyElementDirect(whiskyWidget, tx, ty, sc, wop, true)
+        local centerPivot = { X = 0.5, Y = 0.5 }
+        applyElementDirect(whiskyWidget, tx, ty, sc, wop, true, centerPivot)
     end
 
     -- 1-2. Heading (Flight Path Marker / VelocityIcon)
