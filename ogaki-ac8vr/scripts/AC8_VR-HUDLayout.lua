@@ -88,15 +88,14 @@ for i,setup in ipairs(AC8Runtime.inheritedSetup)do local ok,err=pcall(setup);if 
 AC8Runtime.inheritedSetup={}
 
 do
--- ac8 campaign target row
+-- ac8 campaign target row (Bypassed: CampaignInfo moves as a unified container in applyHUDLayoutIntegrated)
 (function(uevr,json,print)
-
-
-local api=uevr.api
-local old=rawget(_G,'AC8_CampaignTargetRow')
-if old then old.stopped=true;if old.restore then old.restore() end end
-local S={version=2,ticks=0,enabled=true,stopped=false,status='waiting for flight HUD'}
-rawset(_G,'AC8_CampaignTargetRow',S)
+return
+end)(AC8Runtime.host('layout','ac8_campaign_target_row.lua'),AC8Runtime.json,AC8Runtime.log)
+end
+if false then
+do
+(function(uevr,json,print)
 local function call(o,k,...)
     if o~=uevr.api and not AC8Runtime.isLiveObject(o)then return nil end
     if not o then return nil end
@@ -250,6 +249,7 @@ pcall(function() uevr.sdk.callbacks.on_script_reset(S.restore) end)
 
 end)(AC8Runtime.host('layout','ac8_campaign_target_row.lua'),AC8Runtime.json,AC8Runtime.log)
 end
+end
 
 do
 -- ac8 velocity alignment
@@ -366,6 +366,7 @@ pcall(function()uevr.sdk.callbacks.on_script_reset(S.restore)end)
 end)(AC8Runtime.host('layout','ac8_velocity_alignment.lua'),AC8Runtime.json,AC8Runtime.log)
 end
 
+if false then
 do
 -- forward locator
 (function(uevr,json,print)
@@ -449,8 +450,10 @@ end
 
 end)(AC8Runtime.host('layout','forward_locator.lua'),AC8Runtime.json,AC8Runtime.log)
 end
+end
 
--- Fixed HUD-container adjustments. No steady-state geometry inspection.
+-- Fixed HUD-container adjustments. (Bypassed: handled by applyHUDLayoutIntegrated)
+if false then
 do
 local R=AC8Runtime;local host=R.host('layout','fixed arrow and wingman status placement')
 local S={version=61,epoch=-1,x=-180,scale=.96,nextControls=0,attempts=0,writes=0,failures=0};R.offscreenLocatorMargin=S
@@ -564,6 +567,7 @@ host.sdk.callbacks.on_post_engine_tick(function()
  
 end)
 pcall(function()host.sdk.callbacks.on_script_reset(function()restore(S);restore(W)end)end)
+end
 end
 
 -- center the captured shared ClientStatusIconParent loading indicator
@@ -787,8 +791,8 @@ host.sdk.callbacks.on_post_engine_tick(update)
 host.sdk.callbacks.on_script_reset(function()disable('script reset');uevr.api:dispatch_custom_event('AC8_BombProjectionControls','0|0|0|0')end)
 end
 
--- Command_S stays on the stable HUD canvas. Cached radar geometry supplies
--- only Y; saved X remains independent of radar size and parent adjustments.
+-- Command_S radar-top placement (Bypassed: handled by applyHUDLayoutIntegrated)
+if false then
 do
 local R=AC8Runtime;local host=R.host('layout','cached wingman radar-top placement')
 local S={version=81,epoch=-1,nextFind=0,nextRead=0,nextCheck=0,checks=0,writes=0,discoveries=0};R.wingmanStatusLayout=S;R.wingmanSelector=S
@@ -942,14 +946,32 @@ host.sdk.callbacks.on_post_engine_tick(function()
 end)
 host.sdk.callbacks.on_script_reset(restore)
 end
+end
 
 -- =========================================================================
 -- AC8 Integrated HUD Layout & Display Engine
--- Unifies PitchLadder, Radar, AircraftInfo, Score, Locator, Whisky, DrawCanvas
+-- Unifies PitchLadder, Radar, AircraftInfo, Score, Locator, Whisky, DrawCanvas, Wingman
 -- =========================================================================
 do
 local host = R.host('layout', 'integrated HUD positioning and presentation')
 local cachedTargets = {}
+local baseTransforms = {}
+
+local function getBaseTransform(widget)
+    if not widget or not R.isLiveObject(widget) then return nil end
+    local n = R.objectCall(widget, 'get_full_name')
+    if not n then return nil end
+    if not baseTransforms[n] then
+        local rt = R.objectCall(widget, 'get_property', 'RenderTransform')
+        local t = rt and R.objectCall(rt, 'get_property', 'Translation')
+        local sc = rt and R.objectCall(rt, 'get_property', 'Scale')
+        local bx = (t and type(t.X) == 'number') and t.X or 0.0
+        local by = (t and type(t.Y) == 'number') and t.Y or 0.0
+        local bsc = (sc and type(sc.X) == 'number' and sc.X > 0.0) and sc.X or 1.0
+        baseTransforms[n] = { x = bx, y = by, scale = bsc }
+    end
+    return baseTransforms[n]
+end
 
 local function findDescendantByName(root, name, maxDepth)
     if not root or not R.isLiveObject(root) then return nil end
@@ -984,8 +1006,53 @@ local function findDescendantByName(root, name, maxDepth)
     return nil
 end
 
-local function applyElement(widget, tx, ty, sc, op, applyPos)
+local function findAllDescendantsByNames(root, names, maxDepth)
+    if not root or not R.isLiveObject(root) then return {} end
+    maxDepth = maxDepth or 16
+    local stack = { { w = root, d = 0 } }
+    local seen = {}
+    local results = {}
+    local targetMap = {}
+    for _, nm in ipairs(names) do targetMap[nm] = true end
+    
+    while #stack > 0 do
+        local top = table.remove(stack)
+        local cur = top.w
+        local depth = top.d
+        if cur and depth <= maxDepth then
+            local addr = tostring(cur)
+            if not seen[addr] then
+                seen[addr] = true
+                local fn = R.objectCall(cur, 'get_full_name') or ''
+                for nm, _ in pairs(targetMap) do
+                    if fn:find(nm, 1, true) then
+                        table.insert(results, cur)
+                        break
+                    end
+                end
+                local count = R.objectCall(cur, 'GetChildrenCount') or 0
+                if type(count) == 'number' and count > 0 then
+                    for i = 0, count - 1 do
+                        local child = R.objectCall(cur, 'GetChildAt', i)
+                        if child then table.insert(stack, { w = child, d = depth + 1 }) end
+                    end
+                end
+                local wt = R.objectCall(cur, 'get_property', 'WidgetTree')
+                if wt then
+                    local rootWidget = R.objectCall(wt, 'get_property', 'RootWidget')
+                    if rootWidget then table.insert(stack, { w = rootWidget, d = depth + 1 }) end
+                end
+            end
+        end
+    end
+    return results
+end
+
+local function applyElementDirect(widget, tx, ty, sc, op, applyPos, pivot)
     if not widget or not R.isLiveObject(widget) then return end
+    if pivot then
+        pcall(function() widget:SetRenderTransformPivot(pivot) end)
+    end
     if applyPos ~= false and type(tx) == 'number' and type(ty) == 'number' then
         pcall(function() widget:SetRenderTranslation({ X = tx, Y = ty }) end)
     end
@@ -997,6 +1064,27 @@ local function applyElement(widget, tx, ty, sc, op, applyPos)
     end
 end
 
+local function applyElementWithBase(widget, ox, oy, scaleFactor, opacity, applyPos, pivot)
+    if not widget or not R.isLiveObject(widget) then return end
+    local base = getBaseTransform(widget)
+    if not base then return end
+    if pivot then
+        pcall(function() widget:SetRenderTransformPivot(pivot) end)
+    end
+    if applyPos ~= false and type(ox) == 'number' and type(oy) == 'number' then
+        local final_x = base.x + ox
+        local final_y = base.y - oy
+        pcall(function() widget:SetRenderTranslation({ X = final_x, Y = final_y }) end)
+    end
+    if type(scaleFactor) == 'number' and scaleFactor > 0 then
+        local final_scale = base.scale * scaleFactor
+        pcall(function() widget:SetRenderScale({ X = final_scale, Y = final_scale }) end)
+    end
+    if type(opacity) == 'number' then
+        pcall(function() widget:SetRenderOpacity(opacity) end)
+    end
+end
+
 function R.applyHUDLayoutIntegrated()
     local ctx = R.context
     if not ctx or not ctx.flight then return end
@@ -1005,7 +1093,7 @@ function R.applyHUDLayoutIntegrated()
     local he = R.customHUDConfig and R.customHUDConfig.hudElements
     if not he then return end
 
-    -- 1. PitchLadder (Altimeter / ChroniclePersistent)
+    -- 1. PitchLadder (Altimeter / ChroniclePersistent) - Fixed VR reference frame
     local ladderWidget = refs.altimeter or cachedTargets.ladder
     if not ladderWidget or not R.isLiveObject(ladderWidget) then
         ladderWidget = findDescendantByName(root, 'Altimeter') or findDescendantByName(root, 'ChroniclePersistent')
@@ -1015,10 +1103,23 @@ function R.applyHUDLayoutIntegrated()
         local cfg = he.ladder
         local tx = 690.0 + (cfg.x or 0.0)
         local ty = 756.0 - (cfg.y or 0.0)
-        applyElement(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        applyElementDirect(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 1-2. WhiskyMarkPanel
+    -- 1-1. Heading (Velocity / VelocityIcon) - Fixed VR reference frame
+    local headingWidget = refs.vicon or refs.vel or cachedTargets.heading
+    if not headingWidget or not R.isLiveObject(headingWidget) then
+        headingWidget = findDescendantByName(root, 'VelocityIcon') or findDescendantByName(root, 'Velocity')
+        cachedTargets.heading = headingWidget
+    end
+    if headingWidget and he.heading then
+        local cfg = he.heading
+        local tx = -1913.0 + (cfg.x or 0.0)
+        local ty = -1200.0 - (cfg.y or 0.0)
+        applyElementDirect(headingWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 1-2. WhiskyMarkPanel - Fixed VR reference frame
     local whiskyWidget = refs.whisky or cachedTargets.whisky
     if not whiskyWidget or not R.isLiveObject(whiskyWidget) then
         whiskyWidget = findDescendantByName(root, 'WhiskyMarkPanel')
@@ -1028,41 +1129,51 @@ function R.applyHUDLayoutIntegrated()
         local cfg = he.whisky
         local tx = 10.0 + (cfg.x or 0.0)
         local ty = 6.0 - (cfg.y or 0.0)
-        applyElement(whiskyWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        applyElementDirect(whiskyWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 2. Radar (Parent container: MIniMapCanvas / CanvasPanel_63 / MiniMapLayer)
-    local radarParent = cachedTargets.radar
-    if not radarParent or not R.isLiveObject(radarParent) then
-        radarParent = findDescendantByName(root, 'MIniMapCanvas')
-            or findDescendantByName(root, 'CanvasPanel_63')
-            or findDescendantByName(root, 'MiniMapLayer')
-            or refs.radar
-        cachedTargets.radar = radarParent
-    end
-    if radarParent and he.radar then
+    -- 2. Radar (MiniMapLayer, RadarCircleCanvasPanel, MIniMapCanvas) - Base relative
+    if he.radar then
         local cfg = he.radar
-        local tx = 0.0 + (cfg.x or 0.0)
-        local ty = 0.0 - (cfg.y or 0.0)
-        applyElement(radarParent, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local radarWidgets = cachedTargets.radarList
+        if not radarWidgets or #radarWidgets == 0 or not R.isLiveObject(radarWidgets[1]) then
+            radarWidgets = findAllDescendantsByNames(root, { 'MiniMapLayer', 'MIniMapCanvas', 'RadarCircleCanvasPanel', 'MiniMapCornerCanvas' })
+            if #radarWidgets == 0 and refs.radar then table.insert(radarWidgets, refs.radar) end
+            cachedTargets.radarList = radarWidgets
+        end
+        local ox = cfg.x or 0.0
+        local oy = cfg.y or 0.0
+        local sc = cfg.scale or 1.0
+        local op = cfg.opacity or 0.95
+        local pivot = { X = 0.5, Y = 0.5 }
+        for _, rw in ipairs(radarWidgets) do
+            applyElementWithBase(rw, ox, oy, sc, op, true, pivot)
+        end
     end
 
-    -- 3. AircraftInfo (Top-level player status container: WBP_PlayerStateWidget)
-    local infoParent = cachedTargets.info
-    if not infoParent or not R.isLiveObject(infoParent) then
-        infoParent = findDescendantByName(root, 'WBP_PlayerStateWidget')
-            or refs.info
-            or findDescendantByName(root, 'PlaneCanvas')
-        cachedTargets.info = infoParent
-    end
-    if infoParent and he.info then
+    -- 3. AircraftInfo (WBP_PlayerStateWidget + PlaneCanvas, IconsCanvas, etc.) - Base relative
+    if he.info then
         local cfg = he.info
-        local tx = 0.0 + (cfg.x or 0.0)
-        local ty = 0.0 - (cfg.y or 0.0)
-        applyElement(infoParent, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local infoWidgets = cachedTargets.infoList
+        if not infoWidgets or #infoWidgets == 0 or not R.isLiveObject(infoWidgets[1]) then
+            infoWidgets = findAllDescendantsByNames(root, {
+                'WBP_PlayerStateWidget', 'PlaneCanvas', 'IconsCanvas',
+                'PlaneIconStatPanel', 'PlaneTextStatPanel', 'Weapons'
+            })
+            if #infoWidgets == 0 and refs.info then table.insert(infoWidgets, refs.info) end
+            cachedTargets.infoList = infoWidgets
+        end
+        local ox = cfg.x or 0.0
+        local oy = cfg.y or 0.0
+        local sc = cfg.scale or 1.0
+        local op = cfg.opacity or 0.95
+        local pivot = { X = 0.5, Y = 0.5 }
+        for _, iw in ipairs(infoWidgets) do
+            applyElementWithBase(iw, ox, oy, sc, op, true, pivot)
+        end
     end
 
-    -- 4. Score / MissionInfo (United CampaignInfo container)
+    -- 4. Score / MissionInfo (United CampaignInfo container) - Base relative with stable pivot
     local scoreWidget = refs.campaign or cachedTargets.score
     if not scoreWidget or not R.isLiveObject(scoreWidget) then
         scoreWidget = findDescendantByName(root, 'WBP_HUD_SubWidgets_Parts_CampaignInfo')
@@ -1072,9 +1183,13 @@ function R.applyHUDLayoutIntegrated()
     end
     if scoreWidget and he.score then
         local cfg = he.score
-        local tx = 0.0 + (cfg.x or 0.0)
-        local ty = 0.0 - (cfg.y or 0.0)
-        applyElement(scoreWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local ox = cfg.x or 0.0
+        local oy = cfg.y or 0.0
+        local sc = cfg.scale or 1.0
+        local op = cfg.opacity or 0.95
+        -- Pivot set to right-top (1.0, 0.0) so scaling does not push score off-screen
+        local pivot = { X = 1.0, Y = 0.0 }
+        applyElementWithBase(scoreWidget, ox, oy, sc, op, true, pivot)
     end
 
     -- 5. Locator (C++ DLL inline-hook synchronization & UMG widget)
@@ -1083,6 +1198,7 @@ function R.applyHUDLayoutIntegrated()
         local ox = cfg.x or 0.0
         local oy = -950.0 - (cfg.y or 0.0)
         local sc = cfg.scale or 0.5
+        local op = cfg.opacity or 1.0
         local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
         if cachedTargets.lastLocatorSync ~= key then
             cachedTargets.lastLocatorSync = key
@@ -1107,23 +1223,27 @@ function R.applyHUDLayoutIntegrated()
             cachedTargets.locator = locatorWidget
         end
         if locatorWidget then
-            applyElement(locatorWidget, ox, 0.0 - (cfg.y or 0.0), cfg.scale or 1.0, cfg.opacity or 0.95, true)
+            applyElementDirect(locatorWidget, ox, 0.0 - (cfg.y or 0.0), sc, op, true)
         end
     end
 
-    -- 6. Wingman (Formation Command: WBP_HUD_Command_Wingman_000 / Command_S)
-    local wingmanWidget = cachedTargets.wingman
-    if not wingmanWidget or not R.isLiveObject(wingmanWidget) then
-        wingmanWidget = findDescendantByName(root, 'Command_S')
-            or findDescendantByName(root, 'WBP_HUD_Command_Wingman')
-            or refs.wingman
-        cachedTargets.wingman = wingmanWidget
-    end
-    if wingmanWidget and he.wingman then
+    -- 6. Wingman (Formation Command: WBP_HUD_Command_Wingman / Command_S) - Base relative
+    if he.wingman then
         local cfg = he.wingman
-        local tx = 0.0 + (cfg.x or 0.0)
-        local ty = 0.0 - (cfg.y or 0.0)
-        applyElement(wingmanWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local wingmanWidgets = cachedTargets.wingmanList
+        if not wingmanWidgets or #wingmanWidgets == 0 or not R.isLiveObject(wingmanWidgets[1]) then
+            wingmanWidgets = findAllDescendantsByNames(root, { 'WBP_HUD_Command_Wingman', 'Command_S' })
+            if #wingmanWidgets == 0 and refs.wingman then table.insert(wingmanWidgets, refs.wingman) end
+            cachedTargets.wingmanList = wingmanWidgets
+        end
+        local ox = cfg.x or 0.0
+        local oy = cfg.y or 0.0
+        local sc = cfg.scale or 1.0
+        local op = cfg.opacity or 0.95
+        local pivot = { X = 0.5, Y = 0.5 }
+        for _, ww in ipairs(wingmanWidgets) do
+            applyElementWithBase(ww, ox, oy, sc, op, true, pivot)
+        end
     end
 
     -- 7. Draw canvas (Background)
@@ -1136,7 +1256,7 @@ function R.applyHUDLayoutIntegrated()
     end
     if drawWidget and he.drawcanvas then
         local cfg = he.drawcanvas
-        applyElement(drawWidget, 0, 0, cfg.scale or 1.0, cfg.opacity or 0.95, false)
+        applyElementDirect(drawWidget, 0, 0, cfg.scale or 1.0, cfg.opacity or 0.95, false)
     end
 end
 
@@ -1187,13 +1307,22 @@ host.sdk.callbacks.on_post_engine_tick(function()
     if instantCycleActive then updateInstantAwakeCycle() end
 end)
 
--- Execute on EVERY frame draw before Slate paints to completely eliminate flicker/tearing
+local lastLayoutEpoch = -1
+
 uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
+    local ctx = R.context
+    if ctx and ctx.epoch and ctx.epoch ~= lastLayoutEpoch then
+        lastLayoutEpoch = ctx.epoch
+        cachedTargets = {}
+        baseTransforms = {}
+    end
     pcall(R.applyHUDLayoutIntegrated)
 end)
 
 host.sdk.callbacks.on_script_reset(function()
     cachedTargets = {}
+    baseTransforms = {}
+    lastLayoutEpoch = -1
     instantCycleActive = false
     instantCycleFrame = 0
 end)

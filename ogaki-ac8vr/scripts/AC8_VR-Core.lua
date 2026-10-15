@@ -616,13 +616,13 @@ pcall(function()
    renderElementBlock(ui, 'Radar (レーダー親コンテナ / 3縮尺・円枠一括)', 'radar', true)
 
    -- 3. AircraftInfo (Common draw container)
-   renderElementBlock(ui, 'AircraftInfo (機体情報 / 残弾・武装・HP)', 'info', true)
+   renderElementBlock(ui, 'AircraftInfo (機体情報 / HP・残弾・機体枠一括)', 'info', true)
 
    -- 4. Score / MissionInfo
-   renderElementBlock(ui, 'Score / MissionInfo (スコア・作戦目標・タイマー)', 'score', true)
+   renderElementBlock(ui, 'Score / MissionInfo (スコア・作戦目標・タイマー一括)', 'score', true)
 
    -- 5. Locator (Screen-edge arrows)
-   renderElementBlock(ui, 'Locator (画面外ターゲット矢印・ロケーター)', 'locator', true)
+   renderElementBlock(ui, 'Locator (画面外ターゲット矢印 / C++頂点フック)', 'locator', true)
 
    -- 6. Wingman (Formation Command / 僚機コマンド)
    renderElementBlock(ui, 'Wingman (編隊指示 / 僚機コマンド)', 'wingman', true)
