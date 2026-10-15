@@ -253,6 +253,28 @@ local function loadCustomHUDConfig()
  return ensureCustomHUDDefaults({}), 'CustomHUDPosition.json'
 end
 
+local function getCachedDisplaySize()
+ local s = R.cachedViewportSize
+ if not s and R.getViewportSize then
+  local ok, res = pcall(R.getViewportSize)
+  if ok and res and type(res.X) == 'number' and res.X > 0 and type(res.Y) == 'number' and res.Y > 0 then
+   s = res
+  end
+ end
+ if not s then
+  pcall(function()
+   local gvc = real and real.api and real.api:get_game_viewport_client()
+   if gvc and gvc.ViewportSize and gvc.ViewportSize.X > 0 and gvc.ViewportSize.Y > 0 then
+    s = { X = gvc.ViewportSize.X, Y = gvc.ViewportSize.Y }
+   end
+  end)
+ end
+ local w = (s and type(s.X) == 'number' and s.X > 0) and s.X or 3840.0
+ local h = (s and type(s.Y) == 'number' and s.Y > 0) and s.Y or 2160.0
+ return w, h
+end
+R.getCachedDisplaySize = getCachedDisplaySize
+
 function R.syncLocatorConfigToDLL()
  local he = R.customHUDConfig and R.customHUDConfig.hudElements
  local loc = he and he.locator
@@ -264,8 +286,13 @@ function R.syncLocatorConfigToDLL()
  local locX = (loc and loc.x) or 0.0
  local locY = (loc and loc.y) or 0.0
  local locSc = (loc and loc.scale) or 0.5
- local BASE_LOCATOR_X = -1030.0
- local BASE_LOCATOR_Y = -2280.0
+
+ -- キャッシュされたディスプレイサイズ(W, H)から比率で動的に下駄（ベースオフセット）を算出
+ -- 目標位置: 水平は画面中央(50%)、垂直は画面中央(50%)から上に10%ずれた位置(40%)
+ local dispW, dispH = getCachedDisplaySize()
+ local BASE_LOCATOR_X = dispW * -0.268229
+ local BASE_LOCATOR_Y = dispH * -1.055556
+
  local ox = lx + BASE_LOCATOR_X + locX
  local oy = BASE_LOCATOR_Y - ly - locY
  local sc = locSc * lsc

@@ -1141,6 +1141,7 @@ local function getViewportSize()
         size = { X = 1920.0, Y = 1080.0 }
     end
     cachedViewportSize = size
+    R.cachedViewportSize = size
     R.getViewportSize = getViewportSize
     return cachedViewportSize
 end
