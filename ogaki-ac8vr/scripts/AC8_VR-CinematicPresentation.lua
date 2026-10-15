@@ -24,21 +24,13 @@ local Profiler = {
 }
 
 local function logWrite(str)
-    local paths = {
-        "cinematic_profile.log",
-        "data/cinematic_profile.log",
-        [[C:\Users\Ogaki\AppData\Roaming\UnrealVRMod\AceCombat8\cinematic_profile.log]],
-        [[d:\Ogaki\Desktop\Ace-uevr-test\cinematic_profile.log]]
-    }
-    for _, p in ipairs(paths) do
-        local ok, f = pcall(io.open, p, "a")
-        if ok and f then
-            pcall(function()
-                f:write(str)
-                f:flush()
-                f:close()
-            end)
-        end
+    local ok, f = pcall(io.open, "cinematic_profile.log", "a")
+    if ok and f then
+        pcall(function()
+            f:write(str)
+            f:flush()
+            f:close()
+        end)
     end
 end
 
@@ -50,21 +42,13 @@ Measuring every function, call frequency, and execution time in AC8_VR-Cinematic
 Log will be written to: cinematic_profile.log
 ================================================================================
 ]], os.date and os.date("%Y-%m-%d %H:%M:%S") or "session_start")
-    local paths = {
-        "cinematic_profile.log",
-        "data/cinematic_profile.log",
-        [[C:\Users\Ogaki\AppData\Roaming\UnrealVRMod\AceCombat8\cinematic_profile.log]],
-        [[d:\Ogaki\Desktop\Ace-uevr-test\cinematic_profile.log]]
-    }
-    for _, p in ipairs(paths) do
-        local ok, f = pcall(io.open, p, "w")
-        if ok and f then
-            pcall(function()
-                f:write(header)
-                f:flush()
-                f:close()
-            end)
-        end
+    local ok, f = pcall(io.open, "cinematic_profile.log", "w")
+    if ok and f then
+        pcall(function()
+            f:write(header)
+            f:flush()
+            f:close()
+        end)
     end
 end
 local profilerInitialized = false
