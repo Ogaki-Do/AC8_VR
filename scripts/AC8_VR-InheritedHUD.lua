@@ -721,6 +721,7 @@ local function discover()
     C.ts     = find_desc(wtsc, "SpeedTachometerCenterPanel", 14, true)
     C.ta     = find_desc(wtsc, "AltitudeTachometerCenterPanel", 14, true)
     C.campaign = find_desc(C.keep, "CampaignInfo", 14, false)
+    C.info     = find_desc(C.keep, "WBP_PlayerStateWidget", 14, false) or find_desc(C.keep, "PlaneCanvas", 14, false) or find_desc(C.keep, "PlayerStatus", 14, false)
     C.radar  = collect_radar(C.maincv)
     if #C.radar > 0 then
         
@@ -734,6 +735,8 @@ local function discover()
         radar=C.radar_main,
         root=C.keep,
         wtsc=C.wtsc,
+        info=C.info,
+        score=C.campaign,
         maincv=C.maincv,
         cp=C.cp,
         vicon=C.vicon,
@@ -866,7 +869,7 @@ local function fingerprint_check()
 end
 
 local CAM_ANIM_KILL = true     
-local CAM_KILL_EVERY = 30      
+local CAM_KILL_EVERY = 1      
 local cam_kill_oklog  = false  
 local cam_kill_faillog = false 
 local cam_kill_path   = ""     
