@@ -191,6 +191,7 @@ local function ensureCustomHUDDefaults(cfg)
  if not he.radar then he.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.info then he.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.score then he.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.locator then he.locator = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.drawcanvas then he.drawcanvas = { scale = 1.0, opacity = 0.95 } end
 
  if not cfg.cameraOffsets then
@@ -411,50 +412,95 @@ function R.tickProfiler()
  end
 end
 
--- Helper for slider with nudge buttons
-local function renderRatioSliderWithNudge(ui, label, tableRef, key, minVal, maxVal, defaultVal, elemKey)
- local id = (elemKey or '') .. '_' .. key
- local cur = tableRef[key] or defaultVal
- local changed, newVal = ui.slider_float(label .. '##' .. id, cur, minVal, maxVal)
- if changed and newVal ~= nil then
-  tableRef[key] = newVal
-  R.saveCustomHUDConfig()
-  R.applyAllHUDCustomPositions()
+-- =========================================================================
+-- Stepped Sliders with [+] / [-] buttons (Old ac8_ladder_fix_v19 compliant)
+-- =========================================================================
+local function renderSteppedSlider(ui, label, tableRef, key, min_v, max_v, step, id)
+ local cur = (tableRef and type(tableRef[key]) == 'number') and tableRef[key] or 0.0
+ local changed = false
+ if ui.button and ui.button(' - ##dec_' .. id) then
+  cur = math.max(min_v, cur - step)
+  changed = true
  end
- -- Nudge buttons (-0.01, -0.005, +0.005, +0.01)
- if ui.button and ui.same_line then
-  if ui.button('-0.01##' .. id) then tableRef[key] = math.max(minVal, (tableRef[key] or defaultVal) - 0.01); R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-  ui.same_line()
-  if ui.button('-0.005##' .. id) then tableRef[key] = math.max(minVal, (tableRef[key] or defaultVal) - 0.005); R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-  ui.same_line()
-  if ui.button('+0.005##' .. id) then tableRef[key] = math.min(maxVal, (tableRef[key] or defaultVal) + 0.005); R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-  ui.same_line()
-  if ui.button('+0.01##' .. id) then tableRef[key] = math.min(maxVal, (tableRef[key] or defaultVal) + 0.01); R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+ if ui.same_line then ui.same_line() end
+ local sChanged, sVal = ui.slider_float('##s_' .. id, cur, min_v, max_v)
+ if sChanged and sVal ~= nil then cur = sVal; changed = true end
+ if ui.same_line then ui.same_line() end
+ if ui.button and ui.button(' + ##inc_' .. id) then
+  cur = math.min(max_v, cur + step)
+  changed = true
+ end
+ if ui.same_line then ui.same_line() end
+ if ui.text then ui.text(string.format(' %s: %+.0f px', label, cur)) end
+ if changed then
+  tableRef[key] = cur
+  R.saveCustomHUDConfig()
+  if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
+  elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
 end
 
-local function renderElementUI(ui, title, elemKey, hasPos)
- local he = R.customHUDConfig.hudElements
- local elem = he[elemKey]
- if not elem then return end
- if ui.tree_node and ui.tree_node(title) then
-  if hasPos ~= false then
-   renderRatioSliderWithNudge(ui, 'Pos X Ratio (-1.0 ~ 1.0)', elem, 'x', -1.0, 1.0, 0.0, elemKey)
-   renderRatioSliderWithNudge(ui, 'Pos Y Ratio (-1.0 ~ 1.0)', elem, 'y', -1.0, 1.0, 0.0, elemKey)
-  end
-  local sChanged, sVal = ui.slider_float('Scale (0.2 ~ 3.0)##' .. elemKey, elem.scale or 1.0, 0.2, 3.0)
-  if sChanged and sVal ~= nil then elem.scale = sVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-  local oChanged, oVal = ui.slider_float('Opacity (0.0 ~ 1.0)##' .. elemKey, elem.opacity or 1.0, 0.0, 1.0)
-  if oChanged and oVal ~= nil then elem.opacity = oVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+local function renderSteppedScale(ui, label, tableRef, key, min_v, max_v, step, id)
+ local cur = (tableRef and type(tableRef[key]) == 'number') and tableRef[key] or 1.0
+ local changed = false
+ if ui.button and ui.button(' - ##dec_' .. id) then
+  cur = math.max(min_v, cur - step)
+  changed = true
+ end
+ if ui.same_line then ui.same_line() end
+ local sChanged, sVal = ui.slider_float('##s_' .. id, cur, min_v, max_v)
+ if sChanged and sVal ~= nil then cur = sVal; changed = true end
+ if ui.same_line then ui.same_line() end
+ if ui.button and ui.button(' + ##inc_' .. id) then
+  cur = math.min(max_v, cur + step)
+  changed = true
+ end
+ if ui.same_line then ui.same_line() end
+ if ui.text then ui.text(string.format(' %s: %.2fx', label, cur)) end
+ if changed then
+  tableRef[key] = cur
+  R.saveCustomHUDConfig()
+  if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
+  elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+ end
+end
 
-  if ui.button and ui.button('Reset ' .. title .. ' to Defaults##' .. elemKey) then
-   if hasPos ~= false then elem.x = 0.0; elem.y = 0.0 end
-   elem.scale = 1.0
-   elem.opacity = 0.95
-   R.saveCustomHUDConfig()
-   R.applyAllHUDCustomPositions()
-   print('[AC8-VR] Reset ' .. title .. ' to defaults')
+local function renderSteppedOpacity(ui, label, tableRef, key, min_v, max_v, step, id)
+ local cur = (tableRef and type(tableRef[key]) == 'number') and tableRef[key] or 0.95
+ local changed = false
+ if ui.button and ui.button(' - ##dec_' .. id) then
+  cur = math.max(min_v, cur - step)
+  changed = true
+ end
+ if ui.same_line then ui.same_line() end
+ local sChanged, sVal = ui.slider_float('##s_' .. id, cur, min_v, max_v)
+ if sChanged and sVal ~= nil then cur = sVal; changed = true end
+ if ui.same_line then ui.same_line() end
+ if ui.button and ui.button(' + ##inc_' .. id) then
+  cur = math.min(max_v, cur + step)
+  changed = true
+ end
+ if ui.same_line then ui.same_line() end
+ if ui.text then ui.text(string.format(' %s: %.2f', label, cur)) end
+ if changed then
+  tableRef[key] = cur
+  R.saveCustomHUDConfig()
+  if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
+  elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+ end
+end
+
+local function renderElementBlock(ui, title, elemKey, hasPos)
+ local he = R.customHUDConfig and R.customHUDConfig.hudElements
+ local elem = he and he[elemKey]
+ if not elem then return end
+ if ui.tree_node and ui.tree_node(title .. '##tree_' .. elemKey) then
+  renderSteppedScale(ui, 'Scale', elem, 'scale', 0.1, 4.0, 0.05, elemKey .. '_sc')
+  if hasPos ~= false then
+   renderSteppedSlider(ui, title .. ' X', elem, 'x', -2500.0, 2500.0, 5.0, elemKey .. '_x')
+   renderSteppedSlider(ui, title .. ' Y (Up+ / Dn-)', elem, 'y', -2500.0, 2500.0, 5.0, elemKey .. '_y')
   end
+  renderSteppedOpacity(ui, 'Opacity', elem, 'opacity', 0.0, 1.0, 0.05, elemKey .. '_op')
   if ui.tree_pop then ui.tree_pop() end
  end
 end
@@ -510,50 +556,45 @@ pcall(function()
   end
 
   -- =========================================================================
-  -- SECTION 2: HUD Element Customizer (Legacy TARGETS Compatible)
+  -- SECTION 2: AC8 HUD tune & Layout (Unified Old Script Compliant)
   -- =========================================================================
-  if ui.tree_node and ui.tree_node('HUD Element Customizer (In-Game UI)') then
+  if ui.tree_node and ui.tree_node('AC8 HUD tune & Layout##section_hud_tune') then
    if ui.text then
-    ui.text('Controls PitchLadder, Heading, Radar, AircraftInfo, Score, DrawCanvas.')
-    ui.text('Positions are normalized screen ratios: (-1.0 = Left/Top, 0.0 = Center, +1.0 = Right/Bottom)')
+    ui.text('Controls PitchLadder, Heading, Whisky, Radar, AircraftInfo, Score, Locator, DrawCanvas.')
+    ui.text('Geometry offsets in pixels (-2500 ~ +2500 px), Scale (0.1 ~ 4.0x), Opacity (0.0 ~ 1.0).')
    end
    if ui.separator then ui.separator() end
 
    -- 1. PitchLadder & Children
-   if ui.tree_node and ui.tree_node('PitchLadder (人工水平儀)##tree_ladder') then
-    local elem = R.customHUDConfig.hudElements.ladder
-    if elem then
-     renderRatioSliderWithNudge(ui, 'Ladder Pos X Ratio', elem, 'x', -1.0, 1.0, 0.0, 'ladder')
-     renderRatioSliderWithNudge(ui, 'Ladder Pos Y Ratio', elem, 'y', -1.0, 1.0, 0.0, 'ladder')
-     local sChanged, sVal = ui.slider_float('Scale (0.2 ~ 3.0)##ladder', elem.scale or 1.0, 0.2, 3.0)
-     if sChanged and sVal ~= nil then elem.scale = sVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-     local oChanged, oVal = ui.slider_float('Opacity (0.0 ~ 1.0)##ladder', elem.opacity or 0.95, 0.0, 1.0)
-     if oChanged and oVal ~= nil then elem.opacity = oVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+   local he = R.customHUDConfig and R.customHUDConfig.hudElements
+   if he and ui.tree_node and ui.tree_node('PitchLadder (人工水平儀)##tree_ladder') then
+    local t_ladder = he.ladder
+    if t_ladder then
+     renderSteppedScale(ui, 'Scale', t_ladder, 'scale', 0.1, 4.0, 0.05, 'ladder_sc')
+     renderSteppedSlider(ui, 'PitchLadder X', t_ladder, 'x', -2500.0, 2500.0, 5.0, 'ladder_x')
+     renderSteppedSlider(ui, 'PitchLadder Y (Up+ / Dn-)', t_ladder, 'y', -2500.0, 2500.0, 5.0, 'ladder_y')
+     renderSteppedOpacity(ui, 'Opacity', t_ladder, 'opacity', 0.0, 1.0, 0.05, 'ladder_op')
 
-     -- Child 1: PichHeading
-     if ui.tree_node and ui.tree_node('PichHeading (進行方向 / Child)##tree_heading') then
-      local hElem = R.customHUDConfig.hudElements.heading
-      if hElem then
-       renderRatioSliderWithNudge(ui, 'Heading Pos X Ratio', hElem, 'x', -1.0, 1.0, 0.0, 'heading')
-       renderRatioSliderWithNudge(ui, 'Heading Pos Y Ratio', hElem, 'y', -1.0, 1.0, 0.0, 'heading')
-       local hsChanged, hsVal = ui.slider_float('Scale (0.2 ~ 3.0)##heading', hElem.scale or 1.0, 0.2, 3.0)
-       if hsChanged and hsVal ~= nil then hElem.scale = hsVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-       local hoChanged, hoVal = ui.slider_float('Opacity (0.0 ~ 1.0)##heading', hElem.opacity or 0.95, 0.0, 1.0)
-       if hoChanged and hoVal ~= nil then hElem.opacity = hoVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+     -- SUB-NODE: PichHeading (PitchLadder Child)
+     if ui.tree_node and ui.tree_node('PichHeading (進行方向 / PitchLadder Child)##tree_heading') then
+      local t_heading = he.heading
+      if t_heading then
+       renderSteppedScale(ui, 'Heading Scale', t_heading, 'scale', 0.1, 4.0, 0.05, 'heading_sc')
+       renderSteppedSlider(ui, 'Heading X', t_heading, 'x', -2500.0, 2500.0, 5.0, 'heading_x')
+       renderSteppedSlider(ui, 'Heading Y (Up+ / Dn-)', t_heading, 'y', -2500.0, 2500.0, 5.0, 'heading_y')
+       renderSteppedOpacity(ui, 'Heading Opacity', t_heading, 'opacity', 0.0, 1.0, 0.05, 'heading_op')
       end
       if ui.tree_pop then ui.tree_pop() end
      end
 
-     -- Child 2: WhiskyMarkPanel
-     if ui.tree_node and ui.tree_node('WhiskyMarkPanel (正面Wマーク / Child)##tree_whisky') then
-      local wElem = R.customHUDConfig.hudElements.whisky
-      if wElem then
-       renderRatioSliderWithNudge(ui, 'Whisky Pos X Ratio', wElem, 'x', -1.0, 1.0, 0.0, 'whisky')
-       renderRatioSliderWithNudge(ui, 'Whisky Pos Y Ratio', wElem, 'y', -1.0, 1.0, 0.0, 'whisky')
-       local wsChanged, wsVal = ui.slider_float('Scale (0.2 ~ 3.0)##whisky', wElem.scale or 1.0, 0.2, 3.0)
-       if wsChanged and wsVal ~= nil then wElem.scale = wsVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
-       local woChanged, woVal = ui.slider_float('Opacity (0.0 ~ 1.0)##whisky', wElem.opacity or 0.95, 0.0, 1.0)
-       if woChanged and woVal ~= nil then wElem.opacity = woVal; R.saveCustomHUDConfig(); R.applyAllHUDCustomPositions() end
+     -- SUB-NODE: WhiskyMarkPanel (PitchLadder Child)
+     if ui.tree_node and ui.tree_node('WhiskyMarkPanel (正面Wマーク / PitchLadder Child)##tree_whisky') then
+      local t_whisky = he.whisky
+      if t_whisky then
+       renderSteppedScale(ui, 'WhiskyMark Scale', t_whisky, 'scale', 0.1, 4.0, 0.05, 'whisky_sc')
+       renderSteppedSlider(ui, 'WhiskyMark X', t_whisky, 'x', -2500.0, 2500.0, 5.0, 'whisky_x')
+       renderSteppedSlider(ui, 'WhiskyMark Y (Up+ / Dn-)', t_whisky, 'y', -2500.0, 2500.0, 5.0, 'whisky_y')
+       renderSteppedOpacity(ui, 'WhiskyMark Opacity', t_whisky, 'opacity', 0.0, 1.0, 0.05, 'whisky_op')
       end
       if ui.tree_pop then ui.tree_pop() end
      end
@@ -561,50 +602,62 @@ pcall(function()
     if ui.tree_pop then ui.tree_pop() end
    end
 
-   -- 2. Radar
-   renderElementUI(ui, 'Radar (レーダー / ミニマップ)', 'radar', true)
+   -- 2. Radar (Parent container)
+   renderElementBlock(ui, 'Radar (レーダー親コンテナ / 3縮尺・円枠一括)', 'radar', true)
 
-   -- 3. AircraftInfo
-   renderElementUI(ui, 'AircraftInfo (機体情報 / 残弾・武装・HP)', 'info', true)
+   -- 3. AircraftInfo (Common draw container)
+   renderElementBlock(ui, 'AircraftInfo (機体情報 / 残弾・武装・HP)', 'info', true)
 
    -- 4. Score / MissionInfo
-   renderElementUI(ui, 'Score / MissionInfo (スコア・作戦目標)', 'score', true)
+   renderElementBlock(ui, 'Score / MissionInfo (スコア・作戦目標・タイマー)', 'score', true)
 
-   -- 5. Draw canvas (Background)
-   renderElementUI(ui, 'Draw canvas (Background / メイン背景)', 'drawcanvas', false)
+   -- 5. Locator (Screen-edge arrows)
+   renderElementBlock(ui, 'Locator (画面外ターゲット矢印・ロケーター)', 'locator', true)
+
+   -- 6. Draw canvas (Background)
+   renderElementBlock(ui, 'Draw canvas (Background / メイン背景)', 'drawcanvas', false)
 
    if ui.separator then ui.separator() end
 
-   -- ACTION BUTTONS (Save, Load Saved, Reset ALL to base, Emergency Force Show)
+   -- ACTION BUTTONS (Save, Load Saved, Reset ALL to base)
    if ui.button and ui.same_line then
     if ui.button('Save##btn_save') then
      R.saveCustomHUDConfig()
+     print('[AC8-VR] Configuration saved to disk.')
     end
     ui.same_line()
     if ui.button('Load Saved##btn_load') then
      R.reloadCustomHUDConfig()
+     if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
+     elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+     print('[AC8-VR] Configuration reloaded from disk.')
     end
     ui.same_line()
     if ui.button('Reset ALL to base##btn_reset_all') then
-     local he = R.customHUDConfig.hudElements
-     he.ladder = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
-     he.heading = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
-     he.whisky = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
-     he.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
-     he.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
-     he.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
-     he.drawcanvas = { scale = 1.0, opacity = 0.95 }
-     R.saveCustomHUDConfig()
-     R.applyAllHUDCustomPositions()
-     print('[AC8-VR] All HUD elements reset to base defaults')
+     local h = R.customHUDConfig and R.customHUDConfig.hudElements
+     if h then
+      h.ladder = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.heading = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.whisky = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.radar = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.locator = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.drawcanvas = { scale = 1.0, opacity = 0.95 }
+      R.saveCustomHUDConfig()
+      if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
+      elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+      print('[AC8-VR] All HUD elements reset to base defaults.')
+     end
     end
    end
 
-   if ui.button and ui.button('>> Emergency: Force Show ALL HUD <<') then
-    R.triggerInstantAwake()
+   -- Emergency Recovery Button
+   if ui.button and ui.button('>> Emergency: Force Show ALL HUD <<##btn_emergency_hud') then
+    if R.triggerInstantAwake then R.triggerInstantAwake() end
    end
    if ui.text then
-    ui.text('Emergency recovery: Toggles HUD off & on in 4 frames to wake up all dormant elements.')
+    ui.text('Emergency recovery: Toggles HUD off & on in 4 frames to wake up all dormant HUD elements')
    end
 
    if ui.tree_pop then ui.tree_pop() end
