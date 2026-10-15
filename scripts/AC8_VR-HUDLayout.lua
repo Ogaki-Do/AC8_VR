@@ -1091,6 +1091,60 @@ local function applyElementDirect(widget, tx, ty, sc, op, applyPos, pivot)
     end
 end
 
+local cachedViewportSize = nil
+local function getViewportSize()
+    if cachedViewportSize then return cachedViewportSize end
+    local size = nil
+    pcall(function()
+        local pc = uevr.api:get_player_controller(0)
+        local wllCls = uevr.api:find_uobject('Class /Script/UMG.WidgetLayoutLibrary')
+        if wllCls and pc then
+            local cdo = wllCls:get_class_default_object()
+            if cdo then
+                local s = cdo:GetViewportSize(pc)
+                if s and type(s.X) == 'number' and s.X > 0 and type(s.Y) == 'number' and s.Y > 0 then
+                    size = { X = s.X, Y = s.Y }
+                end
+            end
+        end
+    end)
+    if not size then
+        pcall(function()
+            local gvc = uevr.api:get_game_viewport_client()
+            if gvc then
+                local vs = gvc.ViewportSize
+                if vs and type(vs.X) == 'number' and vs.X > 0 and type(vs.Y) == 'number' and vs.Y > 0 then
+                    size = { X = vs.X, Y = vs.Y }
+                end
+            end
+        end)
+    end
+    if not size then
+        pcall(function()
+            local root = R.context and R.context.root
+            if root and R.isLiveObject(root) then
+                local geom = root:GetPaintSpaceGeometry() or root:GetCachedGeometry()
+                local sblCls = uevr.api:find_uobject('Class /Script/UMG.SlateBlueprintLibrary')
+                if geom and sblCls then
+                    local cdo = sblCls:get_class_default_object()
+                    if cdo then
+                        local s = cdo:GetLocalSize(geom)
+                        if s and type(s.X) == 'number' and s.X > 0 and type(s.Y) == 'number' and s.Y > 0 then
+                            size = { X = s.X, Y = s.Y }
+                        end
+                    end
+                end
+            end
+        end)
+    end
+    if not size or size.X <= 0 or size.Y <= 0 then
+        size = { X = 1920.0, Y = 1080.0 }
+    end
+    cachedViewportSize = size
+    R.getViewportSize = getViewportSize
+    return cachedViewportSize
+end
+
 local function applyElementWithBase(widget, ox, oy, scaleFactor, opacity, applyPos, pivot)
     if not widget or not R.isLiveObject(widget) then return end
     local base = getBaseTransform(widget)
@@ -1133,28 +1187,42 @@ function R.applyHUDLayoutIntegrated()
         applyElementDirect(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 1-1. Heading (Velocity / VelocityIcon) - Base-relative VR reference frame
-    local headingWidgets = cachedTargets.headingList
-    if not headingWidgets or #headingWidgets == 0 or not R.isLiveObject(headingWidgets[1]) then
-        headingWidgets = {}
-        local v1 = refs.vicon or findDescendantByName(root, 'VelocityIcon')
-        local v2 = refs.vel or findDescendantByName(root, 'Velocity')
-        if v1 and R.isLiveObject(v1) then table.insert(headingWidgets, v1) end
-        if v2 and R.isLiveObject(v2) and v2 ~= v1 then table.insert(headingWidgets, v2) end
-        cachedTargets.headingList = headingWidgets
+    -- 1-1. Heading (Flight Path Marker / VelocityIcon)
+    -- Velocity is the parent CanvasPanel; VelocityIcon is the child Image that indicates flight direction.
+    -- Move the PARENT (Velocity) so its initial position matches WhiskyMarkPanel,
+    -- allowing VelocityIcon to freely move relative to Velocity according to game flight physics!
+    local velContainer = refs.vel or cachedTargets.vel
+    if not velContainer or not R.isLiveObject(velContainer) then
+        velContainer = findDescendantByName(root, 'Velocity')
+        cachedTargets.vel = velContainer
     end
-    if #headingWidgets > 0 and he.heading then
+    local velIcon = refs.vicon or cachedTargets.vicon
+    if not velIcon or not R.isLiveObject(velIcon) then
+        velIcon = findDescendantByName(root, 'VelocityIcon')
+        cachedTargets.vicon = velIcon
+    end
+
+    if he.heading then
         local cfg = he.heading
         local lcfg = he.ladder or {}
         local lx = lcfg.x or 0.0
         local ly = lcfg.y or 0.0
         local lsc = lcfg.scale or 1.0
-        local ox = lx + (cfg.x or 0.0)
-        local oy = ly + (cfg.y or 0.0)
         local sc = lsc * (cfg.scale or 1.0)
         local op = cfg.opacity or 0.95
-        for _, hw in ipairs(headingWidgets) do
-            applyElementWithBase(hw, ox, oy, sc, op, true, nil)
+
+        if velContainer and R.isLiveObject(velContainer) then
+            -- Moving the parent container (Velocity) applies the ladder + heading offset relative to its base,
+            -- matching WhiskyMarkPanel's coordinate behavior in VR space
+            local ox = lx + (cfg.x or 0.0)
+            local oy = ly + (cfg.y or 0.0)
+            applyElementWithBase(velContainer, ox, oy, sc, op, true, nil)
+        end
+
+        -- Child VelocityIcon: preserve game's natural relative flight-path offset!
+        -- Only sync opacity on child without overriding its translation
+        if velIcon and R.isLiveObject(velIcon) then
+            pcall(function() velIcon:SetRenderOpacity(op) end)
         end
     end
 
@@ -1237,8 +1305,19 @@ function R.applyHUDLayoutIntegrated()
     -- 5. Locator (C++ DLL inline-hook synchronization & UMG widget)
     if he.locator then
         local cfg = he.locator
-        local ox = cfg.x or 0.0
-        local oy = -950.0 - (cfg.y or 0.0)
+        local lcfg = he.ladder or {}
+        local wcfg = he.whisky or {}
+        local vp = getViewportSize()
+        local scaleY = vp.Y / 1080.0
+        local scaleX = vp.X / 1920.0
+
+        -- Dynamic calculation based on display viewport size & WhiskyMarkPanel alignment
+        local whiskyShiftX = (lcfg.x or 0.0) + (wcfg.x or 0.0)
+        local whiskyShiftY = (lcfg.y or 0.0) + (wcfg.y or 0.0)
+        local baseArrowOffsetY = -950.0 * scaleY
+
+        local ox = (whiskyShiftX + (cfg.x or 0.0)) * scaleX
+        local oy = baseArrowOffsetY - ((whiskyShiftY + (cfg.y or 0.0)) * scaleY)
         local sc = cfg.scale or 0.5
         local op = cfg.opacity or 1.0
         local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
@@ -1252,7 +1331,7 @@ function R.applyHUDLayoutIntegrated()
             pcall(function()
                 local f = io.open('data/ac8_offscreen_group_controls.json', 'w')
                 if f then
-                    local gText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0, sc * 0.96)
+                    local gText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0 * scaleX, sc * 0.96)
                     f:write(gText); f:close()
                 end
             end)
@@ -1265,7 +1344,10 @@ function R.applyHUDLayoutIntegrated()
             cachedTargets.locator = locatorWidget
         end
         if locatorWidget then
-            applyElementDirect(locatorWidget, ox, 0.0 - (cfg.y or 0.0), sc, op, true)
+            -- Position slightly above whisky mark (by ~60px in 1080p, scaled by viewport)
+            local targetLocX = 10.0 + (whiskyShiftX + (cfg.x or 0.0)) * scaleX
+            local targetLocY = (6.0 - 60.0 * scaleY) - ((whiskyShiftY + (cfg.y or 0.0)) * scaleY)
+            applyElementDirect(locatorWidget, targetLocX, targetLocY, sc, op, true)
         end
     end
 

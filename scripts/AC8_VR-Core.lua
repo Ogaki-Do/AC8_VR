@@ -227,12 +227,20 @@ function R.saveCustomHUDConfig()
  pcall(function()realJSON.dump_file('CustomHUDPosition.json',R.customHUDConfig,2)end)
  local loc = R.customHUDConfig.hudElements and R.customHUDConfig.hudElements.locator
  if loc then
-  local ox = loc.x or 0.0
-  local oy = -950.0 - (loc.y or 0.0)
+  local vp = (R.getViewportSize and R.getViewportSize()) or { X = 1920.0, Y = 1080.0 }
+  local scaleY = vp.Y / 1080.0
+  local scaleX = vp.X / 1920.0
+  local he = R.customHUDConfig.hudElements
+  local lcfg = he.ladder or {}
+  local wcfg = he.whisky or {}
+  local whiskyShiftX = (lcfg.x or 0.0) + (wcfg.x or 0.0)
+  local whiskyShiftY = (lcfg.y or 0.0) + (wcfg.y or 0.0)
+  local ox = (whiskyShiftX + (loc.x or 0.0)) * scaleX
+  local oy = (-950.0 * scaleY) - ((whiskyShiftY + (loc.y or 0.0)) * scaleY)
   local sc = loc.scale or 0.5
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
   pcall(function() realJSON.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
-  pcall(function() realJSON.dump_file('data/ac8_offscreen_group_controls.json', { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }, 2) end)
+  pcall(function() realJSON.dump_file('data/ac8_offscreen_group_controls.json', { enabled = true, offsetX = ox - 180.0 * scaleX, scale = sc * 0.96 }, 2) end)
  end
  print('[AC8-VR] Configuration saved to ' .. p)
 end
