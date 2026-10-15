@@ -222,31 +222,13 @@ local function ensureCustomHUDDefaults(cfg)
  return cfg
 end
 
-local function getDataDir()
- local appdata = nil
- if os and type(os.getenv) == 'function' then
-  local ok, val = pcall(os.getenv, 'APPDATA')
-  if ok and val and val ~= '' then appdata = val end
- end
- if appdata then
-  return appdata:gsub('\\', '/') .. '/UnrealVRMod/AceCombat8/data'
- end
- return 'C:/Users/Ogaki/AppData/Roaming/UnrealVRMod/AceCombat8/data'
-end
-R.getDataDir = getDataDir
-
 local function loadCustomHUDConfig()
- local dir = getDataDir()
- local absPath = dir .. '/CustomHUDPosition.json'
- local paths = { 'CustomHUDPosition.json' }
- for _, p in ipairs(paths) do
-  local ok, data = pcall(function() return realJSON.load_file(p) end)
-  if ok and type(data) == 'table' then
-   print('[AC8-VR] Loaded HUD config from ' .. tostring(p))
-   return ensureCustomHUDDefaults(data), p
-  end
+ local ok, data = pcall(function() return realJSON.load_file('CustomHUDPosition.json') end)
+ if ok and type(data) == 'table' then
+  print('[AC8-VR] Loaded HUD config from CustomHUDPosition.json')
+  return ensureCustomHUDDefaults(data), 'CustomHUDPosition.json'
  end
- print('[AC8-VR] Initialized default HUD config (target: ' .. absPath .. ')')
+ print('[AC8-VR] Initialized default HUD config (target: CustomHUDPosition.json)')
  return ensureCustomHUDDefaults({}), 'CustomHUDPosition.json'
 end
 
@@ -294,28 +276,7 @@ function R.syncLocatorConfigToDLL()
  local oy = BASE_LOCATOR_Y - ly - locY
  local sc = locSc * lsc
 
- local arrowJson = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "offsetY": %.1f,\n  "scale": %.2f\n}\n', ox, oy, sc)
- local groupJson = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0, sc * 0.96)
-
- local dir = getDataDir()
- local arrowAbs = dir .. '/ac8_target_arrow_shift_controls.json'
- local groupAbs = dir .. '/ac8_offscreen_group_controls.json'
-
- -- 1. Lua io.open で絶対パス & 相対パス両方に直接上書き
- local targets = {
-  { file = arrowAbs, content = arrowJson },
-  { file = 'ac8_target_arrow_shift_controls.json', content = arrowJson },
-  { file = groupAbs, content = groupJson },
-  { file = 'ac8_offscreen_group_controls.json', content = groupJson }
- }
- for _, t in ipairs(targets) do
-  pcall(function()
-   local f = io.open(t.file, 'w')
-   if f then f:write(t.content); f:close() end
-  end)
- end
-
- -- 2. UEVR json.dump_file も呼ぶ（相対パスのみ許可）
+ -- UEVR json.dump_file（カレントはModのdata/ディレクトリ基準）
  local j = R.realJSON or realJSON or rawget(_G, 'json')
  if j and j.dump_file then
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
@@ -336,22 +297,9 @@ end
 
 function R.saveCustomHUDConfig()
  if not R.customHUDConfig then return end
- local dir = getDataDir()
- local absPath = dir .. '/CustomHUDPosition.json'
  pcall(function() realJSON.dump_file('CustomHUDPosition.json', R.customHUDConfig, 2) end)
- -- io.open による絶対パス直接書き込み（UEVR制限を安全にバイパス）
- pcall(function()
-  local text = nil
-  if realJSON and realJSON.dump then
-   pcall(function() text = realJSON.dump(R.customHUDConfig, 2) end)
-  end
-  if text then
-   local f = io.open(absPath, 'w')
-   if f then f:write(text); f:close() end
-  end
- end)
  pcall(R.syncLocatorConfigToDLL)
- print('[AC8-VR] Configuration saved to ' .. absPath)
+ print('[AC8-VR] Configuration saved to CustomHUDPosition.json')
 end
 
 function R.reloadCustomHUDConfig()
