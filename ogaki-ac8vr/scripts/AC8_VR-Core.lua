@@ -264,8 +264,10 @@ function R.syncLocatorConfigToDLL()
  local locX = (loc and loc.x) or 0.0
  local locY = (loc and loc.y) or 0.0
  local locSc = (loc and loc.scale) or 0.5
- local ox = lx + locX
- local oy = -950.0 - ly - locY
+ local BASE_LOCATOR_X = -1030.0
+ local BASE_LOCATOR_Y = -2280.0
+ local ox = lx + BASE_LOCATOR_X + locX
+ local oy = BASE_LOCATOR_Y - ly - locY
  local sc = locSc * lsc
 
  local arrowJson = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "offsetY": %.1f,\n  "scale": %.2f\n}\n', ox, oy, sc)
