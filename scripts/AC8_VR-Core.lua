@@ -226,8 +226,12 @@ local function ensureCustomHUDDefaults(cfg)
 end
 
 local function getDataDir()
- local appdata = os.getenv('APPDATA')
- if appdata and appdata ~= '' then
+ local appdata = nil
+ if os and type(os.getenv) == 'function' then
+  local ok, val = pcall(os.getenv, 'APPDATA')
+  if ok and val and val ~= '' then appdata = val end
+ end
+ if appdata then
   return appdata:gsub('\\', '/') .. '/UnrealVRMod/AceCombat8/data'
  end
  return 'C:/Users/Ogaki/AppData/Roaming/UnrealVRMod/AceCombat8/data'
@@ -237,7 +241,7 @@ R.getDataDir = getDataDir
 local function loadCustomHUDConfig()
  local dir = getDataDir()
  local absPath = dir .. '/CustomHUDPosition.json'
- local paths = { absPath, 'CustomHUDPosition.json', 'data/CustomHUDPosition.json' }
+ local paths = { 'CustomHUDPosition.json', absPath, 'data/CustomHUDPosition.json' }
  for _, p in ipairs(paths) do
   local ok, data = pcall(function() return realJSON.load_file(p) end)
   if ok and type(data) == 'table' then
@@ -246,7 +250,7 @@ local function loadCustomHUDConfig()
   end
  end
  print('[AC8-VR] Initialized default HUD config (target: ' .. absPath .. ')')
- return ensureCustomHUDDefaults({}), absPath
+ return ensureCustomHUDDefaults({}), 'CustomHUDPosition.json'
 end
 
 function R.syncLocatorConfigToDLL()
@@ -271,11 +275,19 @@ function R.syncLocatorConfigToDLL()
  local arrowAbs = dir .. '/ac8_target_arrow_shift_controls.json'
  local groupAbs = dir .. '/ac8_offscreen_group_controls.json'
 
- -- 1. Lua io.open で OS レベル絶対パスに直接上書き（DLL監視タイムスタンプ即時更新）
- local fa = io.open(arrowAbs, 'w')
- if fa then fa:write(arrowJson); fa:close() end
- local fg = io.open(groupAbs, 'w')
- if fg then fg:write(groupJson); fg:close() end
+ -- 1. Lua io.open で絶対パス & 相対パス両方に直接上書き
+ local targets = {
+  { file = arrowAbs, content = arrowJson },
+  { file = 'ac8_target_arrow_shift_controls.json', content = arrowJson },
+  { file = groupAbs, content = groupJson },
+  { file = 'ac8_offscreen_group_controls.json', content = groupJson }
+ }
+ for _, t in ipairs(targets) do
+  pcall(function()
+   local f = io.open(t.file, 'w')
+   if f then f:write(t.content); f:close() end
+  end)
+ end
 
  -- 2. UEVR json.dump_file も呼ぶ（絶対パス ＆ 相対ファイル名単体）
  local j = R.realJSON or realJSON or rawget(_G, 'json')
@@ -287,7 +299,7 @@ function R.syncLocatorConfigToDLL()
   pcall(function() j.dump_file(groupAbs, groupCfg, 2) end)
   pcall(function() j.dump_file('ac8_offscreen_group_controls.json', groupCfg, 2) end)
  end
- print(string.format('[AC8-VR] Synced Locator to DLL: ox=%.1f, oy=%.1f, sc=%.2f -> %s', ox, oy, sc, arrowAbs))
+ print(string.format('[AC8-VR] Synced Locator to DLL: ox=%.1f, oy=%.1f, sc=%.2f', ox, oy, sc))
 end
 
 R.customHUDConfig, R.customHUDConfigPath = loadCustomHUDConfig()
