@@ -34,7 +34,7 @@ local VICON_BASE_X,      VICON_BASE_Y      = 1920, 1087
 local GUNRETICLE_BASE_X, GUNRETICLE_BASE_Y = 1920, 1080
 
 local SHIFT_VIA_PERSISTENT = true
-local FIX_RADAR_CIRCLE     = true
+local FIX_RADAR_CIRCLE     = false
 local SINGLE_INSTANCE      = true
 
 local RESET_LIST = {
@@ -1401,12 +1401,11 @@ end
 local workshop_after, workshop_poll
 local workshop_active=false
 local function apply()
-    for _, t in ipairs(TARGETS) do
-        local ok, err = pcall(apply_one, t)
-        if not ok then
-            
-        end
-    end
+    -- Handled exclusively by AC8_VR-HUDLayout.lua to eliminate frame fight and allow integrated positioning
+    -- for _, t in ipairs(TARGETS) do
+    --     local ok, err = pcall(apply_one, t)
+    --     if not ok then end
+    -- end
     if workshop_after then pcall(workshop_after) end
 end
 
