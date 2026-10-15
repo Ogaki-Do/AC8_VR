@@ -1,25 +1,68 @@
 {
-  "version": 2,
-  "cinematicPresentation": {
-    "enabled": false
-  },
-  "hudElements": {
-    "ladder": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "heading": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "whisky": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "radar": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "info": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "score": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "locator": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "wingman": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
-    "drawcanvas": { "scale": 1.0, "opacity": 0.95 }
-  },
   "cameraOffsets": {
     "default": {
       "forward": -18.0,
       "right": 0.0,
       "up": 5.0
     },
-    "planes": {}
-  }
+    "planes": null
+  },
+  "cinematicPresentation": {
+    "enabled": false
+  },
+  "hudElements": {
+    "drawcanvas": {
+      "opacity": 1.0,
+      "scale": 1.0
+    },
+    "heading": {
+      "opacity": 1.0,
+      "scale": 2.132999897003174,
+      "x": 0.0,
+      "y": 0.0
+    },
+    "info": {
+      "opacity": 0.95,
+      "scale": 1.0,
+      "x": -765.625,
+      "y": -15.625
+    },
+    "ladder": {
+      "opacity": 1.0,
+      "scale": 0.5979999899864197,
+      "x": 0.0,
+      "y": -218.75
+    },
+    "locator": {
+      "opacity": 0.95,
+      "scale": 1.3289999961853027,
+      "x": 0.0,
+      "y": 0.0
+    },
+    "radar": {
+      "opacity": 0.95,
+      "scale": 0.843999981880188,
+      "x": 265.625,
+      "y": -62.5
+    },
+    "score": {
+      "opacity": 0.95,
+      "scale": 1.0,
+      "x": 1343.75,
+      "y": -1609.375
+    },
+    "whisky": {
+      "opacity": 1.0,
+      "scale": 2.5840001106262207,
+      "x": 0.0,
+      "y": 0.0
+    },
+    "wingman": {
+      "opacity": 0.95,
+      "scale": 1.0,
+      "x": 406.25,
+      "y": 15.625
+    }
+  },
+  "version": 2
 }
