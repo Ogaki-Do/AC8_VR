@@ -11,6 +11,7 @@
     "info": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
     "score": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
     "locator": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
+    "wingman": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
     "drawcanvas": { "scale": 1.0, "opacity": 0.95 }
   },
   "cameraOffsets": {

@@ -1110,7 +1110,22 @@ function R.applyHUDLayoutIntegrated()
         end
     end
 
-    -- 6. Draw canvas (Background)
+    -- 6. Wingman (Formation Command: WBP_HUD_Command_Wingman_000 / Command_S)
+    local wingmanWidget = cachedTargets.wingman
+    if not wingmanWidget or not R.isLiveObject(wingmanWidget) then
+        wingmanWidget = findDescendantByName(root, 'Command_S')
+            or findDescendantByName(root, 'WBP_HUD_Command_Wingman')
+            or refs.wingman
+        cachedTargets.wingman = wingmanWidget
+    end
+    if wingmanWidget and he.wingman then
+        local cfg = he.wingman
+        local tx = 0.0 + (cfg.x or 0.0)
+        local ty = 0.0 - (cfg.y or 0.0)
+        applyElement(wingmanWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 7. Draw canvas (Background)
     local drawWidget = refs.maincv or cachedTargets.draw
     if not drawWidget or not R.isLiveObject(drawWidget) then
         drawWidget = findDescendantByName(root, 'LowestPriorityDynamicDrawCanvas')
