@@ -106,10 +106,6 @@ function R.contextTick(advance)
  if R.updateInstantAwakeCycle then
   R.updateInstantAwakeCycle()
  end
- if R.pendingSaveTick and R.tick >= R.pendingSaveTick then
-  R.pendingSaveTick = nil
-  pcall(R.saveCustomHUDConfig)
- end
 end
 function R.connect(key)
  if R.connected[key]then return end;R.connected[key]=true
@@ -138,19 +134,7 @@ function R.read(name)
  local c=R.cache[name];if c and R.tick-c.tick<30 then return c.value end
  local ok,value=pcall(realJSON.load_file,name);R.cache[name]={tick=R.tick,value=ok and value or nil};return ok and value or nil
 end
-local journals={
- ['ac8_cinematic_ui_restore.json']=true,
- ['ac8_hangar_restore_v48.json']=true,
- ['ac8_ladder.json']=true,
- ['ac8_hud_layout_cache.json']=true,
- ['data/CustomHUDPosition.json']=true,
- ['CustomHUDPosition.json']=true,
- ['data/ac8_target_arrow_shift_controls.json']=true,
- ['ac8_target_arrow_shift_controls.json']=true,
- ['data/ac8_offscreen_group_controls.json']=true,
- ['ac8_offscreen_group_controls.json']=true
-}
-R.realJSON = realJSON
+local journals={['ac8_cinematic_ui_restore.json']=true,['ac8_hangar_restore_v48.json']=true,['ac8_ladder.json']=true,['ac8_hud_layout_cache.json']=true,['data/CustomHUDPosition.json']=true,['CustomHUDPosition.json']=true}
 R.json={load_file=R.read,dump_file=function(name,value,indent)
  if journals[name]then R.cache[name]=nil;return realJSON.dump_file(name,value,indent)end
 end}
@@ -249,7 +233,7 @@ function R.saveCustomHUDConfig()
   local lsc = (ladder and ladder.scale) or 1.0
   local ox = lx + (loc.x or 0.0)
   local oy = -950.0 - ly - (loc.y or 0.0)
-  local sc = (loc.scale or 1.0) * 0.5 * lsc
+  local sc = (loc.scale or 0.5) * lsc
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
   pcall(function() realJSON.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
   pcall(function() realJSON.dump_file('data/ac8_offscreen_group_controls.json', { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }, 2) end)
@@ -466,7 +450,6 @@ local function renderSteppedSlider(ui, label, tableRef, key, min_v, max_v, step,
  if ui.text then ui.text(string.format(' %s: %+.0f px', label, cur)) end
  if changed then
   tableRef[key] = cur
-  R.pendingSaveTick = R.tick + 30
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
@@ -491,7 +474,6 @@ local function renderSteppedScale(ui, label, tableRef, key, min_v, max_v, step, 
  if ui.text then ui.text(string.format(' %s: %.2fx', label, cur)) end
  if changed then
   tableRef[key] = cur
-  R.pendingSaveTick = R.tick + 30
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
@@ -516,7 +498,6 @@ local function renderSteppedOpacity(ui, label, tableRef, key, min_v, max_v, step
  if ui.text then ui.text(string.format(' %s: %.2f', label, cur)) end
  if changed then
   tableRef[key] = cur
-  R.pendingSaveTick = R.tick + 30
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
