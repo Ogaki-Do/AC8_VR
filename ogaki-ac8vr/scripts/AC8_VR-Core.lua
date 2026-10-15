@@ -232,7 +232,7 @@ function R.saveCustomHUDConfig()
   local ly = (ladder and ladder.y) or 0.0
   local lsc = (ladder and ladder.scale) or 1.0
   local ox = lx + (loc.x or 0.0)
-  local oy = -600.0 - ly - (loc.y or 0.0)
+  local oy = -950.0 - ly - (loc.y or 0.0)
   local sc = (loc.scale or 0.5) * lsc
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
   pcall(function() realJSON.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)

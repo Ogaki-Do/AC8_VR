@@ -1208,7 +1208,7 @@ function R.applyHUDLayoutIntegrated()
         local wop = cfg.opacity or 0.95
         local tx = 10.0 + wx
         local ty = 6.0 - wy
-        local sc = 3.90 * wsc
+        local sc = (lsc or 1.0) * wsc
         applyElementDirect(whiskyWidget, tx, ty, sc, wop, true)
     end
 
@@ -1237,7 +1237,7 @@ function R.applyHUDLayoutIntegrated()
         local hy = cfg.y or 0.0
         local hsc = cfg.scale or 1.0
         local hop = cfg.opacity or 0.95
-        local sc = 1.13 * lsc * hsc
+        local sc = (lsc or 1.0) * hsc
 
         if velContainer and R.isLiveObject(velContainer) then
             local tx = -1223.0 + lx + hx
@@ -1311,9 +1311,8 @@ function R.applyHUDLayoutIntegrated()
         applyElementWithBase(scoreWidget, ox, oy, sc, op, true, pivot)
     end
 
-    -- 5. Locator (C++ DLL inline-hook synchronization - PitchLadder Child)
-    -- Base offset -600.0 places target arrow & text right above WhiskyMarkPanel (inside HUD glass, matching reference photo).
-    -- Full synchronization with PitchLadder: follows (lx, ly) so moving PitchLadder moves Locator!
+    -- 5. Locator (C++ DLL inline-hook synchronization & UMG widget - PitchLadder Child)
+    -- Synchronized with PitchLadder: follows (lx, ly) so moving PitchLadder moves Locator!
     if he.locator then
         local cfg = he.locator
         local lcfg = he.ladder or {}
@@ -1325,7 +1324,7 @@ function R.applyHUDLayoutIntegrated()
         local locY = cfg.y or 0.0
         local locSc = cfg.scale or 0.5
         local ox = lx + locX
-        local oy = -600.0 - ly - locY
+        local oy = -950.0 - ly - locY
         local sc = locSc * lsc
 
         local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
@@ -1343,6 +1342,16 @@ function R.applyHUDLayoutIntegrated()
                     f:write(gText); f:close()
                 end
             end)
+        end
+
+        local locatorWidget = cachedTargets.locator
+        if not locatorWidget or not R.isLiveObject(locatorWidget) then
+            locatorWidget = findDescendantByName(root, 'WBP_LocatorWidget')
+                or refs.locator
+            cachedTargets.locator = locatorWidget
+        end
+        if locatorWidget then
+            applyElementDirect(locatorWidget, ox, -ly - locY, (cfg.scale or 1.0) * lsc, cfg.opacity or 1.0, true)
         end
     end
 
