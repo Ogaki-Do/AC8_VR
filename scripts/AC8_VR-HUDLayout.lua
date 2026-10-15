@@ -1048,6 +1048,31 @@ local function findAllDescendantsByNames(root, names, maxDepth)
     return results
 end
 
+local function pruneNested(list)
+    if not list or #list < 2 then return list or {} end
+    local paths = {}
+    for i, o in ipairs(list) do
+        local ok, fn = pcall(function() return o:get_full_name() end)
+        paths[i] = (ok and type(fn) == 'string') and (fn:match("^%S+%s+(.*)$") or fn) or tostring(o)
+    end
+    local keep = {}
+    for i, o in ipairs(list) do
+        local p = paths[i]
+        local nested = false
+        for j = 1, #paths do
+            if j ~= i then
+                local pj = paths[j]
+                if #pj < #p and p:sub(1, #pj) == pj then
+                    nested = true
+                    break
+                end
+            end
+        end
+        if not nested then table.insert(keep, o) end
+    end
+    return keep
+end
+
 local function applyElementDirect(widget, tx, ty, sc, op, applyPos, pivot)
     if not widget or not R.isLiveObject(widget) then return end
     if pivot then
@@ -1106,17 +1131,30 @@ function R.applyHUDLayoutIntegrated()
         applyElementDirect(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 1-1. Heading (Velocity / VelocityIcon) - Fixed VR reference frame
-    local headingWidget = refs.vicon or refs.vel or cachedTargets.heading
-    if not headingWidget or not R.isLiveObject(headingWidget) then
-        headingWidget = findDescendantByName(root, 'VelocityIcon') or findDescendantByName(root, 'Velocity')
-        cachedTargets.heading = headingWidget
+    -- 1-1. Heading (Velocity / VelocityIcon) - Altimeter relative VR reference frame
+    local headingWidgets = cachedTargets.headingList
+    if not headingWidgets or #headingWidgets == 0 or not R.isLiveObject(headingWidgets[1]) then
+        headingWidgets = {}
+        local v1 = refs.vicon or findDescendantByName(root, 'VelocityIcon')
+        local v2 = refs.vel or findDescendantByName(root, 'Velocity')
+        if v1 and R.isLiveObject(v1) then table.insert(headingWidgets, v1) end
+        if v2 and R.isLiveObject(v2) and v2 ~= v1 then table.insert(headingWidgets, v2) end
+        cachedTargets.headingList = headingWidgets
     end
-    if headingWidget and he.heading then
+    if #headingWidgets > 0 and he.heading then
         local cfg = he.heading
-        local tx = -1913.0 + (cfg.x or 0.0)
-        local ty = -1200.0 - (cfg.y or 0.0)
-        applyElementDirect(headingWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local lcfg = he.ladder or {}
+        local lx = lcfg.x or 0.0
+        local ly = lcfg.y or 0.0
+        local lsc = lcfg.scale or 1.0
+        -- Altimeter base (690, 756) + Heading base offset (-1913, -1200) = (-1223, -444)
+        local tx = -1223.0 + lx + (cfg.x or 0.0)
+        local ty = -444.0 - ly - (cfg.y or 0.0)
+        local sc = lsc * (cfg.scale or 1.0)
+        local op = cfg.opacity or 0.95
+        for _, hw in ipairs(headingWidgets) do
+            applyElementDirect(hw, tx, ty, sc, op, true)
+        end
     end
 
     -- 1-2. WhiskyMarkPanel - Fixed VR reference frame
@@ -1127,27 +1165,35 @@ function R.applyHUDLayoutIntegrated()
     end
     if whiskyWidget and he.whisky then
         local cfg = he.whisky
-        local tx = 10.0 + (cfg.x or 0.0)
-        local ty = 6.0 - (cfg.y or 0.0)
-        applyElementDirect(whiskyWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local lcfg = he.ladder or {}
+        local tx = 10.0 + (lcfg.x or 0.0) + (cfg.x or 0.0)
+        local ty = 6.0 - (lcfg.y or 0.0) - (cfg.y or 0.0)
+        local sc = (lcfg.scale or 1.0) * (cfg.scale or 1.0)
+        local op = cfg.opacity or 0.95
+        applyElementDirect(whiskyWidget, tx, ty, sc, op, true)
     end
 
-    -- 2. Radar (Parent container: MiniMapLayer) - Single root container
-    local radarWidget = refs.radar or cachedTargets.radar
-    if not radarWidget or not R.isLiveObject(radarWidget) then
-        radarWidget = findDescendantByName(root, 'MiniMapLayer')
-            or findDescendantByName(root, 'MIniMapCanvas')
-            or refs.radar
-        cachedTargets.radar = radarWidget
-    end
-    if radarWidget and he.radar then
+    -- 2. Radar (MiniMap, RadarCircle, Corners) - Old customizer prune-nested multi-container approach
+    if he.radar then
         local cfg = he.radar
+        local radarWidgets = cachedTargets.radarList
+        if not radarWidgets or #radarWidgets == 0 or not R.isLiveObject(radarWidgets[1]) then
+            local found = findAllDescendantsByNames(root, {
+                'MiniMapLayer', 'MIniMapCanvas', 'RadarCircleCanvasPanel',
+                'RadarCircleBase', 'MiniMapIconCanvasPanel', 'MiniMapCornerCanvas',
+                'MiniMapSearchCorners', 'MiniMapEnlargedCorners'
+            })
+            if #found == 0 and refs.radar then table.insert(found, refs.radar) end
+            radarWidgets = pruneNested(found)
+            cachedTargets.radarList = radarWidgets
+        end
         local ox = cfg.x or 0.0
         local oy = cfg.y or 0.0
         local sc = cfg.scale or 1.0
         local op = cfg.opacity or 0.95
-        local pivot = { X = 0.5, Y = 0.5 }
-        applyElementWithBase(radarWidget, ox, oy, sc, op, true, pivot)
+        for _, rw in ipairs(radarWidgets) do
+            applyElementWithBase(rw, ox, oy, sc, op, true, nil)
+        end
     end
 
     -- 3. AircraftInfo (Top-level player status container: WBP_PlayerStateWidget) - Single root container
