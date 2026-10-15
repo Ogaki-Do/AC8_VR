@@ -493,6 +493,7 @@ end
 -- Stepped Sliders with [+] / [-] buttons (Old ac8_ladder_fix_v19 compliant)
 -- =========================================================================
 local hudActionMsg = ''
+local camActionMsg = ''
 local function renderSteppedSlider(ui, label, tableRef, key, min_v, max_v, step, id)
  local cur = (tableRef and type(tableRef[key]) == 'number') and tableRef[key] or 0.0
  local changed = false
@@ -792,48 +793,71 @@ pcall(function()
 
    local activeTarget = (plane and isPlaneSpecific and co.planes[plane]) or co.default
    local fChanged, fVal = ui.slider_float('Forward Offset (前後 cm)', activeTarget.forward or 0.0, -100.0, 100.0)
-   if fChanged and fVal ~= nil then activeTarget.forward = fVal; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+   if fChanged and fVal ~= nil then activeTarget.forward = fVal; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
    if ui.button and ui.same_line then
-    if ui.button('-1.0cm##f') then activeTarget.forward = (activeTarget.forward or 0) - 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('-1.0cm##f') then activeTarget.forward = (activeTarget.forward or 0) - 1.0; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('-0.2cm##f') then activeTarget.forward = (activeTarget.forward or 0) - 0.2; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('-0.2cm##f') then activeTarget.forward = (activeTarget.forward or 0) - 0.2; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('+0.2cm##f') then activeTarget.forward = (activeTarget.forward or 0) + 0.2; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('+0.2cm##f') then activeTarget.forward = (activeTarget.forward or 0) + 0.2; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('+1.0cm##f') then activeTarget.forward = (activeTarget.forward or 0) + 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('+1.0cm##f') then activeTarget.forward = (activeTarget.forward or 0) + 1.0; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
    end
 
    local rChanged, rVal = ui.slider_float('Right Offset (左右 cm)', activeTarget.right or 0.0, -50.0, 50.0)
-   if rChanged and rVal ~= nil then activeTarget.right = rVal; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+   if rChanged and rVal ~= nil then activeTarget.right = rVal; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
    if ui.button and ui.same_line then
-    if ui.button('-1.0cm##r') then activeTarget.right = (activeTarget.right or 0) - 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('-1.0cm##r') then activeTarget.right = (activeTarget.right or 0) - 1.0; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('-0.2cm##r') then activeTarget.right = (activeTarget.right or 0) - 0.2; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('-0.2cm##r') then activeTarget.right = (activeTarget.right or 0) - 0.2; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('+0.2cm##r') then activeTarget.right = (activeTarget.right or 0) + 0.2; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('+0.2cm##r') then activeTarget.right = (activeTarget.right or 0) + 0.2; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('+1.0cm##r') then activeTarget.right = (activeTarget.right or 0) + 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('+1.0cm##r') then activeTarget.right = (activeTarget.right or 0) + 1.0; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
    end
 
    local uChanged, uVal = ui.slider_float('Up Offset (上下 cm)', activeTarget.up or 0.0, -50.0, 50.0)
-   if uChanged and uVal ~= nil then activeTarget.up = uVal; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+   if uChanged and uVal ~= nil then activeTarget.up = uVal; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
    if ui.button and ui.same_line then
-    if ui.button('-1.0cm##u') then activeTarget.up = (activeTarget.up or 0) - 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('-1.0cm##u') then activeTarget.up = (activeTarget.up or 0) - 1.0; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('-0.2cm##u') then activeTarget.up = (activeTarget.up or 0) - 0.2; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('-0.2cm##u') then activeTarget.up = (activeTarget.up or 0) - 0.2; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('+0.2cm##u') then activeTarget.up = (activeTarget.up or 0) + 0.2; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('+0.2cm##u') then activeTarget.up = (activeTarget.up or 0) + 0.2; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
     ui.same_line()
-    if ui.button('+1.0cm##u') then activeTarget.up = (activeTarget.up or 0) + 1.0; R.saveCustomHUDConfig(); R.applyActiveCameraOffset() end
+    if ui.button('+1.0cm##u') then activeTarget.up = (activeTarget.up or 0) + 1.0; R.pendingSaveTick = R.tick + 60; R.applyActiveCameraOffset() end
    end
 
-   if ui.button and ui.button('Reset Camera to Defaults (0, 0, 0 cm)') then
-    activeTarget.forward = 0.0
-    activeTarget.right = 0.0
-    activeTarget.up = 0.0
-    R.saveCustomHUDConfig()
-    R.applyActiveCameraOffset()
-    print('[AC8-VR] Camera offsets reset to defaults')
+   if ui.separator then ui.separator() end
+
+   -- ACTION BUTTONS (Save, Load Saved, Reset Camera to Defaults)
+   if ui.button and ui.same_line then
+    if ui.button('Save##btn_cam_save') then
+     R.pendingSaveTick = nil
+     R.saveCustomHUDConfig()
+     camActionMsg = '[OK] Camera offsets saved to disk.'
+     print('[AC8-VR] Camera offsets saved to disk.')
+    end
+    ui.same_line()
+    if ui.button('Load Saved##btn_cam_load') then
+     R.pendingSaveTick = nil
+     R.reloadCustomHUDConfig()
+     camActionMsg = '[OK] Loaded saved camera offsets from disk.'
+     print('[AC8-VR] Camera offsets reloaded from disk.')
+    end
+    ui.same_line()
+    if ui.button('Reset to Defaults (0, 0, 0 cm)##btn_cam_reset') then
+     activeTarget.forward = 0.0
+     activeTarget.right = 0.0
+     activeTarget.up = 0.0
+     R.pendingSaveTick = nil
+     R.applyActiveCameraOffset()
+     camActionMsg = '[RESET] Camera reset to (0, 0, 0 cm) (Unsaved. Press Save to persist).'
+     print('[AC8-VR] Camera offsets reset to defaults in memory.')
+    end
+   end
+   if camActionMsg and camActionMsg ~= '' and ui.text then
+    ui.text(camActionMsg)
    end
    if ui.tree_pop then ui.tree_pop() end
   end
