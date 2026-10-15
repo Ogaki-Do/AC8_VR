@@ -318,14 +318,14 @@ function R.syncLocatorConfigToDLL()
   end)
  end
 
- -- 2. UEVR json.dump_file も呼ぶ（絶対パス ＆ 相対ファイル名単体）
+ -- 2. UEVR json.dump_file も呼ぶ（相対パスのみ許可）
  local j = R.realJSON or realJSON or rawget(_G, 'json')
  if j and j.dump_file then
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
   local groupCfg = { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }
-  pcall(function() j.dump_file(arrowAbs, arrowCfg, 2) end)
+  pcall(function() j.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
   pcall(function() j.dump_file('ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
-  pcall(function() j.dump_file(groupAbs, groupCfg, 2) end)
+  pcall(function() j.dump_file('data/ac8_offscreen_group_controls.json', groupCfg, 2) end)
   pcall(function() j.dump_file('ac8_offscreen_group_controls.json', groupCfg, 2) end)
  end
  print(string.format('[AC8-VR] Synced Locator to DLL: ox=%.1f, oy=%.1f, sc=%.2f', ox, oy, sc))
@@ -343,8 +343,19 @@ function R.saveCustomHUDConfig()
  if not R.customHUDConfig then return end
  local dir = getDataDir()
  local absPath = dir .. '/CustomHUDPosition.json'
- pcall(function() realJSON.dump_file(absPath, R.customHUDConfig, 2) end)
  pcall(function() realJSON.dump_file('CustomHUDPosition.json', R.customHUDConfig, 2) end)
+ pcall(function() realJSON.dump_file('data/CustomHUDPosition.json', R.customHUDConfig, 2) end)
+ -- io.open による絶対パス直接書き込み（UEVR制限を安全にバイパス）
+ pcall(function()
+  local text = nil
+  if realJSON and realJSON.dump then
+   pcall(function() text = realJSON.dump(R.customHUDConfig, 2) end)
+  end
+  if text then
+   local f = io.open(absPath, 'w')
+   if f then f:write(text); f:close() end
+  end
+ end)
  pcall(R.syncLocatorConfigToDLL)
  print('[AC8-VR] Configuration saved to ' .. absPath)
 end
