@@ -1330,8 +1330,12 @@ function R.applyHUDLayoutIntegrated()
         local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
         if cachedTargets.lastLocatorSync ~= key then
             cachedTargets.lastLocatorSync = key
-            if R.syncLocatorConfigToDLL then
-                pcall(R.syncLocatorConfigToDLL)
+            local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
+            local groupCfg = { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }
+            local j = R.realJSON or rawget(_G, 'json')
+            if j and j.dump_file then
+                pcall(function() j.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
+                pcall(function() j.dump_file('data/ac8_offscreen_group_controls.json', groupCfg, 2) end)
             end
         end
 
