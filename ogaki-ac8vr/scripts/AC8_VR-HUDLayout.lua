@@ -237,6 +237,7 @@ local function apply()
         end
     end
     S.measured={scoreY=score.Y,timeY=time.Y,gap=gap,targetRequestedY=goal,x=x,y=y}
+end
 -- Disabled to prevent tearing TargetText away from CampaignInfo; CampaignInfo moves as a unified widget
 -- uevr.sdk.callbacks.on_post_engine_tick(function()
 --     if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('hudLayout') end
