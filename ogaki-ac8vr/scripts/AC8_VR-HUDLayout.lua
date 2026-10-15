@@ -237,14 +237,14 @@ local function apply()
         end
     end
     S.measured={scoreY=score.Y,timeY=time.Y,gap=gap,targetRequestedY=goal,x=x,y=y}
-end
-uevr.sdk.callbacks.on_post_engine_tick(function()
-    if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('hudLayout') end
-    local ok,err=pcall(apply);if not ok then S.status=tostring(err) end
-    if not S.stopped and S.ticks%120==0 then
-        
-    end
-end)
+-- Disabled to prevent tearing TargetText away from CampaignInfo; CampaignInfo moves as a unified widget
+-- uevr.sdk.callbacks.on_post_engine_tick(function()
+--     if rawget(_G,'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('hudLayout') end
+--     local ok,err=pcall(apply);if not ok then S.status=tostring(err) end
+--     if not S.stopped and S.ticks%120==0 then
+--         
+--     end
+-- end)
 pcall(function() uevr.sdk.callbacks.on_script_reset(S.restore) end)
 
 end)(AC8Runtime.host('layout','ac8_campaign_target_row.lua'),AC8Runtime.json,AC8Runtime.log)
@@ -1046,13 +1046,12 @@ function R.applyHUDLayoutIntegrated()
         applyElement(radarParent, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 3. AircraftInfo (Common draw container: PlaneCanvas / IconsCanvas / PlayerState)
+    -- 3. AircraftInfo (Top-level player status container: WBP_PlayerStateWidget)
     local infoParent = cachedTargets.info
     if not infoParent or not R.isLiveObject(infoParent) then
-        infoParent = findDescendantByName(root, 'PlaneCanvas')
-            or findDescendantByName(root, 'IconsCanvas')
-            or findDescendantByName(root, 'WBP_PlayerStateWidget')
+        infoParent = findDescendantByName(root, 'WBP_PlayerStateWidget')
             or refs.info
+            or findDescendantByName(root, 'PlaneCanvas')
         cachedTargets.info = infoParent
     end
     if infoParent and he.info then
@@ -1062,11 +1061,11 @@ function R.applyHUDLayoutIntegrated()
         applyElement(infoParent, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 4. Score / MissionInfo (CampaignInfo)
+    -- 4. Score / MissionInfo (United CampaignInfo container)
     local scoreWidget = refs.campaign or cachedTargets.score
     if not scoreWidget or not R.isLiveObject(scoreWidget) then
-        scoreWidget = findDescendantByName(root, 'CampaignInfo')
-            or findDescendantByName(root, 'WBP_HUD_SubWidgets_Parts_CampaignInfo')
+        scoreWidget = findDescendantByName(root, 'WBP_HUD_SubWidgets_Parts_CampaignInfo')
+            or findDescendantByName(root, 'CampaignInfo')
             or refs.score
         cachedTargets.score = scoreWidget
     end
@@ -1077,18 +1076,38 @@ function R.applyHUDLayoutIntegrated()
         applyElement(scoreWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
     end
 
-    -- 5. Locator (WBP_LocatorWidget / LowestPriorityDynamicDrawCanvas)
-    local locatorWidget = cachedTargets.locator
-    if not locatorWidget or not R.isLiveObject(locatorWidget) then
-        locatorWidget = findDescendantByName(root, 'WBP_LocatorWidget')
-            or refs.locator
-        cachedTargets.locator = locatorWidget
-    end
-    if locatorWidget and he.locator then
+    -- 5. Locator (C++ DLL inline-hook synchronization & UMG widget)
+    if he.locator then
         local cfg = he.locator
-        local tx = 0.0 + (cfg.x or 0.0)
-        local ty = 0.0 - (cfg.y or 0.0)
-        applyElement(locatorWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        local ox = cfg.x or 0.0
+        local oy = -950.0 - (cfg.y or 0.0)
+        local sc = cfg.scale or 0.5
+        local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
+        if cachedTargets.lastLocatorSync ~= key then
+            cachedTargets.lastLocatorSync = key
+            local jsonText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "offsetY": %.1f,\n  "scale": %.2f\n}\n', ox, oy, sc)
+            pcall(function()
+                local f = io.open('data/ac8_target_arrow_shift_controls.json', 'w')
+                if f then f:write(jsonText); f:close() end
+            end)
+            pcall(function()
+                local f = io.open('data/ac8_offscreen_group_controls.json', 'w')
+                if f then
+                    local gText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0, sc * 0.96)
+                    f:write(gText); f:close()
+                end
+            end)
+        end
+
+        local locatorWidget = cachedTargets.locator
+        if not locatorWidget or not R.isLiveObject(locatorWidget) then
+            locatorWidget = findDescendantByName(root, 'WBP_LocatorWidget')
+                or refs.locator
+            cachedTargets.locator = locatorWidget
+        end
+        if locatorWidget then
+            applyElement(locatorWidget, ox, 0.0 - (cfg.y or 0.0), cfg.scale or 1.0, cfg.opacity or 0.95, true)
+        end
     end
 
     -- 6. Draw canvas (Background)
@@ -1150,7 +1169,11 @@ end
 
 host.sdk.callbacks.on_post_engine_tick(function()
     if instantCycleActive then updateInstantAwakeCycle() end
-    if R.tick % 4 == 0 then pcall(R.applyHUDLayoutIntegrated) end
+end)
+
+-- Execute on EVERY frame draw before Slate paints to completely eliminate flicker/tearing
+uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
+    pcall(R.applyHUDLayoutIntegrated)
 end)
 
 host.sdk.callbacks.on_script_reset(function()
