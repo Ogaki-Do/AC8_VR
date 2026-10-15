@@ -239,6 +239,7 @@ end
 
 function R.reloadCustomHUDConfig()
  R.customHUDConfig, R.customHUDConfigPath = loadCustomHUDConfig()
+ if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated) end
  if R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  if R.applyActiveCameraOffset then pcall(R.applyActiveCameraOffset) end
  print('[AC8-VR] Configuration reloaded from ' .. tostring(R.customHUDConfigPath))
@@ -425,6 +426,7 @@ end
 -- =========================================================================
 -- Stepped Sliders with [+] / [-] buttons (Old ac8_ladder_fix_v19 compliant)
 -- =========================================================================
+local hudActionMsg = ''
 local function renderSteppedSlider(ui, label, tableRef, key, min_v, max_v, step, id)
  local cur = (tableRef and type(tableRef[key]) == 'number') and tableRef[key] or 0.0
  local changed = false
@@ -444,7 +446,6 @@ local function renderSteppedSlider(ui, label, tableRef, key, min_v, max_v, step,
  if ui.text then ui.text(string.format(' %s: %+.0f px', label, cur)) end
  if changed then
   tableRef[key] = cur
-  R.saveCustomHUDConfig()
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
@@ -469,7 +470,6 @@ local function renderSteppedScale(ui, label, tableRef, key, min_v, max_v, step, 
  if ui.text then ui.text(string.format(' %s: %.2fx', label, cur)) end
  if changed then
   tableRef[key] = cur
-  R.saveCustomHUDConfig()
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
@@ -494,7 +494,6 @@ local function renderSteppedOpacity(ui, label, tableRef, key, min_v, max_v, step
  if ui.text then ui.text(string.format(' %s: %.2f', label, cur)) end
  if changed then
   tableRef[key] = cur
-  R.saveCustomHUDConfig()
   if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
   elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
  end
@@ -638,13 +637,13 @@ pcall(function()
    if ui.button and ui.same_line then
     if ui.button('Save##btn_save') then
      R.saveCustomHUDConfig()
+     hudActionMsg = '[OK] Configuration saved to disk.'
      print('[AC8-VR] Configuration saved to disk.')
     end
     ui.same_line()
     if ui.button('Load Saved##btn_load') then
      R.reloadCustomHUDConfig()
-     if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
-     elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+     hudActionMsg = '[OK] Loaded saved configuration from disk.'
      print('[AC8-VR] Configuration reloaded from disk.')
     end
     ui.same_line()
@@ -660,12 +659,15 @@ pcall(function()
       h.locator = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.drawcanvas = { scale = 1.0, opacity = 0.95 }
-      R.saveCustomHUDConfig()
       if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
       elseif R.applyAllHUDCustomPositions then pcall(R.applyAllHUDCustomPositions) end
+      hudActionMsg = '[RESET] Reset to base defaults. (Press Save if you want to write to disk)'
       print('[AC8-VR] All HUD elements reset to base defaults.')
      end
     end
+   end
+   if hudActionMsg and hudActionMsg ~= '' and ui.text then
+    ui.text(hudActionMsg)
    end
 
    -- Emergency Recovery Button
