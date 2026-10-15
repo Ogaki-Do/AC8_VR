@@ -147,11 +147,8 @@ local journals={
  ['ac8_hangar_restore_v48.json']=true,
  ['ac8_ladder.json']=true,
  ['ac8_hud_layout_cache.json']=true,
- ['data/CustomHUDPosition.json']=true,
  ['CustomHUDPosition.json']=true,
- ['data/ac8_target_arrow_shift_controls.json']=true,
  ['ac8_target_arrow_shift_controls.json']=true,
- ['data/ac8_offscreen_group_controls.json']=true,
  ['ac8_offscreen_group_controls.json']=true
 }
 R.realJSON = realJSON
@@ -241,7 +238,7 @@ R.getDataDir = getDataDir
 local function loadCustomHUDConfig()
  local dir = getDataDir()
  local absPath = dir .. '/CustomHUDPosition.json'
- local paths = { 'CustomHUDPosition.json', absPath, 'data/CustomHUDPosition.json' }
+ local paths = { 'CustomHUDPosition.json' }
  for _, p in ipairs(paths) do
   local ok, data = pcall(function() return realJSON.load_file(p) end)
   if ok and type(data) == 'table' then
@@ -323,9 +320,7 @@ function R.syncLocatorConfigToDLL()
  if j and j.dump_file then
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
   local groupCfg = { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }
-  pcall(function() j.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
   pcall(function() j.dump_file('ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
-  pcall(function() j.dump_file('data/ac8_offscreen_group_controls.json', groupCfg, 2) end)
   pcall(function() j.dump_file('ac8_offscreen_group_controls.json', groupCfg, 2) end)
  end
  print(string.format('[AC8-VR] Synced Locator to DLL: ox=%.1f, oy=%.1f, sc=%.2f', ox, oy, sc))
@@ -344,7 +339,6 @@ function R.saveCustomHUDConfig()
  local dir = getDataDir()
  local absPath = dir .. '/CustomHUDPosition.json'
  pcall(function() realJSON.dump_file('CustomHUDPosition.json', R.customHUDConfig, 2) end)
- pcall(function() realJSON.dump_file('data/CustomHUDPosition.json', R.customHUDConfig, 2) end)
  -- io.open による絶対パス直接書き込み（UEVR制限を安全にバイパス）
  pcall(function()
   local text = nil
