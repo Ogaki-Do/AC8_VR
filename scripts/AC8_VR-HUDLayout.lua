@@ -1322,7 +1322,7 @@ function R.applyHUDLayoutIntegrated()
 
         local locX = cfg.x or 0.0
         local locY = cfg.y or 0.0
-        local locSc = (cfg.scale or 1.0) * 0.5
+        local locSc = cfg.scale or 0.5
         local ox = lx + locX
         local oy = -950.0 - ly - locY
         local sc = locSc * lsc
@@ -1330,9 +1330,18 @@ function R.applyHUDLayoutIntegrated()
         local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
         if cachedTargets.lastLocatorSync ~= key then
             cachedTargets.lastLocatorSync = key
-            if R.syncLocatorConfigToDLL then
-                pcall(R.syncLocatorConfigToDLL)
-            end
+            local jsonText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "offsetY": %.1f,\n  "scale": %.2f\n}\n', ox, oy, sc)
+            pcall(function()
+                local f = io.open('data/ac8_target_arrow_shift_controls.json', 'w')
+                if f then f:write(jsonText); f:close() end
+            end)
+            pcall(function()
+                local f = io.open('data/ac8_offscreen_group_controls.json', 'w')
+                if f then
+                    local gText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0, sc * 0.96)
+                    f:write(gText); f:close()
+                end
+            end)
         end
 
         local locatorWidget = cachedTargets.locator
