@@ -330,10 +330,18 @@ local function apply()
         end
     end
     local ladder,scale=transform(S.altimeter);if not ladder or not scale then return end
-    local wanted={X=ladder.X+S.offsetX,Y=ladder.Y+S.offsetY}
+    local ucfg = AC8Runtime and AC8Runtime.customHUDConfig and AC8Runtime.customHUDConfig.hudElements and AC8Runtime.customHUDConfig.hudElements.heading
+    local uh_x = (ucfg and type(ucfg.x) == "number") and ucfg.x or 0.0
+    local uh_y = (ucfg and type(ucfg.y) == "number") and ucfg.y or 0.0
+    local uh_sc = (ucfg and type(ucfg.scale) == "number") and ucfg.scale or 1.0
+    local uh_op = (ucfg and type(ucfg.opacity) == "number") and ucfg.opacity or 1.0
+
+    local wanted={X=ladder.X+S.offsetX+uh_x,Y=ladder.Y+S.offsetY-uh_y}
+    local wantedScale={X=scale.X*uh_sc,Y=scale.Y*uh_sc}
     local translation,currentScale=transform(S.velocity);local changed=false
     if not matches(translation,wanted,.01) then call(S.velocity,'SetRenderTranslation',wanted);changed=true end
-    if not matches(currentScale,scale,.001) then call(S.velocity,'SetRenderScale',scale);changed=true end
+    if not matches(currentScale,wantedScale,.001) then call(S.velocity,'SetRenderScale',wantedScale);changed=true end
+    call(S.velocity,'SetRenderOpacity',uh_op)
 
     if not S.lastIconPin or S.ticks-S.lastIconPin>=S.slowInterval then
         local iconTranslation,iconScale=transform(S.icon)
@@ -932,6 +940,224 @@ host.sdk.callbacks.on_post_engine_tick(function()
  if S.reparented and R.isLiveObject(S.slot)then apply(S.cfg)end
 end)
 host.sdk.callbacks.on_script_reset(restore)
+end
+
+-- =========================================================================
+-- AC8 Integrated HUD Layout & Display Engine
+-- Unifies PitchLadder, Radar, AircraftInfo, Score, Locator, Whisky, DrawCanvas
+-- =========================================================================
+do
+local host = R.host('layout', 'integrated HUD positioning and presentation')
+local cachedTargets = {}
+
+local function findDescendantByName(root, name, maxDepth)
+    if not root or not R.isLiveObject(root) then return nil end
+    maxDepth = maxDepth or 16
+    local stack = { { w = root, d = 0 } }
+    local seen = {}
+    while #stack > 0 do
+        local top = table.remove(stack)
+        local cur = top.w
+        local depth = top.d
+        if cur and depth <= maxDepth then
+            local addr = tostring(cur)
+            if not seen[addr] then
+                seen[addr] = true
+                local fn = R.objectCall(cur, 'get_full_name') or ''
+                if fn:find(name, 1, true) then return cur end
+                local count = R.objectCall(cur, 'GetChildrenCount') or 0
+                if type(count) == 'number' and count > 0 then
+                    for i = 0, count - 1 do
+                        local child = R.objectCall(cur, 'GetChildAt', i)
+                        if child then table.insert(stack, { w = child, d = depth + 1 }) end
+                    end
+                end
+                local wt = R.objectCall(cur, 'get_property', 'WidgetTree')
+                if wt then
+                    local rootWidget = R.objectCall(wt, 'get_property', 'RootWidget')
+                    if rootWidget then table.insert(stack, { w = rootWidget, d = depth + 1 }) end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function applyElement(widget, tx, ty, sc, op, applyPos)
+    if not widget or not R.isLiveObject(widget) then return end
+    if applyPos ~= false and type(tx) == 'number' and type(ty) == 'number' then
+        pcall(function() widget:SetRenderTranslation({ X = tx, Y = ty }) end)
+    end
+    if type(sc) == 'number' and sc > 0 then
+        pcall(function() widget:SetRenderScale({ X = sc, Y = sc }) end)
+    end
+    if type(op) == 'number' then
+        pcall(function() widget:SetRenderOpacity(op) end)
+    end
+end
+
+function R.applyHUDLayoutIntegrated()
+    local ctx = R.context
+    if not ctx or not ctx.flight then return end
+    local refs = R.hudLayoutRefs or {}
+    local root = refs.root or (ctx and ctx.root)
+    local he = R.customHUDConfig and R.customHUDConfig.hudElements
+    if not he then return end
+
+    -- 1. PitchLadder (Altimeter / ChroniclePersistent)
+    local ladderWidget = refs.altimeter or cachedTargets.ladder
+    if not ladderWidget or not R.isLiveObject(ladderWidget) then
+        ladderWidget = findDescendantByName(root, 'Altimeter') or findDescendantByName(root, 'ChroniclePersistent')
+        cachedTargets.ladder = ladderWidget
+    end
+    if ladderWidget and he.ladder then
+        local cfg = he.ladder
+        local tx = 690.0 + (cfg.x or 0.0)
+        local ty = 756.0 - (cfg.y or 0.0)
+        applyElement(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 1-2. WhiskyMarkPanel
+    local whiskyWidget = refs.whisky or cachedTargets.whisky
+    if not whiskyWidget or not R.isLiveObject(whiskyWidget) then
+        whiskyWidget = findDescendantByName(root, 'WhiskyMarkPanel')
+        cachedTargets.whisky = whiskyWidget
+    end
+    if whiskyWidget and he.whisky then
+        local cfg = he.whisky
+        local tx = 10.0 + (cfg.x or 0.0)
+        local ty = 6.0 - (cfg.y or 0.0)
+        applyElement(whiskyWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 2. Radar (Parent container: MIniMapCanvas / CanvasPanel_63 / MiniMapLayer)
+    local radarParent = cachedTargets.radar
+    if not radarParent or not R.isLiveObject(radarParent) then
+        radarParent = findDescendantByName(root, 'MIniMapCanvas')
+            or findDescendantByName(root, 'CanvasPanel_63')
+            or findDescendantByName(root, 'MiniMapLayer')
+            or refs.radar
+        cachedTargets.radar = radarParent
+    end
+    if radarParent and he.radar then
+        local cfg = he.radar
+        local tx = 0.0 + (cfg.x or 0.0)
+        local ty = 0.0 - (cfg.y or 0.0)
+        applyElement(radarParent, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 3. AircraftInfo (Common draw container: PlaneCanvas / IconsCanvas / PlayerState)
+    local infoParent = cachedTargets.info
+    if not infoParent or not R.isLiveObject(infoParent) then
+        infoParent = findDescendantByName(root, 'PlaneCanvas')
+            or findDescendantByName(root, 'IconsCanvas')
+            or findDescendantByName(root, 'WBP_PlayerStateWidget')
+            or refs.info
+        cachedTargets.info = infoParent
+    end
+    if infoParent and he.info then
+        local cfg = he.info
+        local tx = 0.0 + (cfg.x or 0.0)
+        local ty = 0.0 - (cfg.y or 0.0)
+        applyElement(infoParent, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 4. Score / MissionInfo (CampaignInfo)
+    local scoreWidget = refs.campaign or cachedTargets.score
+    if not scoreWidget or not R.isLiveObject(scoreWidget) then
+        scoreWidget = findDescendantByName(root, 'CampaignInfo')
+            or findDescendantByName(root, 'WBP_HUD_SubWidgets_Parts_CampaignInfo')
+            or refs.score
+        cachedTargets.score = scoreWidget
+    end
+    if scoreWidget and he.score then
+        local cfg = he.score
+        local tx = 0.0 + (cfg.x or 0.0)
+        local ty = 0.0 - (cfg.y or 0.0)
+        applyElement(scoreWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 5. Locator (WBP_LocatorWidget / LowestPriorityDynamicDrawCanvas)
+    local locatorWidget = cachedTargets.locator
+    if not locatorWidget or not R.isLiveObject(locatorWidget) then
+        locatorWidget = findDescendantByName(root, 'WBP_LocatorWidget')
+            or refs.locator
+        cachedTargets.locator = locatorWidget
+    end
+    if locatorWidget and he.locator then
+        local cfg = he.locator
+        local tx = 0.0 + (cfg.x or 0.0)
+        local ty = 0.0 - (cfg.y or 0.0)
+        applyElement(locatorWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    end
+
+    -- 6. Draw canvas (Background)
+    local drawWidget = refs.maincv or cachedTargets.draw
+    if not drawWidget or not R.isLiveObject(drawWidget) then
+        drawWidget = findDescendantByName(root, 'LowestPriorityDynamicDrawCanvas')
+            or findDescendantByName(root, 'WorldToScreenDrawCanvas')
+            or findDescendantByName(root, 'MainCanvas')
+        cachedTargets.draw = drawWidget
+    end
+    if drawWidget and he.drawcanvas then
+        local cfg = he.drawcanvas
+        applyElement(drawWidget, 0, 0, cfg.scale or 1.0, cfg.opacity or 0.95, false)
+    end
+end
+
+-- Compatibility alias for Core.lua and other callers
+R.applyAllHUDCustomPositions = R.applyHUDLayoutIntegrated
+
+-- =========================================================================
+-- Emergency: Force Show ALL HUD (4-frame dormant elements unlocker)
+-- =========================================================================
+local instantCycleActive = false
+local instantCycleFrame = 0
+
+function R.triggerInstantAwake()
+    instantCycleActive = true
+    instantCycleFrame = 0
+    print('[AC8-VR] Emergency: Force Show ALL HUD triggered via Integrated Layout Engine...')
+end
+
+local function setAllHUDVisibilityCode(visCode)
+    if not uevr or not uevr.api then return end
+    local umg = uevr.api:find_uobject('Class /Script/UMG.Widget')
+    if not umg then return end
+    local ok, objs = pcall(function() return umg:get_objects_matching(false) end)
+    if not ok or type(objs) ~= 'table' then return end
+    for _, w in ipairs(objs) do
+        local fn = R.objectCall(w, 'get_full_name') or ''
+        if fn:find('/Engine/Transient', 1, true) and fn:find('MainFlight', 1, true) then
+            pcall(function() w:SetVisibility(visCode) end)
+        end
+    end
+end
+
+local function updateInstantAwakeCycle()
+    if not instantCycleActive then return end
+    instantCycleFrame = instantCycleFrame + 1
+    if instantCycleFrame == 1 then
+        setAllHUDVisibilityCode(1) -- Collapse
+    elseif instantCycleFrame >= 4 then
+        setAllHUDVisibilityCode(4) -- SelfHitTestInvisible
+        instantCycleActive = false
+        instantCycleFrame = 0
+        pcall(R.applyHUDLayoutIntegrated)
+        print('[AC8-VR] Emergency: Force Show ALL HUD complete! All dormant elements awakened.')
+    end
+end
+
+host.sdk.callbacks.on_post_engine_tick(function()
+    if instantCycleActive then updateInstantAwakeCycle() end
+    if R.tick % 4 == 0 then pcall(R.applyHUDLayoutIntegrated) end
+end)
+
+host.sdk.callbacks.on_script_reset(function()
+    cachedTargets = {}
+    instantCycleActive = false
+    instantCycleFrame = 0
+end)
 end
 
 end

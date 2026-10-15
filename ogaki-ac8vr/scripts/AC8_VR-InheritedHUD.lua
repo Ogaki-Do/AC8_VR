@@ -376,6 +376,13 @@ local function assert_pins(slow)
         if pin.obj ~= nil and (slow or not pin.slow) then
             local x, y = pin.x, pin.y
             if pin.dyn then x = R0_X + cal.kx; y = R0_Y + cal.ky end
+            if pin.tag == "WhiskyMarkPanel(W)" and AC8Runtime and AC8Runtime.customHUDConfig and AC8Runtime.customHUDConfig.hudElements and AC8Runtime.customHUDConfig.hudElements.whisky then
+                local we = AC8Runtime.customHUDConfig.hudElements.whisky
+                x = x + (we.x or 0.0)
+                y = y + (we.y or 0.0)
+                if we.scale then pcall(function() pin.obj:SetRenderScale({ X = we.scale, Y = we.scale }) end) end
+                if we.opacity then pcall(function() pin.obj:SetRenderOpacity(we.opacity) end) end
+            end
             local cx, cy = get_rt_xy(pin.obj)
             local okx = (type(cx) == "number" and math.abs(cx - x) < 1)
             local oky = (type(cy) == "number" and math.abs(cy - y) < 1)
@@ -1508,7 +1515,8 @@ local function lt14_apply()apply()end
 pcall(function()uevr.sdk.callbacks.on_pre_viewport_client_draw(function()
  if rawget(_G, 'AC8Runtime') and AC8Runtime.profileCount then AC8Runtime.profileCount('ladderDraw') end
  if not layout_scope_sync or not layout_scope_sync()then return end
- for _,t in ipairs(TARGETS)do if t.key=='ladder'then pcall(apply_one,t)end end
+ -- Handled exclusively by AC8_VR-HUDLayout.lua to eliminate frame fight and allow full pitch ladder positioning
+ -- for _,t in ipairs(TARGETS)do if t.key=='ladder'then pcall(apply_one,t)end end
 end)end)
 
 -- widget reflection/writes run on the game thread. The old pre-Slate
