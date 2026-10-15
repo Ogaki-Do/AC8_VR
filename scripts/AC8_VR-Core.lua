@@ -192,6 +192,7 @@ local function ensureCustomHUDDefaults(cfg)
  if not he.info then he.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.score then he.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.locator then he.locator = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
+ if not he.wingman then he.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 } end
  if not he.drawcanvas then he.drawcanvas = { scale = 1.0, opacity = 0.95 } end
 
  if not cfg.cameraOffsets then
@@ -623,7 +624,10 @@ pcall(function()
    -- 5. Locator (Screen-edge arrows)
    renderElementBlock(ui, 'Locator (画面外ターゲット矢印・ロケーター)', 'locator', true)
 
-   -- 6. Draw canvas (Background)
+   -- 6. Wingman (Formation Command / 僚機コマンド)
+   renderElementBlock(ui, 'Wingman (編隊指示 / 僚機コマンド)', 'wingman', true)
+
+   -- 7. Draw canvas (Background)
    renderElementBlock(ui, 'Draw canvas (Background / メイン背景)', 'drawcanvas', false)
 
    if ui.separator then ui.separator() end
@@ -652,6 +656,7 @@ pcall(function()
       h.info = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.score = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.locator = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
+      h.wingman = { x = 0.0, y = 0.0, scale = 1.0, opacity = 0.95 }
       h.drawcanvas = { scale = 1.0, opacity = 0.95 }
       R.saveCustomHUDConfig()
       if R.applyHUDLayoutIntegrated then pcall(R.applyHUDLayoutIntegrated)
