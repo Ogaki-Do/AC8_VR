@@ -224,6 +224,15 @@ function R.saveCustomHUDConfig()
  local p=R.customHUDConfigPath or 'data/CustomHUDPosition.json'
  pcall(function()realJSON.dump_file(p,R.customHUDConfig,2)end)
  pcall(function()realJSON.dump_file('CustomHUDPosition.json',R.customHUDConfig,2)end)
+ local loc = R.customHUDConfig.hudElements and R.customHUDConfig.hudElements.locator
+ if loc then
+  local ox = loc.x or 0.0
+  local oy = -950.0 - (loc.y or 0.0)
+  local sc = loc.scale or 0.5
+  local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
+  pcall(function() realJSON.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
+  pcall(function() realJSON.dump_file('data/ac8_offscreen_group_controls.json', { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }, 2) end)
+ end
  print('[AC8-VR] Configuration saved to ' .. p)
 end
 
