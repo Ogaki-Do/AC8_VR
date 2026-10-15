@@ -1174,23 +1174,52 @@ function R.applyHUDLayoutIntegrated()
     local he = R.customHUDConfig and R.customHUDConfig.hudElements
     if not he then return end
 
-    -- 1. PitchLadder (Altimeter / ChroniclePersistent) - Fixed VR reference frame
+    -- 1. PitchLadder (Altimeter / ChroniclePersistent) - Fixed VR reference frame & Master coordinate base
     local ladderWidget = refs.altimeter or cachedTargets.ladder
     if not ladderWidget or not R.isLiveObject(ladderWidget) then
         ladderWidget = findDescendantByName(root, 'Altimeter') or findDescendantByName(root, 'ChroniclePersistent')
         cachedTargets.ladder = ladderWidget
     end
-    if ladderWidget and he.ladder then
-        local cfg = he.ladder
-        local tx = 690.0 + (cfg.x or 0.0)
-        local ty = 756.0 - (cfg.y or 0.0)
-        applyElementDirect(ladderWidget, tx, ty, cfg.scale or 1.0, cfg.opacity or 0.95, true)
+    local lcfg = he.ladder or {}
+    local lx = lcfg.x or 0.0
+    local ly = lcfg.y or 0.0
+    local lsc = lcfg.scale or 1.0
+    local lop = lcfg.opacity or 0.95
+    if ladderWidget then
+        local tx = 690.0 + lx
+        local ty = 756.0 - ly
+        applyElementDirect(ladderWidget, tx, ty, lsc, lop, true)
     end
 
-    -- 1-1. Heading (Flight Path Marker / VelocityIcon)
-    -- Velocity is the parent CanvasPanel; VelocityIcon is the child Image that indicates flight direction.
-    -- Move the PARENT (Velocity) so its initial position matches WhiskyMarkPanel,
-    -- allowing VelocityIcon to freely move relative to Velocity according to game flight physics!
+    -- 1-1. WhiskyMarkPanel (Direct child of Altimeter!)
+    -- In vanilla, WhiskyMarkPanel is a direct child of Altimeter at local offset (10.0, 6.0).
+    -- When Altimeter moves by (lx, -ly), WhiskyMarkPanel automatically tracks it in screen space.
+    -- We ONLY apply the relative adjustment (cfg.x, cfg.y) inside Altimeter, avoiding double-offset drift.
+    local whiskyWidget = refs.whisky or cachedTargets.whisky
+    if not whiskyWidget or not R.isLiveObject(whiskyWidget) then
+        whiskyWidget = findDescendantByName(root, 'WhiskyMarkPanel')
+        cachedTargets.whisky = whiskyWidget
+    end
+    if whiskyWidget and he.whisky then
+        local cfg = he.whisky
+        local wx = cfg.x or 0.0
+        local wy = cfg.y or 0.0
+        local wsc = cfg.scale or 1.0
+        local wop = cfg.opacity or 0.95
+        local tx = 10.0 + wx
+        local ty = 6.0 - wy
+        local sc = 3.90 * wsc
+        applyElementDirect(whiskyWidget, tx, ty, sc, wop, true)
+    end
+
+    -- 1-2. Heading (Flight Path Marker / VelocityIcon)
+    -- Velocity is the sibling of Altimeter under AltimeterPanel.
+    -- Vanilla baseline: Altimeter is at (690, 756), Velocity is at (-1223, -444).
+    -- Straight flight places child VelocityIcon exactly at WhiskyMarkPanel center!
+    -- When PitchLadder moves by (lx, -ly), Velocity translates with identical delta:
+    --   tx = -1223.0 + lx + (cfg.x or 0.0)
+    --   ty = -444.0 - ly - (cfg.y or 0.0)
+    -- Child VelocityIcon's relative motion from flight physics is 100% preserved.
     local velContainer = refs.vel or cachedTargets.vel
     if not velContainer or not R.isLiveObject(velContainer) then
         velContainer = findDescendantByName(root, 'Velocity')
@@ -1204,42 +1233,22 @@ function R.applyHUDLayoutIntegrated()
 
     if he.heading then
         local cfg = he.heading
-        local lcfg = he.ladder or {}
-        local lx = lcfg.x or 0.0
-        local ly = lcfg.y or 0.0
-        local lsc = lcfg.scale or 1.0
-        local sc = lsc * (cfg.scale or 1.0)
-        local op = cfg.opacity or 0.95
+        local hx = cfg.x or 0.0
+        local hy = cfg.y or 0.0
+        local hsc = cfg.scale or 1.0
+        local hop = cfg.opacity or 0.95
+        local sc = 1.13 * lsc * hsc
 
         if velContainer and R.isLiveObject(velContainer) then
-            -- Moving the parent container (Velocity) applies the ladder + heading offset relative to its base,
-            -- matching WhiskyMarkPanel's coordinate behavior in VR space
-            local ox = lx + (cfg.x or 0.0)
-            local oy = ly + (cfg.y or 0.0)
-            applyElementWithBase(velContainer, ox, oy, sc, op, true, nil)
+            local tx = -1223.0 + lx + hx
+            local ty = -444.0 - ly - hy
+            applyElementDirect(velContainer, tx, ty, sc, hop, true)
         end
 
         -- Child VelocityIcon: preserve game's natural relative flight-path offset!
-        -- Only sync opacity on child without overriding its translation
         if velIcon and R.isLiveObject(velIcon) then
-            pcall(function() velIcon:SetRenderOpacity(op) end)
+            pcall(function() velIcon:SetRenderOpacity(hop) end)
         end
-    end
-
-    -- 1-2. WhiskyMarkPanel - Fixed VR reference frame
-    local whiskyWidget = refs.whisky or cachedTargets.whisky
-    if not whiskyWidget or not R.isLiveObject(whiskyWidget) then
-        whiskyWidget = findDescendantByName(root, 'WhiskyMarkPanel')
-        cachedTargets.whisky = whiskyWidget
-    end
-    if whiskyWidget and he.whisky then
-        local cfg = he.whisky
-        local lcfg = he.ladder or {}
-        local tx = 10.0 + (lcfg.x or 0.0) + (cfg.x or 0.0)
-        local ty = 6.0 - (lcfg.y or 0.0) - (cfg.y or 0.0)
-        local sc = (lcfg.scale or 1.0) * (cfg.scale or 1.0)
-        local op = cfg.opacity or 0.95
-        applyElementDirect(whiskyWidget, tx, ty, sc, op, true)
     end
 
     -- 2. Radar (MiniMap, RadarCircle, Corners) - Old customizer prune-nested multi-container approach
@@ -1302,24 +1311,23 @@ function R.applyHUDLayoutIntegrated()
         applyElementWithBase(scoreWidget, ox, oy, sc, op, true, pivot)
     end
 
-    -- 5. Locator (C++ DLL inline-hook synchronization & UMG widget)
+    -- 5. Locator (C++ DLL inline-hook synchronization - PitchLadder Child)
+    -- Base offset -600.0 places target arrow & text right above WhiskyMarkPanel (inside HUD glass, matching reference photo).
+    -- Full synchronization with PitchLadder: follows (lx, ly) so moving PitchLadder moves Locator!
     if he.locator then
         local cfg = he.locator
         local lcfg = he.ladder or {}
-        local wcfg = he.whisky or {}
-        local vp = getViewportSize()
-        local scaleY = vp.Y / 1080.0
-        local scaleX = vp.X / 1920.0
+        local lx = lcfg.x or 0.0
+        local ly = lcfg.y or 0.0
+        local lsc = lcfg.scale or 1.0
 
-        -- Dynamic calculation based on display viewport size & WhiskyMarkPanel alignment
-        local whiskyShiftX = (lcfg.x or 0.0) + (wcfg.x or 0.0)
-        local whiskyShiftY = (lcfg.y or 0.0) + (wcfg.y or 0.0)
-        local baseArrowOffsetY = -950.0 * scaleY
+        local locX = cfg.x or 0.0
+        local locY = cfg.y or 0.0
+        local locSc = cfg.scale or 0.5
+        local ox = lx + locX
+        local oy = -600.0 - ly - locY
+        local sc = locSc * lsc
 
-        local ox = (whiskyShiftX + (cfg.x or 0.0)) * scaleX
-        local oy = baseArrowOffsetY - ((whiskyShiftY + (cfg.y or 0.0)) * scaleY)
-        local sc = cfg.scale or 0.5
-        local op = cfg.opacity or 1.0
         local key = string.format("%.1f_%.1f_%.2f", ox, oy, sc)
         if cachedTargets.lastLocatorSync ~= key then
             cachedTargets.lastLocatorSync = key
@@ -1331,23 +1339,10 @@ function R.applyHUDLayoutIntegrated()
             pcall(function()
                 local f = io.open('data/ac8_offscreen_group_controls.json', 'w')
                 if f then
-                    local gText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0 * scaleX, sc * 0.96)
+                    local gText = string.format('{\n  "enabled": true,\n  "offsetX": %.1f,\n  "scale": %.2f\n}\n', ox - 180.0, sc * 0.96)
                     f:write(gText); f:close()
                 end
             end)
-        end
-
-        local locatorWidget = cachedTargets.locator
-        if not locatorWidget or not R.isLiveObject(locatorWidget) then
-            locatorWidget = findDescendantByName(root, 'WBP_LocatorWidget')
-                or refs.locator
-            cachedTargets.locator = locatorWidget
-        end
-        if locatorWidget then
-            -- Position slightly above whisky mark (by ~60px in 1080p, scaled by viewport)
-            local targetLocX = 10.0 + (whiskyShiftX + (cfg.x or 0.0)) * scaleX
-            local targetLocY = (6.0 - 60.0 * scaleY) - ((whiskyShiftY + (cfg.y or 0.0)) * scaleY)
-            applyElementDirect(locatorWidget, targetLocX, targetLocY, sc, op, true)
         end
     end
 

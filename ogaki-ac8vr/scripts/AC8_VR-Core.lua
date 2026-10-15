@@ -226,21 +226,17 @@ function R.saveCustomHUDConfig()
  pcall(function()realJSON.dump_file(p,R.customHUDConfig,2)end)
  pcall(function()realJSON.dump_file('CustomHUDPosition.json',R.customHUDConfig,2)end)
  local loc = R.customHUDConfig.hudElements and R.customHUDConfig.hudElements.locator
+ local ladder = R.customHUDConfig.hudElements and R.customHUDConfig.hudElements.ladder
  if loc then
-  local vp = (R.getViewportSize and R.getViewportSize()) or { X = 1920.0, Y = 1080.0 }
-  local scaleY = vp.Y / 1080.0
-  local scaleX = vp.X / 1920.0
-  local he = R.customHUDConfig.hudElements
-  local lcfg = he.ladder or {}
-  local wcfg = he.whisky or {}
-  local whiskyShiftX = (lcfg.x or 0.0) + (wcfg.x or 0.0)
-  local whiskyShiftY = (lcfg.y or 0.0) + (wcfg.y or 0.0)
-  local ox = (whiskyShiftX + (loc.x or 0.0)) * scaleX
-  local oy = (-950.0 * scaleY) - ((whiskyShiftY + (loc.y or 0.0)) * scaleY)
-  local sc = loc.scale or 0.5
+  local lx = (ladder and ladder.x) or 0.0
+  local ly = (ladder and ladder.y) or 0.0
+  local lsc = (ladder and ladder.scale) or 1.0
+  local ox = lx + (loc.x or 0.0)
+  local oy = -600.0 - ly - (loc.y or 0.0)
+  local sc = (loc.scale or 0.5) * lsc
   local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
   pcall(function() realJSON.dump_file('data/ac8_target_arrow_shift_controls.json', arrowCfg, 2) end)
-  pcall(function() realJSON.dump_file('data/ac8_offscreen_group_controls.json', { enabled = true, offsetX = ox - 180.0 * scaleX, scale = sc * 0.96 }, 2) end)
+  pcall(function() realJSON.dump_file('data/ac8_offscreen_group_controls.json', { enabled = true, offsetX = ox - 180.0, scale = sc * 0.96 }, 2) end)
  end
  print('[AC8-VR] Configuration saved to ' .. p)
 end
@@ -594,7 +590,19 @@ pcall(function()
      renderSteppedSlider(ui, 'PitchLadder Y (Up+ / Dn-)', t_ladder, 'y', -2500.0, 2500.0, 5.0, 'ladder_y')
      renderSteppedOpacity(ui, 'Opacity', t_ladder, 'opacity', 0.0, 1.0, 0.05, 'ladder_op')
 
-     -- SUB-NODE: PichHeading (PitchLadder Child)
+     -- SUB-NODE: WhiskyMarkPanel (PitchLadder Child)
+     if ui.tree_node and ui.tree_node('WhiskyMarkPanel (正面Wマーク / PitchLadder Child)##tree_whisky') then
+      local t_whisky = he.whisky
+      if t_whisky then
+       renderSteppedScale(ui, 'WhiskyMark Scale', t_whisky, 'scale', 0.1, 4.0, 0.05, 'whisky_sc')
+       renderSteppedSlider(ui, 'WhiskyMark X', t_whisky, 'x', -2500.0, 2500.0, 5.0, 'whisky_x')
+       renderSteppedSlider(ui, 'WhiskyMark Y (Up+ / Dn-)', t_whisky, 'y', -2500.0, 2500.0, 5.0, 'whisky_y')
+       renderSteppedOpacity(ui, 'WhiskyMark Opacity', t_whisky, 'opacity', 0.0, 1.0, 0.05, 'whisky_op')
+      end
+      if ui.tree_pop then ui.tree_pop() end
+     end
+
+     -- SUB-NODE: PichHeading (進行方向 / PitchLadder Child)
      if ui.tree_node and ui.tree_node('PichHeading (進行方向 / PitchLadder Child)##tree_heading') then
       local t_heading = he.heading
       if t_heading then
@@ -606,14 +614,13 @@ pcall(function()
       if ui.tree_pop then ui.tree_pop() end
      end
 
-     -- SUB-NODE: WhiskyMarkPanel (PitchLadder Child)
-     if ui.tree_node and ui.tree_node('WhiskyMarkPanel (正面Wマーク / PitchLadder Child)##tree_whisky') then
-      local t_whisky = he.whisky
-      if t_whisky then
-       renderSteppedScale(ui, 'WhiskyMark Scale', t_whisky, 'scale', 0.1, 4.0, 0.05, 'whisky_sc')
-       renderSteppedSlider(ui, 'WhiskyMark X', t_whisky, 'x', -2500.0, 2500.0, 5.0, 'whisky_x')
-       renderSteppedSlider(ui, 'WhiskyMark Y (Up+ / Dn-)', t_whisky, 'y', -2500.0, 2500.0, 5.0, 'whisky_y')
-       renderSteppedOpacity(ui, 'WhiskyMark Opacity', t_whisky, 'opacity', 0.0, 1.0, 0.05, 'whisky_op')
+     -- SUB-NODE: Locator (ターゲット矢印・ロケーター / PitchLadder Child)
+     if ui.tree_node and ui.tree_node('Locator (ターゲット矢印・ロケーター / PitchLadder Child)##tree_locator') then
+      local t_locator = he.locator
+      if t_locator then
+       renderSteppedScale(ui, 'Locator Scale', t_locator, 'scale', 0.1, 4.0, 0.05, 'locator_sc')
+       renderSteppedSlider(ui, 'Locator X', t_locator, 'x', -2500.0, 2500.0, 5.0, 'locator_x')
+       renderSteppedSlider(ui, 'Locator Y (Up+ / Dn-)', t_locator, 'y', -2500.0, 2500.0, 5.0, 'locator_y')
       end
       if ui.tree_pop then ui.tree_pop() end
      end
@@ -629,9 +636,6 @@ pcall(function()
 
    -- 4. Score / MissionInfo
    renderElementBlock(ui, 'Score / MissionInfo (スコア・作戦目標・タイマー一括)', 'score', true)
-
-   -- 5. Locator (Screen-edge arrows - C++ native geometry)
-   renderElementBlock(ui, 'Locator (画面外ターゲット矢印 / C++頂点フック)', 'locator', true, false)
 
    -- 6. Wingman (Formation Command / 僚機コマンド)
    renderElementBlock(ui, 'Wingman (編隊指示 / 僚機コマンド)', 'wingman', true)
