@@ -58,7 +58,7 @@ local function refreshTargets(R)
   if #actors==0 then
    local actorClass=targetDiscovery.actorClass
    if not R.isLiveObject(actorClass) then
-    pcall(function() actorClass=uevr.api:find_uobject('BlueprintGeneratedClass /Game/Blueprint/Game/HUD/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C') end)
+    pcall(function() actorClass=uevr.api:find_uobject('BlueprintGeneratedClass /Game/UI/Material/HUD/TargetContainer3DUI/ChronicleTargetContainerActorBP.ChronicleTargetContainerActorBP_C') end)
     targetDiscovery.actorClass=actorClass
    end
    if actorClass then
@@ -128,7 +128,7 @@ local function update()
  local raise=(wt and type(wt.labelRaise)=='number')and wt.labelRaise or(valid(w.labelRaise,-200,200)and w.labelRaise or 0)
  local leftDrop=valid(w.leftLabelDrop,-200,200)and w.leftLabelDrop or 0
  local on=address~=0 and(wt~=nil or t.enabled==true)and w.enabled~=false
- local packet=string.format('%d|%d|%.9g|%.9g|%.9g|%.9g|%d|%.9g|%.9g',address,on and 1 or 0,box,label,font,spacing,w.useFlatLabelOffsets~=false and 1 or 0,raise,leftDrop)
+ local packet=string.format('%.0f|%d|%.9g|%.9g|%.9g|%.9g|%d|%.9g|%.9g',address,on and 1 or 0,box,label,font,spacing,w.useFlatLabelOffsets~=false and 1 or 0,raise,leftDrop)
  if packet~=S.packet then call(uevr.api,'dispatch_custom_event','AC8_WorldTargetLayout',packet);S.packet=packet end
  S.controls={enabled=on,boxScale=box,labelScale=label,fontScale=font,lineSpacing=spacing,useFlatLabelOffsets=w.useFlatLabelOffsets~=false,labelRaise=raise,leftLabelDrop=leftDrop}
 end

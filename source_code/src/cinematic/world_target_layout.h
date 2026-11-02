@@ -20,6 +20,7 @@ using PlacementFunction=void(*)(const void*,Object,const Position*);
 inline const UEVR_PluginInitializeParam* host=nullptr;
 inline uintptr_t gameBase=0;
 inline bool ready=false;
+inline UEVR_UObjectHandle targetContainerClass=nullptr;
 inline SizeFunction originalSize=nullptr;
 inline UpdateFunction originalUpdate=nullptr;
 inline PlacementFunction originalPlacement=nullptr;
@@ -56,9 +57,9 @@ inline bool snapshot(Controls& value){std::unique_lock<std::mutex> guard(lock,st
 struct Scope {
  Object actor=nullptr,previous=nullptr;std::array<float,14> original{};
  Scope(Object value){
-  Controls c{};uintptr_t table=0;uint32_t flags=0;
+  Controls c{};uint32_t flags=0;
   if(!ready||!value||value==scopedActor||!snapshot(c)||!c.enabled||!c.level||
-   !read(value,table)||table!=gameBase+0xca794e8||
+   !targetContainerClass||!host->sdk->uobject->is_a(value,reinterpret_cast<UEVR_UClassHandle>(targetContainerClass))||
    !read(reinterpret_cast<unsigned char*>(value)+8,flags)||(flags&0x30)||
    reinterpret_cast<uintptr_t>(host->sdk->uobject->get_outer(value))!=c.level)return;
   for(size_t i=0;i<fields.size();++i)if(!read(reinterpret_cast<unsigned char*>(value)+fields[i].offset,original[i]))return;
@@ -98,7 +99,8 @@ inline void control(const char* event,const char* data){
 }
 #ifndef AC8_WORLD_TARGET_FIXTURE
 inline bool schema(){
- const auto cls=host->sdk->uobject_array->find_uobject(L"Class /Script/Live.LiveTargetContainerActor");if(!cls)return false;
+ targetContainerClass=host->sdk->uobject_array->find_uobject(L"Class /Script/Live.LiveTargetContainerActor");if(!targetContainerClass)return false;
+ const auto cls=targetContainerClass;
  for(const auto& field:fields){const auto p=host->sdk->ustruct->find_property(reinterpret_cast<UEVR_UStructHandle>(cls),field.name);
   if(!p||host->sdk->fproperty->get_offset(p)!=static_cast<int>(field.offset))return false;
   const auto type=host->sdk->ffield->get_class(reinterpret_cast<UEVR_FFieldHandle>(p));wchar_t name[64]{};
