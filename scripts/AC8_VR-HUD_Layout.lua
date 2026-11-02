@@ -916,11 +916,11 @@ do
         local safeW = canvasSize and math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0)) or 3840.0
         local marginX = canvasSize and math.max(0.0, (canvasSize.X - safeW) * 0.5) or 0.0
 
-        -- Lift forward boresight arrow from native bottom dashboard towards screen center (Whisky mark)
-        -- Empirically confirmed baseline in-game: X = -594.0, Y = -1180.0
-        -- On Ultrawide, add half-margin shift (marginX * 0.5) to keep aligned with aircraft nose
-        local forwardShiftY = -1180.0
-        local boresightX = -594.0 + (marginX * 0.5)
+        -- Lift forward boresight arrow from native bottom dashboard towards screen center (FPM / Whisky mark)
+        -- Baseline matching FPM screen center coordinates: X = -1232.0, Y = -322.0
+        -- On Ultrawide, add marginX shift to keep aligned with screen center
+        local forwardShiftY = -322.0
+        local boresightX = -1232.0 + marginX
         local wanted = {X = S.original.X + boresightX + userX, Y = S.original.Y + forwardShiftY - userY}
         if S.verified and S.applied and same(S.applied, wanted) then return end
         S.verified = set(S.widget, wanted)
@@ -1105,11 +1105,11 @@ host.sdk.callbacks.on_post_engine_tick(function()
     local commonY = tonumber(arrowBaseCache.commonY) or 0.0
 
     local baseLocX = -1232.0
-    local baseLocY = -1531.0
-    local baseNoseX = -594.0
-    local baseNoseY = -578.0
+    local baseLocY = -322.0
+    local baseNoseX = -1232.0
+    local baseNoseY = -322.0
 
-    local nx = (tonumber(arrowBaseCache.noseX) or 0) + baseNoseX + (marginX * 0.5) + userNoseX
+    local nx = (tonumber(arrowBaseCache.noseX) or 0) + baseNoseX + marginX + userNoseX
     local ny = (tonumber(arrowBaseCache.noseY) or 0) - (baseNoseY + userNoseY)
     local tx = (tonumber(arrowBaseCache.targetX) or 0) + baseLocX + marginX + userLocX
     local ty = (tonumber(arrowBaseCache.targetY) or 0) - (baseLocY + userLocY)

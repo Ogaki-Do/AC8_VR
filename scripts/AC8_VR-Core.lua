@@ -611,10 +611,10 @@ function R.syncLocatorConfigToDLL()
  -- Base calibrated values (Unified formula):
  -- Base ox = -1232.0 (pixel-for-pixel matches FPM horizontal centering on 16:9)
  -- On Ultrawide, marginX dynamically shifts the arrow to the ultrawide center (eliminating left-shift)
- -- Base oy = -2480.0 (lifts arrow from cockpit dashboard to HUD center glass)
+ -- Base oy = -322.0 (matches FPM vertical center offset)
  -- Base groupOffsetX = -1414.0 (-180px canvas bias + -1234px center offset)
  local baseLocX = -1232.0
- local baseLocY = -2480.0
+ local baseLocY = -322.0
  local baseGroupX = -1414.0
 
  local ox = baseLocX + marginX + userLocX
