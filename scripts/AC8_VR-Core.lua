@@ -611,10 +611,10 @@ function R.syncLocatorConfigToDLL()
  -- Base calibrated values (Unified formula):
  -- Target final screen center: (CX, CY) = (1920.0 + marginX, 1080.0 + marginY)
  -- Base ox = -1232.0 (cancels native X bias to land on screen center 1920.0)
- -- Base oy = -2480.0 (cancels native cockpit Y bias ~3560.0 to land on screen center 1080.0, identical to FPM)
+ -- Base oy = -2026.0 (cancels native cockpit Y bias ~3106.0 to land on screen center 1080.0, identical to FPM)
  -- Base groupOffsetX = -1414.0 (-180px canvas bias + -1234px center offset)
  local baseLocX = -1232.0
- local baseLocY = -2480.0
+ local baseLocY = -2026.0
  local baseGroupX = -1414.0
 
  local ox = baseLocX + marginX + userLocX

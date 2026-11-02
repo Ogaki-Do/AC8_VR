@@ -1106,10 +1106,10 @@ host.sdk.callbacks.on_post_engine_tick(function()
     local commonY = tonumber(arrowBaseCache.commonY) or 0.0
 
     -- Calibrated base displacement deltas to cancel native slot errors and converge on screen center (1920, 1080):
-    -- Target arrow: baseLocX = -1232.0, baseLocY = -1531.0
+    -- Target arrow: baseLocX = -1232.0, baseLocY = -1985.0 (calibrated to center vertically with FPM / Whisky mark)
     -- Nose arrow:   baseNoseX = -594.0,  baseNoseY = -578.0
     local baseLocX = -1232.0
-    local baseLocY = -1531.0
+    local baseLocY = -1985.0
     local baseNoseX = -594.0
     local baseNoseY = -578.0
 
