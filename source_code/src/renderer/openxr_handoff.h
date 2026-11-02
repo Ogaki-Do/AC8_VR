@@ -180,8 +180,11 @@ public:
         if(!api||!api->functions||!api->functions->register_inline_hook)return false;
         HMODULE module=GetModuleHandleW(L"UEVRBackend.dll");if(!module)return false;
         wchar_t path[32768]{};std::string hash;
-        if(!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||
-           hash!=boundary::expected_hash||!guarded_image(reinterpret_cast<unsigned char*>(module)))return false;
+        if(!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash))return false;
+        if(hash!=boundary::expected_hash||!guarded_image(reinterpret_cast<unsigned char*>(module))){
+            if(!boundary::confirm_force_glow(hash!=boundary::expected_hash?L"UEVRBackend.dll SHA-256 ハッシュ不一致":L"UEVRBackend.dll 関数シグネチャ不一致"))
+                return false;
+        }
         HMODULE own=nullptr;
         if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN,
               reinterpret_cast<LPCWSTR>(&pin_anchor),&own))return false;

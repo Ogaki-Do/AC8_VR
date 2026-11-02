@@ -300,7 +300,7 @@ inline Result __stdcall end_frame(Handle s,const xr_read::EndInfo* info) {
 // Disassembly: wrapper352A8F reads LoaderInstance+48, then dispatch+118 (xrEndFrame).
 inline void* lower_end(unsigned char* base) {
     __try {void* loader=nullptr;using Lookup=Result(__fastcall*)(void**,const char*);
-        if(reinterpret_cast<Lookup>(base+0x35af80)(&loader,"xrEndFrame")!=0||!loader)return nullptr;
+        if(reinterpret_cast<Lookup>(base+0x2c2320)(&loader,"xrEndFrame")!=0||!loader)return nullptr;
         auto* table=*reinterpret_cast<unsigned char**>(static_cast<unsigned char*>(loader)+0x48);
         return table?*reinterpret_cast<void**>(table+0x118):nullptr;
     }__except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
@@ -309,11 +309,12 @@ template<class T> inline bool get(xr_read::GetProcFn proc,Handle instance,const 
 inline void attach() {
     if(attempted||!host||!host->openxr||!host->openxr->get_xr_session||!host->openxr->get_xr_session()||!host->renderer||!host->renderer->device||!host->renderer->command_queue)return;
     attempted=true;auto module=GetModuleHandleW(L"UEVRBackend.dll");wchar_t path[32768]{};std::string hash;
-    if(!module||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||hash!=boundary::expected_hash){state="unsupported_backend";return;}
+    if(!module||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)){state="unsupported_backend";return;}
+    if(hash!=boundary::expected_hash&&!boundary::confirm_force_glow(L"Cinematic Mask: UEVRBackend.dll SHA-256 ハッシュ不一致")){state="unsupported_backend";return;}
     auto* base=reinterpret_cast<unsigned char*>(module);
     const unsigned char lookup_bytes[]={0x48,0x89,0x5c,0x24,0x18,0x55,0x56,0x57,0x48,0x8d,0x6c,0x24,0xb9};
-    if(std::memcmp(base+0x35af80,lookup_bytes,sizeof(lookup_bytes))){state="loader_guard_failed";return;}
-    auto proc=reinterpret_cast<xr_read::GetProcFn>(base+0x34fa70);auto instance=host->openxr->get_xr_instance();
+    if(std::memcmp(base+0x2c2320,lookup_bytes,sizeof(lookup_bytes))){state="loader_guard_failed";return;}
+    auto proc=reinterpret_cast<xr_read::GetProcFn>(base+0x2b7200);auto instance=host->openxr->get_xr_instance();
     if(!get(proc,instance,"xrCreateSwapchain",create_chain)||!get(proc,instance,"xrEnumerateSwapchainImages",enumerate_images)||
        !get(proc,instance,"xrAcquireSwapchainImage",acquire)||!get(proc,instance,"xrWaitSwapchainImage",wait_image)||
        !get(proc,instance,"xrReleaseSwapchainImage",release)||!get(proc,instance,"xrEnumerateSwapchainFormats",formats)){state="resolver_failed";return;}

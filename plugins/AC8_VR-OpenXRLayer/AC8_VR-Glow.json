@@ -1,0 +1,10 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_COLIN_ac8_glow",
+    "library_path": "../AC8_VR-OpenXRBridge.dll",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "AC8 portable glow connection; no private UEVR addresses"
+  }
+}

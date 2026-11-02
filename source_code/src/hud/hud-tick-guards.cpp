@@ -141,7 +141,7 @@ static bool registerAll(void* module){
 static void install(const Subjects& s){
     attempted=true;auto module=GetModuleHandleW(nullptr);wchar_t path[32768]{};std::string hash;
     if(!module||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||
-       hash!="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F"){status="executable_guard_failed";return;}
+       hash!="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2"){status="executable_guard_failed";return;}
     IMAGE_DOS_HEADER dos{};IMAGE_NT_HEADERS64 nt{};
     if(!read(module,dos)||dos.e_magic!=IMAGE_DOS_SIGNATURE||dos.e_lfanew<0||dos.e_lfanew>4096||
        !read(bytes(module)+dos.e_lfanew,nt)||nt.Signature!=IMAGE_NT_SIGNATURE||nt.FileHeader.Machine!=IMAGE_FILE_MACHINE_AMD64||

@@ -1,11 +1,11 @@
 param([switch]$SkipShaders)
 $ErrorActionPreference='Stop'
 $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-$vsRoot=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-if(-not $vsRoot){throw 'Install Visual Studio C++ build tools first'}
+$vsRoot=& $vswhere -latest -prerelease -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+if(-not $vsRoot -and (Test-Path 'C:\Program Files\Microsoft Visual Studio\18\Enterprise')){$vsRoot='C:\Program Files\Microsoft Visual Studio\18\Enterprise'};if(-not $vsRoot){throw 'Install Visual Studio C++ build tools first'}
 $compilerRoot=(Get-ChildItem -LiteralPath (Join-Path $vsRoot 'VC\Tools\MSVC') -Directory | Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1).FullName
-$kitRoot=(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots').KitsRoot10
-if(-not (Test-Path -LiteralPath (Join-Path $kitRoot 'Include'))){$kitRoot=Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10'}
+$kitRoot=(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' -ErrorAction SilentlyContinue).KitsRoot10
+if(-not $kitRoot -or -not (Test-Path -LiteralPath (Join-Path $kitRoot 'Include'))){$kitRoot=Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10'}
 $kitVersion=(Get-ChildItem -LiteralPath (Join-Path $kitRoot 'Include') -Directory | Where-Object {Test-Path -LiteralPath (Join-Path $_.FullName 'um\windows.h')} | Sort-Object {[version]$_.Name} -Descending | Select-Object -First 1).Name
 $env:INCLUDE="$compilerRoot\include;$kitRoot\Include\$kitVersion\ucrt;$kitRoot\Include\$kitVersion\shared;$kitRoot\Include\$kitVersion\um;$kitRoot\Include\$kitVersion\winrt"
 $env:LIB="$compilerRoot\lib\x64;$kitRoot\Lib\$kitVersion\ucrt\x64;$kitRoot\Lib\$kitVersion\um\x64"
@@ -18,10 +18,10 @@ try{
  $objects=@()
  foreach($module in $modules.PSObject.Properties){
   $name=$module.Name;$obj="build/$name.obj"
-  & $compiler /nologo /std:c++17 /EHsc /W4 /WX /O2 /MT /c "/Duevr_plugin_initialize=ac8_${name}_initialize" "/Duevr_plugin_required_version=ac8_${name}_version" $module.Value "/Fo:$obj"
+  & $compiler /nologo /utf-8 /std:c++17 /EHsc /W4 /WX /O2 /MT /c "/Duevr_plugin_initialize=ac8_${name}_initialize" "/Duevr_plugin_required_version=ac8_${name}_version" $module.Value "/Fo:$obj"
   if($LASTEXITCODE -ne 0){throw "Module build failed: $name"};$objects+=$obj
  }
- & $compiler /nologo /std:c++17 /EHsc /W4 /WX /O2 /MT /LD src/plugin.cpp @objects /Fo:build/ac8_vr.obj /Fe:build/AC8_VR-Runtime.dll /link /INCREMENTAL:NO /OUT:build/AC8_VR-Runtime.dll user32.lib d3d12.lib dxgi.lib dxguid.lib gdi32.lib bcrypt.lib d3dcompiler.lib
+ & $compiler /nologo /utf-8 /std:c++17 /EHsc /W4 /WX /O2 /MT /LD src/plugin.cpp @objects /Fo:build/ac8_vr.obj /Fe:build/AC8_VR-Runtime.dll /link /INCREMENTAL:NO /OUT:build/AC8_VR-Runtime.dll user32.lib d3d12.lib dxgi.lib dxguid.lib gdi32.lib bcrypt.lib d3dcompiler.lib
  if($LASTEXITCODE -ne 0){throw 'Combined AC8_VR-Runtime.dll link failed'}
  if(-not $SkipShaders){
   $shaderRoot='src/renderer'

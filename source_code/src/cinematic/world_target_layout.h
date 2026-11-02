@@ -114,12 +114,12 @@ inline bool initialize(const UEVR_PluginInitializeParam* p){
  host=p;const auto module=GetModuleHandleW(nullptr);gameBase=reinterpret_cast<uintptr_t>(module);
  wchar_t filename[32768]{};std::string hash;
  constexpr std::array<unsigned char,32> updateHead{{0x4c,0x89,0x44,0x24,0x18,0x48,0x89,0x54,0x24,0x10,0x55,0x56,0x41,0x55,0x48,0x8d,0xac,0x24,0xd0,0xfa,0xff,0xff,0x48,0x81,0xec,0x30,0x06,0,0,0x48,0x83,0xb9}};
- constexpr std::array<unsigned char,32> placementHead{{0x48,0x83,0xec,0x48,0x48,0x8b,0x1,0xf,0x10,0x82,0xa0,0x1,0x0,0x0,0xf2,0xf,0x10,0xd,0xfa,0x54,0x2,0x6,0xf2,0xf,0x5e,0x88,0xe8,0x7,0x0,0x0,0x48,0x8b}};
+ constexpr std::array<unsigned char,32> placementHead{{0x48,0x83,0xec,0x48,0x48,0x8b,0x1,0xf,0x10,0x82,0xa0,0x1,0x0,0x0,0xf2,0xf,0x10,0xd,0x5a,0x36,0x2,0x6,0xf2,0xf,0x5e,0x88,0xe8,0x7,0x0,0x0,0x48,0x8b}};
  std::array<unsigned char,32> b{},d{};
- if(!module||!GetModuleFileNameW(module,filename,32768)||!boundary::file_hash(filename,hash)||hash!="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F"||
-  !schema()||!read(reinterpret_cast<void*>(gameBase+0x72802d0),b)||b!=updateHead||!read(reinterpret_cast<void*>(gameBase+0x7284990),d)||d!=placementHead)return false;
- const int second=p->functions->register_inline_hook(reinterpret_cast<void*>(gameBase+0x72802d0),reinterpret_cast<void*>(&updateWrapper),reinterpret_cast<void**>(&originalUpdate));
- const int third=p->functions->register_inline_hook(reinterpret_cast<void*>(gameBase+0x7284990),reinterpret_cast<void*>(&placementWrapper),reinterpret_cast<void**>(&originalPlacement));
+ if(!module||!GetModuleFileNameW(module,filename,32768)||!boundary::file_hash(filename,hash)||hash!="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2"||
+  !schema()||!read(reinterpret_cast<void*>(gameBase+0x726ca90),b)||b!=updateHead||!read(reinterpret_cast<void*>(gameBase+0x7271150),d)||d!=placementHead)return false;
+ const int second=p->functions->register_inline_hook(reinterpret_cast<void*>(gameBase+0x726ca90),reinterpret_cast<void*>(&updateWrapper),reinterpret_cast<void**>(&originalUpdate));
+ const int third=p->functions->register_inline_hook(reinterpret_cast<void*>(gameBase+0x7271150),reinterpret_cast<void*>(&placementWrapper),reinterpret_cast<void**>(&originalPlacement));
  ready=second>=0&&third>=0&&originalUpdate&&originalPlacement&&p->callbacks->on_custom_event(control);
  if(!ready){if(second>=0)p->functions->unregister_inline_hook(second);if(third>=0)p->functions->unregister_inline_hook(third);originalSize=nullptr;originalUpdate=nullptr;originalPlacement=nullptr;}
  return ready;

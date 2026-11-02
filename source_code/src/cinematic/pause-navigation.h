@@ -91,7 +91,7 @@ template<unsigned slot> inline void wrapper(Object object,const void* geometry,f
 inline bool gameBuild(){
     const auto base=reinterpret_cast<unsigned char*>(GetModuleHandleW(nullptr));IMAGE_DOS_HEADER dos{};IMAGE_NT_HEADERS64 nt{};
     return object_access::read(base,dos)&&dos.e_magic==IMAGE_DOS_SIGNATURE&&dos.e_lfanew>0&&dos.e_lfanew<4096&&
-        object_access::read(base+dos.e_lfanew,nt)&&nt.Signature==IMAGE_NT_SIGNATURE&&nt.FileHeader.TimeDateStamp==1788928637&&nt.OptionalHeader.SizeOfImage==563453952;
+        object_access::read(base+dos.e_lfanew,nt)&&nt.Signature==IMAGE_NT_SIGNATURE&&nt.FileHeader.TimeDateStamp==1792200871&&nt.OptionalHeader.SizeOfImage==559554560;
 }
 inline void discover(){
     buildAccepted=gameBuild();if(!buildAccepted)return;
@@ -121,7 +121,7 @@ inline void discover(){
         unsigned flags=0;if(!object_access::read(reinterpret_cast<unsigned char*>(o)+8,flags)||(flags&(0x10u|0x20u|0x8000u|0x10000u|0x40000000u)))continue;
         // Native rendering may own visibility outside the ordinary viewport.
         // An object that is never ticked cannot trigger this guard.
-        uintptr_t table=0,address=0;if(!object_access::read(o,table)||!object_access::read(reinterpret_cast<void*>(table+111*sizeof(uintptr_t)),address)||address<base||address>=base+563453952)continue;
+        uintptr_t table=0,address=0;if(!object_access::read(o,table)||!object_access::read(reinterpret_cast<void*>(table+111*sizeof(uintptr_t)),address)||address<base||address>=base+559554560)continue;
         unsigned slot=0;for(;slot<hookCount;++slot)if(targets[slot]==address)break;
         if(slot==hookCount){if(hookCount>=originals.size()){++hookBudgetMisses;continue;}MEMORY_BASIC_INFORMATION memory{};unsigned char head=0;
             if(!VirtualQuery(reinterpret_cast<void*>(address),&memory,sizeof(memory))||!(memory.Protect&(PAGE_EXECUTE|PAGE_EXECUTE_READ|PAGE_EXECUTE_READWRITE|PAGE_EXECUTE_WRITECOPY))||!object_access::read(reinterpret_cast<void*>(address),head))continue;

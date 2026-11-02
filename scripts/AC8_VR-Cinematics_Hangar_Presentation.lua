@@ -1,0 +1,3 @@
+-- AC8_VR-Cinematics_Hangar_Presentation.lua
+-- Minimal placeholder for C++ DLL filename check (Phase 1).
+-- Active presentation logic deferred to subsequent phases.

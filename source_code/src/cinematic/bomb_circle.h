@@ -16,7 +16,7 @@ using Draw=void(*)(Object,const Vec*,const Vec*,float,const void*,int,const void
 inline Draw original=nullptr;
 inline const UEVR_PluginInitializeParam* host=nullptr;
 inline bool installed=false;
-constexpr uintptr_t circleRva=0x7245e90,cacheOffset=0x468;
+constexpr uintptr_t circleRva=0x7232500,cacheOffset=0x468;
 constexpr std::array<unsigned char,32> prologue{{0x48,0x8b,0xc4,0x48,0x89,0x58,0x10,0x48,0x89,0x78,0x20,0x4c,0x89,0x40,0x18,0x55,0x48,0x8d,0x68,0xb8,0x48,0x81,0xec,0x40,0x01,0x00,0x00,0x0f,0x29,0x70,0xe8,0x0f}};
 inline bool finite(Vec v){return std::isfinite(v.x+v.y+v.z)&&std::max({std::abs(v.x),std::abs(v.y),std::abs(v.z)})<1e12;}
 inline bool unit(Vec v){return finite(v)&&std::abs(v.x*v.x+v.y*v.y+v.z*v.z-1)<.01;}

@@ -3,6 +3,13 @@
   "cinematicPresentation": {
     "enabled": false
   },
+  "hudPresentation": {
+    "enabled": false,
+    "distance": 1.0,
+    "size": 1.0,
+    "curvature": 113.625,
+    "curvedOverlay": true
+  },
   "hudElements": {
     "ladder": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },
     "heading": { "x": 0.0, "y": 0.0, "scale": 1.0, "opacity": 0.95 },

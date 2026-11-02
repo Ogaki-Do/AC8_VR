@@ -1,0 +1,3 @@
+-- AC8_VR-AircraftPresets.lua
+-- Minimal placeholder for C++ DLL filename check (Phase 1).
+-- Per-plane offset logic deferred to subsequent phases.

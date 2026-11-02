@@ -28,7 +28,7 @@ inline std::atomic<bool> calibrationEnabled=false;
 inline bool installed=false;
 inline UEVR_UClassHandle widgetClass=nullptr,canvasClass=nullptr;
 inline UEVR_UFunctionHandle fovFunction=nullptr;
-constexpr uintptr_t drawRva=0x723cd60;
+constexpr uintptr_t drawRva=0x72293d0;
 constexpr std::array<unsigned char,32> drawHead{{0x48,0x89,0x5c,0x24,0x08,0x57,0x48,0x83,0xec,0x20,0x48,0x8b,0xda,0x48,0x8b,0xf9,0xe8,0x1b,0x00,0x00,0x00,0x48,0x8b,0xd3,0x48,0x8b,0xcf,0x48,0x8b,0x5c,0x24,0x30}};
 inline bool validLens(double fov,double aspect){return std::isfinite(fov+aspect)&&fov>.25&&fov<170&&aspect>.5&&aspect<5;}
 inline double adjustedFov(double native){
@@ -82,7 +82,7 @@ inline bool initialize(const UEVR_PluginInitializeParam* p){
     host=p;if(!p||!p->sdk||!p->vr||!p->vr->get_ui_width||!p->vr->get_ui_height||!p->callbacks||!p->callbacks->on_custom_event)return false;
     auto* sdk=p->sdk;if(!sdk->uobject||!sdk->uobject->is_a||!sdk->uobject_array||!sdk->ustruct||!sdk->fproperty||!sdk->functions||!sdk->callbacks)return false;
     auto module=GetModuleHandleW(nullptr);wchar_t path[32768]{};std::string hash;std::array<unsigned char,32> bytes{};
-    if(!module||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||hash!="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F"||
+    if(!module||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||hash!="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2"||
        !read(reinterpret_cast<unsigned char*>(module)+drawRva,bytes)||bytes!=drawHead){return false;}
     // Retain only the verified current-bomb draw scope. Matrix corrections
     // belong to bomb_circle.h and are restored after its scoped draw.

@@ -25,7 +25,7 @@ inline void* wrapper(void* device,void* output,int index){
 inline void verify(){
     wchar_t path[32768]{};std::string hash;
     const auto game=GetModuleHandleW(nullptr);
-    allowed=game&&GetModuleFileNameW(game,path,32768)&&boundary::file_hash(path,hash)&&hash=="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F";
+    allowed=game&&GetModuleFileNameW(game,path,32768)&&boundary::file_hash(path,hash)&&hash=="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2";
     state=allowed?"waiting_stereo_vtable":"unsupported_game";
 }
 // Recorded live UEVR log: projection slot12, game RVA04BBF060, UE5 double ABI.

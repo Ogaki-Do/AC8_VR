@@ -44,8 +44,8 @@ static void wrapper(UEVR_UObjectHandle actor,UEVR_UObjectHandle texture,const Si
 }
 static void install(){
     attempted=true;wchar_t path[32768]{};auto module=GetModuleHandleW(nullptr);std::string hash;
-    if(!module||!host->functions->register_inline_hook||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||hash!="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F")return;
-    auto target=reinterpret_cast<unsigned char*>(module)+0x72a3f00;
+    if(!module||!host->functions->register_inline_hook||!GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||hash!="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2")return;
+    auto target=reinterpret_cast<unsigned char*>(module)+0x7290700;
     constexpr unsigned char expected[]={0x48,0x8b,0xc4,0x55,0x53,0x57,0x41,0x56,0x41,0x57,0x48,0x8b,0xec,0x48,0x83,0xec,0x60};
     unsigned char actual[sizeof(expected)]{};SIZE_T bytes=0;
     if(!ReadProcessMemory(GetCurrentProcess(),target,actual,sizeof(actual),&bytes)||bytes!=sizeof(actual)||std::memcmp(actual,expected,sizeof(actual)))return;

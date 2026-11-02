@@ -8,9 +8,9 @@
 #include <string>
 
 namespace boundary {
-constexpr DWORD wrapper_rva=0x352a50, expected_timestamp=1790232505, expected_size=12853248;
-constexpr char expected_hash[]="70CCBAAF4C357DEAACC3990FD01A911A029D31DCCF0E5ABC01C7A9073E4F50C1";
-constexpr unsigned char signature[]={0x48,0x89,0x5c,0x24,0x18,0x57,0x48,0x81,0xec,0xb0,0,0,0,0x48,0x8b,0x05,0x1c,0x46,0x82,0,0x48,0x33,0xc4,0x48,0x89,0x84,0x24,0xa8,0,0,0,0x48};
+constexpr DWORD wrapper_rva=0x2ba0b0, expected_timestamp=1788064879, expected_size=11649024;
+constexpr char expected_hash[]="1A34CF65E4C12002EC967ED167DDDA4E1CC7AE1DA82157D0E279597BEDDEED75";
+constexpr unsigned char signature[]={0x48,0x89,0x5c,0x24,0x18,0x57,0x48,0x81,0xec,0xb0,0,0,0,0x48,0x8b,0x05,0x7c,0x3e,0x7c,0,0x48,0x33,0xc4,0x48,0x89,0x84,0x24,0xa8,0,0,0,0x48};
 
 // Hash a file without loading or executing it. This protects the private RVA.
 inline bool file_hash(const wchar_t* path,std::string& result) {
@@ -45,5 +45,19 @@ inline bool image_matches(const unsigned char* base) {
             nt->FileHeader.TimeDateStamp==expected_timestamp && nt->OptionalHeader.SizeOfImage==expected_size &&
             memcmp(base+wrapper_rva,signature,sizeof(signature))==0;
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+inline bool confirm_force_glow(const wchar_t* reason) {
+    static int cached_choice = 0;
+    if (cached_choice != 0) return cached_choice == IDYES;
+    wchar_t msg[512]{};
+    wsprintfW(msg,
+        L"UEVRBackend.dll の検証チェックで不一致が検出されました。\n"
+        L"理由: %s\n\n"
+        L"[はい (Yes)] Glowを強制実行する\n"
+        L"[いいえ (No)] 安全のためGlowを停止する",
+        reason ? reason : L"Hash / Signature mismatch");
+    const int ret = MessageBoxW(nullptr, msg, L"AC8 VR - Glow Security Guard", MB_YESNO | MB_ICONWARNING | MB_TOPMOST | MB_SETFOREGROUND);
+    cached_choice = ret;
+    return ret == IDYES;
 }
 }

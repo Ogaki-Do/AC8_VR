@@ -44,7 +44,7 @@ static UEVR_UFunctionHandle setPosition=nullptr,setFont=nullptr;
 static std::filesystem::path directory;
 static std::filesystem::file_time_type controlsStamp{};
 static std::string reason="waiting for initialization";
-constexpr uintptr_t bodyRva=119793440,forwardRva=119797200,lineRva=120045712,textRva=119818592,slotRva=119820912;
+constexpr uintptr_t bodyRva=0x722ad90,forwardRva=0x722bc40,lineRva=0x7268850,textRva=0x7230fd0,slotRva=0x72318e0;
 constexpr unsigned char bodyHead[]={0x40,0x55,0x57,0x41,0x57,0x48,0x8d,0xac,0x24,0xb0,0xfd,0xff,0xff,0x48,0x81,0xec,0x50,0x03,0x00,0x00};
 constexpr unsigned char forwardHead[]={0x40,0x55,0x57,0x41,0x56,0x48,0x8d,0xac,0x24,0x40,0xff,0xff,0xff,0x48,0x81,0xec,0xc0,0x01,0x00,0x00};
 constexpr unsigned char lineHead[]={0x48,0x8b,0xc4,0x53,0x57,0x48,0x81,0xec,0xa8,0x00,0x00,0x00};
@@ -279,7 +279,7 @@ template<size_t N> static bool codeMatches(const unsigned char* p,const unsigned
 static void install() {
     attempted=true;wchar_t path[32768]{};std::string hash;auto module=GetModuleHandleW(nullptr);
     if(!module || !GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||
-       hash!="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F") {
+       hash!="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2") {
         reason="game executable guard failed; no hook installed";return;
     }
     auto base=reinterpret_cast<unsigned char*>(module);

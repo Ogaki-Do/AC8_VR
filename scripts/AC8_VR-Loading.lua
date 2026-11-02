@@ -1,0 +1,3 @@
+-- AC8_VR-Loading.lua
+-- Minimal placeholder for C++ DLL filename check (Phase 1).
+-- Native UE4 loading and movie handling run unimpeded without startup FPS drops.

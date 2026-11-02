@@ -1,0 +1,1146 @@
+{
+  "aircraft": {
+    "BP_PlayerPlane_PP0001_a10c_C": {
+      "camera": {
+        "forward": -10.880669,
+        "right": 0,
+        "up": 7.443134
+      },
+      "hud": {
+        "canvas": {
+          "enabled": false,
+          "extraHeight": 0,
+          "extraWidth": 0,
+          "inheritClip": false,
+          "scale": 1,
+          "x": 0,
+          "y": 0
+        },
+        "components": {
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -306,
+            "y": 1872.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+            "enabled": true,
+            "scale": 0.35,
+            "x": -1050,
+            "y": 660
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_LocatorWidget": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_TargetSelectionDraw": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        "groups": {
+          "info": {
+            "enabled": true,
+            "scale": 0.6,
+            "x": 124,
+            "y": -80
+          },
+          "ladder": {
+            "enabled": true,
+            "scale": 0.75,
+            "x": 24,
+            "y": 126.9990005493164
+          },
+          "radar": {
+            "enabled": true,
+            "scale": 0.76,
+            "x": -220,
+            "y": 45.72210714885517
+          }
+        },
+        "simpleGroups": {
+          "mission": {
+            "x": 0,
+            "y": 0
+          },
+          "orders": {
+            "x": 0,
+            "y": 0
+          },
+          "portrait": {
+            "x": 0,
+            "y": 0
+          },
+          "radio": {
+            "x": 0,
+            "y": 0
+          },
+          "score": {
+            "x": 0,
+            "y": 0
+          },
+          "target": {
+            "x": 0,
+            "y": 0
+          },
+          "time": {
+            "x": 0,
+            "y": 0
+          },
+          "wingman": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "simpleTargetBase": {
+          "scope": "HorizontalBox:HorizontalBox_1",
+          "sx": 0.7,
+          "sy": 0.7,
+          "x": -304.85000127487,
+          "y": 1776.9188741010937
+        }
+      }
+    },
+    "BP_PlayerPlane_PP0003_f04e_C": {
+      "camera": {
+        "forward": 0,
+        "right": 0,
+        "up": -4
+      }
+    },
+    "BP_PlayerPlane_PP0005_f22a_C": {
+      "camera": {
+        "forward": -9.539225,
+        "right": 0.0,
+        "up": 5.948433
+      },
+      "hud": {
+        "canvas": {
+          "enabled": false,
+          "extraHeight": 0,
+          "extraWidth": 0,
+          "inheritClip": false,
+          "scale": 1,
+          "x": 0,
+          "y": 0
+        },
+        "components": {
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -306,
+            "y": 1872.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+            "enabled": true,
+            "scale": 0.35,
+            "x": -1050,
+            "y": 660
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_LocatorWidget": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_TargetSelectionDraw": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        "groups": {
+          "info": {
+            "enabled": true,
+            "scale": 0.6,
+            "x": -251.00100708007813,
+            "y": 20.999000549316406
+          },
+          "ladder": {
+            "enabled": true,
+            "scale": 0.3869999945163727,
+            "x": 24,
+            "y": 231.0
+          },
+          "radar": {
+            "enabled": true,
+            "scale": 0.76,
+            "x": -95.0009994506836,
+            "y": -4.2789998054504395
+          }
+        },
+        "simpleGroups": {
+          "fpm": {
+            "x": 10,
+            "y": 0
+          },
+          "mission": {
+            "x": 217.0,
+            "y": -84.0
+          },
+          "orders": {
+            "x": 0,
+            "y": 0
+          },
+          "portrait": {
+            "x": 0,
+            "y": 0
+          },
+          "radio": {
+            "x": 0,
+            "y": 0
+          },
+          "score": {
+            "x": 0,
+            "y": 0
+          },
+          "target": {
+            "x": 0,
+            "y": 0
+          },
+          "time": {
+            "x": 0,
+            "y": 0
+          },
+          "wingman": {
+            "x": 211.0,
+            "y": 0
+          }
+        },
+        "simpleTargetBase": {
+          "scope": "HorizontalBox:HorizontalBox_1",
+          "sx": 0.7,
+          "sy": 0.7,
+          "x": -304.85000127487,
+          "y": 1776.9188741010937
+        }
+      },
+      "uiSize": 1.0
+    },
+    "BP_PlayerPlane_PP0006_f35c_C": {
+      "camera": {
+        "forward": -9.499475,
+        "right": 0,
+        "up": 3.977272
+      },
+      "hud": {
+        "canvas": {
+          "enabled": false,
+          "extraHeight": 0,
+          "extraWidth": 0,
+          "inheritClip": false,
+          "scale": 1,
+          "x": 0,
+          "y": 0
+        },
+        "components": {
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -306,
+            "y": 1872.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+            "enabled": true,
+            "scale": 0.35,
+            "x": -1050,
+            "y": 660
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_LocatorWidget": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_TargetSelectionDraw": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        "groups": {
+          "info": {
+            "enabled": true,
+            "scale": 0.6,
+            "x": 124,
+            "y": -80
+          },
+          "ladder": {
+            "enabled": true,
+            "scale": 0.6320000290870667,
+            "x": 24,
+            "y": 77.00199890136719
+          },
+          "radar": {
+            "enabled": true,
+            "scale": 0.76,
+            "x": -220,
+            "y": 45.72210714885517
+          }
+        },
+        "simpleGroups": {
+          "fpm": {
+            "x": 10,
+            "y": 0
+          },
+          "mission": {
+            "x": 0,
+            "y": 0
+          },
+          "orders": {
+            "x": 0,
+            "y": 0
+          },
+          "portrait": {
+            "x": 0,
+            "y": 0
+          },
+          "radio": {
+            "x": 0,
+            "y": 0
+          },
+          "score": {
+            "x": 0,
+            "y": 0
+          },
+          "target": {
+            "x": 0,
+            "y": 0
+          },
+          "time": {
+            "x": 0,
+            "y": 0
+          },
+          "wingman": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "simpleTargetBase": {
+          "scope": "HorizontalBox:HorizontalBox_1",
+          "sx": 0.7,
+          "sy": 0.7,
+          "x": -304.85000127487,
+          "y": 1776.9188741010937
+        }
+      }
+    },
+    "BP_PlayerPlane_PP0007_f18c_C": {
+      "camera": {
+        "forward": -9.238827,
+        "right": 0.0,
+        "up": 2.691657
+      },
+      "cockpitSize": 1.100000023841858,
+      "hud": {
+        "canvas": {
+          "enabled": false,
+          "extraHeight": 0,
+          "extraWidth": 0,
+          "inheritClip": false,
+          "scale": 1,
+          "x": 0,
+          "y": 0
+        },
+        "components": {
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -306,
+            "y": 1872.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+            "enabled": true,
+            "scale": 0.35,
+            "x": -1050,
+            "y": 660
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_LocatorWidget": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_TargetSelectionDraw": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        "groups": {
+          "info": {
+            "enabled": true,
+            "scale": 0.6,
+            "x": 50,
+            "y": -80
+          },
+          "ladder": {
+            "enabled": true,
+            "scale": 0.6269999718666077,
+            "x": 28,
+            "y": 29
+          },
+          "radar": {
+            "enabled": true,
+            "scale": 0.76,
+            "x": -155,
+            "y": 11.722000122070313
+          }
+        },
+        "simpleGroups": {
+          "fpm": {
+            "x": 10,
+            "y": 0
+          },
+          "mission": {
+            "x": 111,
+            "y": -52
+          },
+          "orders": {
+            "x": 0,
+            "y": 0
+          },
+          "portrait": {
+            "x": 0,
+            "y": 0
+          },
+          "radio": {
+            "x": 0,
+            "y": 0
+          },
+          "score": {
+            "x": 0,
+            "y": 0
+          },
+          "target": {
+            "x": 0,
+            "y": 0
+          },
+          "time": {
+            "x": 0,
+            "y": 0
+          },
+          "wingman": {
+            "x": 104,
+            "y": 10.99899959564209
+          }
+        },
+        "simpleTargetBase": {
+          "scope": "HorizontalBox:HorizontalBox_1",
+          "sx": 0.7,
+          "sy": 0.7,
+          "x": -304.85000127487,
+          "y": 1776.9188741010937
+        }
+      },
+      "uiSize": 1.208
+    },
+    "BP_PlayerPlane_PP0012_f15j_C": {
+      "camera": {
+        "forward": -11.371492,
+        "right": 0.0,
+        "up": 2.256763
+      },
+      "hud": {
+        "canvas": {
+          "enabled": false,
+          "extraHeight": 0,
+          "extraWidth": 0,
+          "inheritClip": false,
+          "scale": 1,
+          "x": 0,
+          "y": 0
+        },
+        "components": {
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -306,
+            "y": 1872.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+            "enabled": true,
+            "scale": 0.35,
+            "x": -1050,
+            "y": 660
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_LocatorWidget": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_TargetSelectionDraw": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        "groups": {
+          "info": {
+            "enabled": true,
+            "scale": 0.6,
+            "x": -326.0010070800781,
+            "y": -80
+          },
+          "ladder": {
+            "enabled": true,
+            "scale": 0.75,
+            "x": 24,
+            "y": 27
+          },
+          "radar": {
+            "enabled": true,
+            "scale": 0.6510000228881836,
+            "x": 25.0,
+            "y": 45.72100067138672
+          }
+        },
+        "simpleGroups": {
+          "fpm": {
+            "x": 10,
+            "y": 0
+          },
+          "mission": {
+            "x": 501.0,
+            "y": -75.0
+          },
+          "orders": {
+            "x": 0,
+            "y": 0
+          },
+          "portrait": {
+            "x": 0,
+            "y": 0
+          },
+          "radio": {
+            "x": 0,
+            "y": 0
+          },
+          "score": {
+            "x": 0,
+            "y": 0
+          },
+          "target": {
+            "x": 0,
+            "y": 0
+          },
+          "time": {
+            "x": 0,
+            "y": 0
+          },
+          "wingman": {
+            "x": 550.0,
+            "y": 0
+          }
+        },
+        "simpleTargetBase": {
+          "scope": "HorizontalBox:HorizontalBox_1",
+          "sx": 0.7,
+          "sy": 0.7,
+          "x": -304.85000127487,
+          "y": 1776.9188741010937
+        }
+      },
+      "uiSize": 1.0
+    },
+    "BP_PlayerPlane_PP0013_a06e_C": {
+      "camera": {
+        "forward": -18,
+        "right": 0,
+        "up": 5
+      },
+      "hud": {
+        "canvas": {
+          "enabled": false,
+          "extraHeight": 0,
+          "extraWidth": 0,
+          "inheritClip": false,
+          "scale": 1,
+          "x": 0,
+          "y": 0
+        },
+        "components": {
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.BorderScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScore": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.PrivateScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.ScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TeamScoreTitleText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.TimerAndGauge": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -306,
+            "y": 1872.2690905507932
+          },
+          "WidgetTree.ForEachWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_CampaignInfo_000_C.WidgetTree.VictoryScoreText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.BonusScorePanel": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.CanvasPanel_ComPortrait": {
+            "enabled": true,
+            "scale": 0.35,
+            "x": -1050,
+            "y": 660
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateBonusText2": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.ScoreUpdateText": {
+            "enabled": true,
+            "scale": 0.7,
+            "x": -212,
+            "y": 1762.2690905507932
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.CanvasPanel_96": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.HUDMessageWidget.WidgetTree.WBP_HUD_SubWidgets_Parts_RadioText_000.WidgetTree.RadioPanel": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_LocatorWidget": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          },
+          "WidgetTree.WBP_TargetSelectionDraw": {
+            "enabled": false,
+            "scale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        "groups": {
+          "info": {
+            "enabled": true,
+            "scale": 0.6,
+            "x": 48.999000549316406,
+            "y": 70.0009994506836
+          },
+          "ladder": {
+            "enabled": true,
+            "scale": 0.38100001215934753,
+            "x": 24,
+            "y": 101.9990005493164
+          },
+          "radar": {
+            "enabled": true,
+            "scale": 0.76,
+            "x": -220,
+            "y": 45.72210714885517
+          }
+        },
+        "simpleGroups": {
+          "mission": {
+            "x": 0,
+            "y": 0
+          },
+          "orders": {
+            "x": 0,
+            "y": 0
+          },
+          "portrait": {
+            "x": 0,
+            "y": 0
+          },
+          "radio": {
+            "x": 0,
+            "y": 0
+          },
+          "score": {
+            "x": 0,
+            "y": 0
+          },
+          "target": {
+            "x": 0,
+            "y": 0
+          },
+          "time": {
+            "x": 0,
+            "y": 0
+          },
+          "wingman": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "simpleTargetBase": {
+          "scope": "HorizontalBox:HorizontalBox_1",
+          "sx": 0.7,
+          "sy": 0.7,
+          "x": -304.85000127487,
+          "y": 1776.9188741010937
+        }
+      }
+    },
+    "BP_PlayerPlane_PP0023_f14d_C": {
+      "camera": {
+        "forward": -5,
+        "right": 0,
+        "up": 4
+      }
+    }
+  },
+  "cameraEnabled": true,
+  "defaultCamera": {
+    "forward": -18,
+    "right": 0,
+    "up": 5
+  },
+  "enabled": true,
+  "normalUISize": 1.0,
+  "useDefaultHUDForAllPlanes": false,
+  "version": 2
+}

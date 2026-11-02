@@ -14,9 +14,9 @@ inline Getter original=nullptr;
 inline uintptr_t base=0;
 inline bool accepted=false;
 inline std::atomic<uint64_t> prevented=0;
-constexpr uintptr_t getterRva=0x3cc7560,callerReturnRva=0x7a0ebe4;
+constexpr uintptr_t getterRva=0x3cbbdb0,callerReturnRva=0x79fde40;
 constexpr std::array<unsigned char,32> getterHead{{0x48,0x89,0x5c,0x24,0x10,0x57,0x48,0x83,0xec,0x20,0x48,0x8b,0x99,0x10,0x02,0x00,0x00,0x48,0x8b,0xf9,0x48,0x85,0xdb,0x0f,0x84,0x8a,0x00,0x00,0x00,0xe8,0xce,0x97}};
-constexpr std::array<unsigned char,5> callerHead{{0xe8,0x7c,0x89,0x2b,0xfc}};
+constexpr std::array<unsigned char,5> callerHead{{0xe8,0x70,0xdf,0x2b,0xfc}};
 inline bool missingAtVerifiedCaller(Object image,uintptr_t caller){return accepted&&!image&&caller==base+callerReturnRva;}
 #ifdef AC8_MENU_GAUGE_FIXTURE
 inline uintptr_t fixtureCaller=0;
@@ -45,9 +45,9 @@ inline bool initialize(const UEVR_PluginInitializeParam* p){
     std::array<unsigned char,32> getter{};std::array<unsigned char,5> caller{};
     if(!module||!read(module,dos)||dos.e_magic!=IMAGE_DOS_SIGNATURE||dos.e_lfanew<=0||dos.e_lfanew>4096||
        !read(reinterpret_cast<void*>(base+static_cast<uintptr_t>(dos.e_lfanew)),nt)||nt.Signature!=IMAGE_NT_SIGNATURE||
-       nt.FileHeader.TimeDateStamp!=1788928637||nt.OptionalHeader.SizeOfImage!=563453952||
+       nt.FileHeader.TimeDateStamp!=1792200871||nt.OptionalHeader.SizeOfImage!=559554560||
        !GetModuleFileNameW(module,path,32768)||!boundary::file_hash(path,hash)||
-       hash!="51510E2A520565DBE81FB0D569E95CD4393077ACAAA859371489B80B8128829F"||
+       hash!="3E47FD42858D1F2B81E59D7F57394A014C0EB6AAF4C02EE3DA351B6A42936BE2"||
        !read(reinterpret_cast<void*>(base+getterRva),getter)||getter!=getterHead||
        !read(reinterpret_cast<void*>(base+callerReturnRva-5),caller)||caller!=callerHead){
         if(p->functions->log_info)p->functions->log_info("[AC8 menu gauge] Build/call-site verification failed; guard not installed");return false;
