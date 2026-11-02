@@ -610,13 +610,15 @@ function R.syncLocatorConfigToDLL()
   canvasCenter = { X = dw * 0.5, Y = dh * 0.5 }
  end
 
- -- Center-relative offsets (100% resolution & aspect-ratio independent):
- -- Target final screen center: (CX, CY)
- -- Symmetrical displacement formula: Offset_X = CX - Base_X + User_X, Offset_Y = CY - Base_Y - User_Y
- local ox = canvasCenter.X - 3152.0 + userLocX
- local oy = canvasCenter.Y - 1626.0 - userLocY
+ local safeW = math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0))
+ local safeH = math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0))
+ local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
+ local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
+
+ local ox = -1232.0 + marginX + userLocX
+ local oy = -546.0 + marginY - userLocY
  local baseGroupX = -1414.0
- local groupX = baseGroupX + (canvasCenter.X - 1920.0) + userLocX
+ local groupX = baseGroupX + marginX + userLocX
  local sc = 1.3 * locSc * lsc
 
  local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }

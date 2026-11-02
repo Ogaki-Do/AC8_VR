@@ -23,6 +23,7 @@ local sblCdo = nil
 local flightFrameCount = 0
 local flightPlanComputed = false
 local layoutInvestigationDumped = false
+local lastVpW, lastVpH = 0, 0
 local latestDebugInfo = { vpW=0, vpH=0, rootW=0, rootH=0, cx=0, cy=0, ladderTx=0, ladderTy=0, fpmTx=0, fpmTy=0 }
 
 -- Phase 0: Measure screen/viewport size
@@ -82,12 +83,12 @@ local function getCanvasVirtualSize(forceRefresh)
         latestDebugInfo.rootW = 0
         latestDebugInfo.rootH = 0
         local aspect = (vpW > 0 and vpH > 0) and (vpW / vpH) or (16.0 / 9.0)
-        if aspect >= 1.0 then
+        if aspect >= (16.0 / 9.0) then
             rawH = 2160.0
             rawW = 2160.0 * aspect
         else
-            rawH = 3840.0
-            rawW = 3840.0 * aspect
+            rawW = 3840.0
+            rawH = 3840.0 / aspect
         end
     end
 
@@ -1125,16 +1126,20 @@ host.sdk.callbacks.on_post_engine_tick(function()
     local userNoseY = (tonumber(lcfg.y) or 0) + (tonumber(noseCfg.y) or 0)
 
     local canvasSize, canvasCenter = getCanvasVirtualSize()
+    local safeW = math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0))
+    local safeH = math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0))
+    local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
+    local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
 
     -- In C++ AC8_ArrowLiveControls, commonX/commonY are baseline offsets.
     local commonX = tonumber(arrowBaseCache.commonX) or 0.0
     local commonY = tonumber(arrowBaseCache.commonY) or 0.0
 
     -- Dynamic center-relative offsets (100% resolution & aspect-ratio independent):
-    local nx = (tonumber(arrowBaseCache.noseX) or 0) + (canvasCenter.X - 2514.0) + userNoseX
-    local ny = (tonumber(arrowBaseCache.noseY) or 0) - (1658.0 - canvasCenter.Y + userNoseY)
-    local tx = (tonumber(arrowBaseCache.targetX) or 0) + (canvasCenter.X - 3152.0) + userLocX
-    local ty = (tonumber(arrowBaseCache.targetY) or 0) - (1626.0 - canvasCenter.Y + userLocY)
+    local nx = (tonumber(arrowBaseCache.noseX) or 0) - 594.0 + marginX + userNoseX
+    local ny = (tonumber(arrowBaseCache.noseY) or 0) - 578.0 + marginY - userNoseY
+    local tx = (tonumber(arrowBaseCache.targetX) or 0) - 1232.0 + marginX + userLocX
+    local ty = (tonumber(arrowBaseCache.targetY) or 0) - 546.0 + marginY - userLocY
 
     -- C++ AC8_ArrowLiveControls parser expects '%lf|%lf|%lf|%lf%c' matching exactly 4 items (nx, ny, tx, ty)
     local arrowPacket = string.format('%.1f|%.1f|%.1f|%.1f', commonX + nx, commonY + ny, commonX + tx, commonY + ty)
@@ -1916,14 +1921,14 @@ local function recomputeLayoutPlan()
     -- Force refresh canvas virtual size from live Slate geometry at settling frame
     local canvasSize, canvasCenter = getCanvasVirtualSize(true)
 
-    -- Unified Horizontal & Vertical Centering Model:
-    -- Screen center is (CX, CY) = (Wc / 2, Hc / 2) with origin (0, 0) at top-left.
-    -- Offset_X = CX - Base_X + User_X
-    -- Offset_Y = CY - Base_Y - User_Y
-    --
-    -- 1. Pitch Ladder (Altimeter / Whisky mark native pivot at 1230.0, 324.0):
-    local altBaseX = canvasCenter.X - 1230.0
-    local altBaseY = canvasCenter.Y - 324.0
+    local safeW = math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0))
+    local safeH = math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0))
+    local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
+    local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
+
+    -- 1. Pitch Ladder (Altimeter safe-frame proportional baseline: 23/128 safeW, 7/20 safeH):
+    local altBaseX = marginX + (safeW * (23.0 / 128.0))
+    local altBaseY = marginY + (safeH * 0.35)
 
     local lcfg = he.ladder or {}
     local lx = tonumber(lcfg.x) or 0.0
@@ -1950,14 +1955,13 @@ local function recomputeLayoutPlan()
     local wingcfg = he.wingman or {}
     local dcfg = he.drawcanvas or {}
 
-    -- 2. FPM (Flight Path Marker / Velocity container native slot at 3152.0, 1402.0):
-    -- Symmetrical displacement: (CX - 3152.0, CY - 1402.0)
+    -- 2. FPM (Flight Path Marker / Velocity container native slot offset: -1232 + marginX, -322 + marginY):
     cachedLayoutPlan = {
         ladder = { tx = altBaseX + lx, ty = altBaseY - ly, sc = lsc, op = lop },
         whisky = { tx = 0.0 + wx, ty = 0.0 - wy, sc = lsc * wsc, op = wop },
         velContainer = {
-            tx = canvasCenter.X - 3152.0 + lx + hx,
-            ty = canvasCenter.Y - 1402.0 - ly - hy,
+            tx = -1232.0 + marginX + lx + hx,
+            ty = -322.0 + marginY - ly - hy,
             sc = 0.75,
             op = hop
         },
@@ -2002,6 +2006,73 @@ R.recalculateHUDLayoutPlan = function()
     return recomputeLayoutPlan()
 end
 
+local function refinePlanWithMeasuredGeometry(lp, root, ladderWidget, whiskyWidget, velContainer, velIcon)
+    if not root or not (R and R.isLiveObject and R.isLiveObject(root)) then return end
+    if not sblCdo or not (R and R.isLiveObject and R.isLiveObject(sblCdo)) then
+        local sblCls = uevr.api:find_uobject('Class /Script/UMG.SlateBlueprintLibrary')
+        sblCdo = sblCls and sblCls:get_class_default_object() or nil
+    end
+    if not sblCdo then return end
+
+    local rootGeom = root:GetPaintSpaceGeometry() or root:GetCachedGeometry()
+    if not rootGeom then return end
+    local rootSize = sblCdo:GetLocalSize(rootGeom)
+    if not rootSize or rootSize.X < 100 or rootSize.Y < 100 then return end
+    local targetCenter = { X = rootSize.X * 0.5, Y = rootSize.Y * 0.5 }
+    local maxErrX = rootSize.X * 0.6
+    local maxErrY = rootSize.Y * 0.6
+
+    -- 1. Measure WhiskyMark actual on-screen position and calculate difference (delta)
+    local targetLadder = (whiskyWidget and R.isLiveObject(whiskyWidget) and whiskyWidget)
+        or (ladderWidget and R.isLiveObject(ladderWidget) and ladderWidget)
+    if targetLadder then
+        pcall(function()
+            local g = targetLadder:GetPaintSpaceGeometry() or targetLadder:GetCachedGeometry()
+            if g then
+                local sz = sblCdo:GetLocalSize(g)
+                local absC = sblCdo:LocalToAbsolute(g, { X = (sz and sz.X or 0) * 0.5, Y = (sz and sz.Y or 0) * 0.5 })
+                if absC then
+                    local curPos = sblCdo:AbsoluteToLocal(rootGeom, absC)
+                    if curPos and type(curPos.X) == 'number' and type(curPos.Y) == 'number' then
+                        local errX = targetCenter.X - curPos.X
+                        local errY = targetCenter.Y - curPos.Y
+                        if math.abs(errX) < maxErrX and math.abs(errY) < maxErrY then
+                            lp.ladder.tx = lp.ladder.tx + errX
+                            lp.ladder.ty = lp.ladder.ty + errY
+                            print(string.format('[AC8-VR] Closed-loop Pitch Ladder delta adjustment: err=(%.1f, %.1f) -> new ladder RT=(%.1f, %.1f)',
+                                errX, errY, lp.ladder.tx, lp.ladder.ty))
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    -- 2. Measure VelocityIcon actual on-screen position and calculate difference (delta)
+    if velIcon and R.isLiveObject(velIcon) and velContainer and R.isLiveObject(velContainer) then
+        pcall(function()
+            local g = velIcon:GetPaintSpaceGeometry() or velIcon:GetCachedGeometry()
+            if g then
+                local sz = sblCdo:GetLocalSize(g)
+                local absC = sblCdo:LocalToAbsolute(g, { X = (sz and sz.X or 0) * 0.5, Y = (sz and sz.Y or 0) * 0.5 })
+                if absC then
+                    local curPos = sblCdo:AbsoluteToLocal(rootGeom, absC)
+                    if curPos and type(curPos.X) == 'number' and type(curPos.Y) == 'number' then
+                        local errX = targetCenter.X - curPos.X
+                        local errY = targetCenter.Y - curPos.Y
+                        if math.abs(errX) < maxErrX and math.abs(errY) < maxErrY then
+                            lp.velContainer.tx = lp.velContainer.tx + errX
+                            lp.velContainer.ty = lp.velContainer.ty + errY
+                            print(string.format('[AC8-VR] Closed-loop FPM delta adjustment: err=(%.1f, %.1f) -> new velContainer RT=(%.1f, %.1f)',
+                                errX, errY, lp.velContainer.tx, lp.velContainer.ty))
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end
+
 function R.applyHUDLayoutIntegrated()
     local ctx = R.context
     if not ctx or not ctx.flight then
@@ -2012,24 +2083,26 @@ function R.applyHUDLayoutIntegrated()
     R.gameplayCameraReadyEpoch = ctx.epoch
     R.gameplayCameraReady = true
 
+    -- Detect resolution or viewport window changes during flight
+    local vpW, vpH = measureDisplaySize()
+    if lastVpW > 0 and (vpW ~= lastVpW or vpH ~= lastVpH) then
+        cachedCanvasVirtualSize = nil
+        cachedCanvasCenter = nil
+        cachedLayoutPlan = nil
+        flightPlanComputed = false
+        flightFrameCount = 0
+    end
+    lastVpW, lastVpH = vpW, vpH
+
     -- Advance flight settling frame counter
     flightFrameCount = flightFrameCount + 1
 
-    -- Phase 1: Wait 5 frames after flight start for Slate layout to settle, then compute once
-    if not flightPlanComputed then
-        if flightFrameCount < 5 then
-            return -- Wait for Slate geometry to settle
-        end
+    -- Ensure baseline plan is ready immediately from frame 1 so widgets are NEVER dropped by C++ Tick
+    if not cachedLayoutPlan then
         cachedLayoutPlan = recomputeLayoutPlan()
-        if cachedLayoutPlan then
-            flightPlanComputed = true
-        else
-            return
-        end
     end
-
+    if not cachedLayoutPlan then return end
     local lp = cachedLayoutPlan
-    if not lp then return end
 
     local refs = R.hudLayoutRefs or {}
     local root = refs.root or (ctx and ctx.root)
@@ -2038,6 +2111,16 @@ function R.applyHUDLayoutIntegrated()
 
     -- 1. Direct path resolution for flight widgets
     local ladderWidget, whiskyWidget, velContainer, velIcon = resolveFlightWidgets(root, refs)
+
+    -- Phase 1 Closed-Loop Refinement: At flight frame 5, measure actual painted screen position
+    -- and adjust displacement by the exact difference to screen center
+    if flightFrameCount == 5 and not flightPlanComputed then
+        refinePlanWithMeasuredGeometry(lp, root, ladderWidget, whiskyWidget, velContainer, velIcon)
+        flightPlanComputed = true
+        if not layoutInvestigationDumped then
+            runLayoutInvestigation(ladderWidget, whiskyWidget, velContainer, velIcon, lp)
+        end
+    end
 
     latestDebugInfo.ladderTx = lp.ladder.tx
     latestDebugInfo.ladderTy = lp.ladder.ty
@@ -2275,6 +2358,8 @@ host.sdk.callbacks.on_script_reset(function()
     fpmDiagnosisDumped = false
     velIconPinned = false
     cachedRetainerBox = nil
+    lastVpW = 0
+    lastVpH = 0
 end)
 
 rawset(_G, 'AC8_DumpFPMDiagnosis', function()
