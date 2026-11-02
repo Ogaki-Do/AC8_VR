@@ -78,16 +78,16 @@ local function getCanvasVirtualSize(forceRefresh)
         latestDebugInfo.rootW = rawW
         latestDebugInfo.rootH = rawH
     else
-        -- If live Slate geometry is not yet available, derive virtual canvas from ViewportSize and UE4 ShortestSide rule
+        -- If live Slate geometry is not yet available, derive virtual canvas from ViewportSize
         latestDebugInfo.rootW = 0
         latestDebugInfo.rootH = 0
         local aspect = (vpW > 0 and vpH > 0) and (vpW / vpH) or (16.0 / 9.0)
-        if aspect >= (16.0 / 9.0) then
+        if aspect >= 1.0 then
             rawH = 2160.0
             rawW = 2160.0 * aspect
         else
-            rawW = 3840.0
-            rawH = 3840.0 / aspect
+            rawH = 3840.0
+            rawW = 3840.0 * aspect
         end
     end
 
@@ -1134,7 +1134,7 @@ host.sdk.callbacks.on_post_engine_tick(function()
     local nx = (tonumber(arrowBaseCache.noseX) or 0) + (canvasCenter.X - 2514.0) + userNoseX
     local ny = (tonumber(arrowBaseCache.noseY) or 0) - (1658.0 - canvasCenter.Y + userNoseY)
     local tx = (tonumber(arrowBaseCache.targetX) or 0) + (canvasCenter.X - 3152.0) + userLocX
-    local ty = (tonumber(arrowBaseCache.targetY) or 0) - (3065.0 - canvasCenter.Y + userLocY)
+    local ty = (tonumber(arrowBaseCache.targetY) or 0) - (1626.0 - canvasCenter.Y + userLocY)
 
     -- C++ AC8_ArrowLiveControls parser expects '%lf|%lf|%lf|%lf%c' matching exactly 4 items (nx, ny, tx, ty)
     local arrowPacket = string.format('%.1f|%.1f|%.1f|%.1f', commonX + nx, commonY + ny, commonX + tx, commonY + ty)
@@ -1866,6 +1866,13 @@ local function runLayoutInvestigation(ladderWidget, whiskyWidget, velContainer, 
     local jsonStr = simpleJsonString(report)
     local written = false
 
+    local j = (R and R.realJSON) or rawget(_G, 'json')
+    if j and j.dump_file then
+        pcall(function() j.dump_file('ac8_layout_investigation.json', report, 2) end)
+        pcall(function() j.dump_file('AC8_VR-LayoutInvestigation.json', report, 2) end)
+        written = true
+    end
+
     local f1 = io.open('data/ac8_layout_investigation.json', 'w')
     if f1 then
         f1:write(jsonStr)
@@ -2008,20 +2015,21 @@ function R.applyHUDLayoutIntegrated()
     -- Advance flight settling frame counter
     flightFrameCount = flightFrameCount + 1
 
-    -- Phase 1: At flight frame 5, compute displacement deltas once
-    if flightFrameCount == 5 and not flightPlanComputed then
+    -- Phase 1: Wait 5 frames after flight start for Slate layout to settle, then compute once
+    if not flightPlanComputed then
+        if flightFrameCount < 5 then
+            return -- Wait for Slate geometry to settle
+        end
         cachedLayoutPlan = recomputeLayoutPlan()
         if cachedLayoutPlan then
             flightPlanComputed = true
-        end
-    elseif flightFrameCount < 5 and not flightPlanComputed then
-        if not cachedLayoutPlan then
-            cachedLayoutPlan = recomputeLayoutPlan()
+        else
+            return
         end
     end
 
-    if not cachedLayoutPlan then return end
     local lp = cachedLayoutPlan
+    if not lp then return end
 
     local refs = R.hudLayoutRefs or {}
     local root = refs.root or (ctx and ctx.root)

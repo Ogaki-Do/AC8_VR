@@ -115,8 +115,8 @@ local function inspectWidgetGeometry(w, sbl, rootGeom)
     end
     local info = { alive = true }
     pcall(function() info.full_name = w:get_full_name() end)
-    pcall(function() info.visibility = w:GetVisibility() end)
-    pcall(function() info.render_opacity = w:GetRenderOpacity() end)
+    pcall(function() info.visibility = tostring(w:GetVisibility()) end)
+    pcall(function() info.render_opacity = tonumber(w:GetRenderOpacity()) or 1.0 end)
     pcall(function()
         local rt = w:get_property("RenderTransform")
         if rt then

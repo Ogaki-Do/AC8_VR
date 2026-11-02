@@ -400,6 +400,8 @@ local journals={
  ['ac8_target_arrow_shift_controls.json']=true,
  ['ac8_offscreen_group_controls.json']=true,
  ['ac8_debug_telemetry.json']=true,
+ ['ac8_layout_investigation.json']=true,
+ ['AC8_VR-LayoutInvestigation.json']=true,
  ['AC8_VR-CockpitScaleRestore.json']=true,
  ['AC8_VR-CinematicUIRestore.json']=true,
  ['AC8_VR-HangarRestoreV48.json']=true,
@@ -612,7 +614,7 @@ function R.syncLocatorConfigToDLL()
  -- Target final screen center: (CX, CY)
  -- Symmetrical displacement formula: Offset_X = CX - Base_X + User_X, Offset_Y = CY - Base_Y - User_Y
  local ox = canvasCenter.X - 3152.0 + userLocX
- local oy = canvasCenter.Y - 3106.0 - userLocY
+ local oy = canvasCenter.Y - 1626.0 - userLocY
  local baseGroupX = -1414.0
  local groupX = baseGroupX + (canvasCenter.X - 1920.0) + userLocX
  local sc = 1.3 * locSc * lsc
