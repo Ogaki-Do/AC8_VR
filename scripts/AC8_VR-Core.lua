@@ -1258,6 +1258,20 @@ pcall(function()
     end
    end
 
+   -- Layout Investigation Dump Button & Realtime Diagnostics
+   local d = R.latestDebugInfo
+   if d and ui.text then
+    ui.text(string.format('[Live Meas] Viewport: %.0fx%.0f | RootSlate: %.0fx%.0f', d.vpW or 0, d.vpH or 0, d.rootW or 0, d.rootH or 0))
+    ui.text(string.format('[Live Calc] Center: (%.1f, %.1f) | LadderRT: (%.1f, %.1f)', d.cx or 0, d.cy or 0, d.ladderTx or 0, d.ladderTy or 0))
+   end
+   if ui.button and ui.button('>> Dump Layout Investigation Now <<##btn_dump_investigation') then
+    if rawget(_G, 'AC8_DumpLayoutInvestigation') then
+     rawget(_G, 'AC8_DumpLayoutInvestigation')()
+     hudActionMsg = '[OK] Layout investigation dumped to data/ac8_layout_investigation.json!'
+     print('[AC8-VR] ' .. hudActionMsg)
+    end
+   end
+
    if ui.tree_pop then ui.tree_pop() end
   end
 

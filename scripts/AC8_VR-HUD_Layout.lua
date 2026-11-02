@@ -22,8 +22,10 @@ local cachedLadderBase = nil
 local sblCdo = nil
 local flightFrameCount = 0
 local flightPlanComputed = false
+local layoutInvestigationDumped = false
+local latestDebugInfo = { vpW=0, vpH=0, rootW=0, rootH=0, cx=0, cy=0, ladderTx=0, ladderTy=0, fpmTx=0, fpmTy=0 }
 
--- Phase 0: Measure screen/viewport size at Lua startup
+-- Phase 0: Measure screen/viewport size
 local function measureDisplaySize()
     local rawW, rawH = nil, nil
     pcall(function()
@@ -42,28 +44,25 @@ local function measureDisplaySize()
     return rawW, rawH
 end
 
--- Initialize display size at Lua startup
-local initW, initH = measureDisplaySize()
-cachedCanvasVirtualSize = { X = initW, Y = initH }
-cachedCanvasCenter = { X = initW * 0.5, Y = initH * 0.5 }
-
 local function getCanvasVirtualSize(forceRefresh)
     local R = rawget(_G, 'AC8Runtime')
-    if cachedCanvasVirtualSize and cachedCanvasCenter and not forceRefresh then
+    -- If we have a stable settled canvas size from live Slate geometry, return it
+    if cachedCanvasVirtualSize and cachedCanvasCenter and not forceRefresh and flightPlanComputed then
         return cachedCanvasVirtualSize, cachedCanvasCenter
     end
 
     local rawW, rawH = nil, nil
+    local rootGeom = nil
     pcall(function()
         local root = (R and R.context and R.context.root) or (R and R.hudLayoutRefs and R.hudLayoutRefs.root)
         if root and (R and R.isLiveObject and R.isLiveObject(root)) then
-            local geom = root:GetPaintSpaceGeometry() or root:GetCachedGeometry()
+            rootGeom = root:GetPaintSpaceGeometry() or root:GetCachedGeometry()
             if not sblCdo or not (R and R.isLiveObject and R.isLiveObject(sblCdo)) then
                 local sblCls = uevr.api:find_uobject('Class /Script/UMG.SlateBlueprintLibrary')
                 sblCdo = sblCls and sblCls:get_class_default_object() or nil
             end
-            if geom and sblCdo then
-                local s = sblCdo:GetLocalSize(geom)
+            if rootGeom and sblCdo then
+                local s = sblCdo:GetLocalSize(rootGeom)
                 if s and type(s.X) == 'number' and s.X > 50 and type(s.Y) == 'number' and s.Y > 50 then
                     rawW, rawH = s.X, s.Y
                 end
@@ -71,18 +70,37 @@ local function getCanvasVirtualSize(forceRefresh)
         end
     end)
 
-    if not rawW or not rawH then
-        rawW, rawH = measureDisplaySize()
+    local vpW, vpH = measureDisplaySize()
+    latestDebugInfo.vpW = vpW
+    latestDebugInfo.vpH = vpH
+
+    if rawW and rawH then
+        latestDebugInfo.rootW = rawW
+        latestDebugInfo.rootH = rawH
+    else
+        -- If live Slate geometry is not yet available, derive virtual canvas from ViewportSize and UE4 ShortestSide rule
+        latestDebugInfo.rootW = 0
+        latestDebugInfo.rootH = 0
+        local aspect = (vpW > 0 and vpH > 0) and (vpW / vpH) or (16.0 / 9.0)
+        if aspect >= (16.0 / 9.0) then
+            rawH = 2160.0
+            rawW = 2160.0 * aspect
+        else
+            rawW = 3840.0
+            rawH = 3840.0 / aspect
+        end
     end
 
-    -- Direct measurement of Slate local canvas size without arbitrary 4K rescaling:
     cachedCanvasVirtualSize = { X = rawW, Y = rawH }
     cachedCanvasCenter = { X = rawW * 0.5, Y = rawH * 0.5 }
+    latestDebugInfo.cx = cachedCanvasCenter.X
+    latestDebugInfo.cy = cachedCanvasCenter.Y
 
     if R then
         R.cachedCanvasVirtualSize = cachedCanvasVirtualSize
         R.cachedCanvasCenter = cachedCanvasCenter
         R.getCanvasVirtualSize = getCanvasVirtualSize
+        R.latestDebugInfo = latestDebugInfo
     end
 
     return cachedCanvasVirtualSize, cachedCanvasCenter
@@ -1751,6 +1769,135 @@ local function runFPMDiagnosis(ladderWidget, velContainer, velIcon, lp, appliedT
     end
 end
 
+local function runLayoutInvestigation(ladderWidget, whiskyWidget, velContainer, velIcon, lp)
+    if layoutInvestigationDumped then return end
+    local R = rawget(_G, 'AC8Runtime')
+    local tick = (R and R.tick) or 0
+    if tick < 5 then return end
+
+    local function getGeomInfo(w)
+        if not w or not (R and R.isLiveObject and R.isLiveObject(w)) then return nil end
+        local res = {}
+        pcall(function()
+            local g = w:GetPaintSpaceGeometry() or w:GetCachedGeometry()
+            if g and sblCdo then
+                local lsz = sblCdo:GetLocalSize(g)
+                if lsz then res.localSize = { X = lsz.X, Y = lsz.Y } end
+                local abs0 = sblCdo:LocalToAbsolute(g, { X = 0.0, Y = 0.0 })
+                if abs0 then res.absTopLeft = { X = abs0.X, Y = abs0.Y } end
+                if lsz then
+                    local absC = sblCdo:LocalToAbsolute(g, { X = lsz.X * 0.5, Y = lsz.Y * 0.5 })
+                    if absC then res.absCenter = { X = absC.X, Y = absC.Y } end
+                end
+            end
+        end)
+        return res
+    end
+
+    local function serializeTransform(w)
+        if not w or not (R and R.isLiveObject and R.isLiveObject(w)) then return nil end
+        local ok, rt = pcall(function() return w:get_property('RenderTransform') end)
+        if not ok or not rt then return nil end
+        return {
+            Translation = rt.Translation and { X = rt.Translation.X, Y = rt.Translation.Y },
+            Scale = rt.Scale and { X = rt.Scale.X, Y = rt.Scale.Y },
+            Angle = rt.Angle
+        }
+    end
+
+    local function serializeSlot(w)
+        if not w or not (R and R.isLiveObject and R.isLiveObject(w)) then return nil end
+        local ok, s = pcall(function() return w:get_property('Slot') end)
+        if not ok or not s then return nil end
+        local pos, offsets, anchors, align = nil, nil, nil, nil
+        pcall(function() pos = s:GetPosition() end)
+        pcall(function() offsets = s:GetOffsets() end)
+        pcall(function() anchors = s:GetAnchors() end)
+        pcall(function() align = s:GetAlignment() end)
+        return {
+            slotClass = p(s),
+            position = pos and { X = pos.X, Y = pos.Y },
+            offsets = offsets and { Left = offsets.Left, Top = offsets.Top, Right = offsets.Right, Bottom = offsets.Bottom },
+            anchors = anchors and {
+                Minimum = anchors.Minimum and { X = anchors.Minimum.X, Y = anchors.Minimum.Y },
+                Maximum = anchors.Maximum and { X = anchors.Maximum.X, Y = anchors.Maximum.Y }
+            },
+            alignment = align and { X = align.X, Y = align.Y }
+        }
+    end
+
+    local function inspectWidget(w)
+        if not w or not (R and R.isLiveObject and R.isLiveObject(w)) then return nil end
+        local inVp = false
+        pcall(function() inVp = w:IsInViewport() end)
+        return {
+            name = p(w),
+            parent = p(w:GetParent()),
+            inViewport = inVp,
+            geometry = getGeomInfo(w),
+            slot = serializeSlot(w),
+            transform = serializeTransform(w)
+        }
+    end
+
+    local root = (R and R.context and R.context.root) or (R and R.hudLayoutRefs and R.hudLayoutRefs.root)
+    local cp = (R and R.hudLayoutRefs and R.hudLayoutRefs.cp)
+    local drawCanvas = (R and R.hudLayoutRefs and R.hudLayoutRefs.maincv)
+
+    local report = {
+        version = "0.1.0.83",
+        timestamp = os.date("%Y-%m-%d %H:%M:%S"),
+        tick = tick,
+        flightFrameCount = flightFrameCount,
+        viewportSize = { X = latestDebugInfo.vpW, Y = latestDebugInfo.vpH },
+        canvasVirtualSize = cachedCanvasVirtualSize,
+        canvasCenter = cachedCanvasCenter,
+        latestDebugInfo = latestDebugInfo,
+        appliedPlan = lp,
+        root = inspectWidget(root),
+        chroniclePersistent = inspectWidget(cp),
+        ladder = inspectWidget(ladderWidget),
+        whisky = inspectWidget(whiskyWidget),
+        velocityContainer = inspectWidget(velContainer),
+        velocityIcon = inspectWidget(velIcon),
+        mainCanvas = inspectWidget(drawCanvas)
+    }
+
+    local jsonStr = simpleJsonString(report)
+    local written = false
+
+    local f1 = io.open('data/ac8_layout_investigation.json', 'w')
+    if f1 then
+        f1:write(jsonStr)
+        f1:close()
+        written = true
+    end
+
+    local f2 = io.open('ac8_layout_investigation.json', 'w')
+    if f2 then
+        f2:write(jsonStr)
+        f2:close()
+        written = true
+    end
+
+    if written then
+        layoutInvestigationDumped = true
+        print(string.format('[AC8-VR] Layout Investigation successfully dumped! Vp=(%.0fx%.0f), Root=(%.0fx%.0f), Center=(%.1f, %.1f), Ladder=(%.1f, %.1f)',
+            latestDebugInfo.vpW, latestDebugInfo.vpH, latestDebugInfo.rootW, latestDebugInfo.rootH,
+            cachedCanvasCenter.X, cachedCanvasCenter.Y,
+            lp and lp.ladder and lp.ladder.tx or 0, lp and lp.ladder and lp.ladder.ty or 0))
+    end
+end
+
+rawset(_G, 'AC8_DumpLayoutInvestigation', function()
+    layoutInvestigationDumped = false
+    local R = rawget(_G, 'AC8Runtime')
+    if R and R.applyHUDLayoutIntegrated then
+        pcall(R.applyHUDLayoutIntegrated)
+    end
+    print('[AC8-VR] Manual Layout Investigation Dump triggered!')
+end)
+
 local cachedLayoutPlan = nil
 
 local function recomputeLayoutPlan()
@@ -1883,6 +2030,16 @@ function R.applyHUDLayoutIntegrated()
 
     -- 1. Direct path resolution for flight widgets
     local ladderWidget, whiskyWidget, velContainer, velIcon = resolveFlightWidgets(root, refs)
+
+    latestDebugInfo.ladderTx = lp.ladder.tx
+    latestDebugInfo.ladderTy = lp.ladder.ty
+    latestDebugInfo.fpmTx = lp.velContainer.tx
+    latestDebugInfo.fpmTy = lp.velContainer.ty
+
+    -- Trigger investigation dump automatically on settling or retry
+    if flightFrameCount >= 5 and not layoutInvestigationDumped then
+        runLayoutInvestigation(ladderWidget, whiskyWidget, velContainer, velIcon, lp)
+    end
 
     -- Phase 2: Per-frame fast coordinate overwriting only (Zero geometry sweeping / recalculation)
     -- 1. PitchLadder (Altimeter) - Direct Memory Assignment
@@ -2102,6 +2259,7 @@ host.sdk.callbacks.on_script_reset(function()
     cachedLayoutPlan = nil
     flightPlanComputed = false
     flightFrameCount = 0
+    layoutInvestigationDumped = false
     lastLayoutEpoch = -1
     wasInFlight = false
     instantCycleActive = false
