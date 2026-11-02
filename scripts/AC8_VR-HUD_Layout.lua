@@ -25,12 +25,12 @@ local sblCdo = nil
 local function getCanvasVirtualSize()
     local R = rawget(_G, 'AC8Runtime')
     local nowTick = (R and R.tick) or 0
-    if cachedCanvasVirtualSize and cachedCanvasCenter and (nowTick - lastSizeCheckTick) < 60 then
+    if cachedCanvasVirtualSize and cachedCanvasCenter and (nowTick - lastSizeCheckTick) < 30 then
         return cachedCanvasVirtualSize, cachedCanvasCenter
     end
     lastSizeCheckTick = nowTick
 
-    local measured = nil
+    local rawW, rawH = nil, nil
     pcall(function()
         local root = (R and R.context and R.context.root) or (R and R.hudLayoutRefs and R.hudLayoutRefs.root)
         if root and (R and R.isLiveObject and R.isLiveObject(root)) then
@@ -41,35 +41,44 @@ local function getCanvasVirtualSize()
             end
             if geom and sblCdo then
                 local s = sblCdo:GetLocalSize(geom)
-                if s and type(s.X) == 'number' and s.X > 100 and type(s.Y) == 'number' and s.Y > 100 then
-                    measured = { X = s.X, Y = s.Y }
+                if s and type(s.X) == 'number' and s.X > 50 and type(s.Y) == 'number' and s.Y > 50 then
+                    rawW, rawH = s.X, s.Y
                 end
             end
         end
     end)
 
-    if measured then
-        cachedCanvasVirtualSize = measured
-        cachedCanvasCenter = { X = measured.X * 0.5, Y = measured.Y * 0.5 }
-        if R then
-            local prevW = R.cachedCanvasVirtualSize and R.cachedCanvasVirtualSize.X or 0
-            R.cachedCanvasVirtualSize = cachedCanvasVirtualSize
-            R.cachedCanvasCenter = cachedCanvasCenter
-            R.getCanvasVirtualSize = getCanvasVirtualSize
-            if prevW ~= measured.X and R.syncLocatorConfigToDLL then
-                pcall(R.syncLocatorConfigToDLL)
-            end
+    if not rawW or not rawH then
+        local dw, dh = (R and R.getCachedDisplaySize and R.getCachedDisplaySize()) or 3840.0, 2160.0
+        rawW, rawH = dw, dh
+    end
+
+    -- Normalize to ShortestSide 4K virtual space to prevent sub-4K scale collapse and jitter on small windows:
+    local aspect = (rawW > 0 and rawH > 0) and (rawW / rawH) or (16.0 / 9.0)
+    local virtW, virtH
+    if aspect >= (16.0 / 9.0) then
+        virtH = 2160.0
+        virtW = 2160.0 * aspect
+    else
+        virtW = 3840.0
+        virtH = 3840.0 / aspect
+    end
+
+    cachedCanvasVirtualSize = { X = virtW, Y = virtH }
+    cachedCanvasCenter = { X = virtW * 0.5, Y = virtH * 0.5 }
+
+    if R then
+        local prevW = R.cachedCanvasVirtualSize and R.cachedCanvasVirtualSize.X or 0
+        local prevH = R.cachedCanvasVirtualSize and R.cachedCanvasVirtualSize.Y or 0
+        R.cachedCanvasVirtualSize = cachedCanvasVirtualSize
+        R.cachedCanvasCenter = cachedCanvasCenter
+        R.getCanvasVirtualSize = getCanvasVirtualSize
+        if (prevW ~= virtW or prevH ~= virtH) and R.syncLocatorConfigToDLL then
+            pcall(R.syncLocatorConfigToDLL)
         end
-        return cachedCanvasVirtualSize, cachedCanvasCenter
     end
 
-    if cachedCanvasVirtualSize and cachedCanvasCenter then
-        return cachedCanvasVirtualSize, cachedCanvasCenter
-    end
-
-    local fallback = { X = 3840.0, Y = 2160.0 }
-    local fallbackCenter = { X = 1920.0, Y = 1080.0 }
-    return fallback, fallbackCenter
+    return cachedCanvasVirtualSize, cachedCanvasCenter
 end
 
 assert(not registry.sections['inherited_hud'], 'Duplicate AC8 VR section: inherited_hud')
@@ -911,17 +920,12 @@ do
         local userX = (tonumber(lcfg.x) or 0) + (tonumber(noseCfg.x) or 0)
         local userY = (tonumber(lcfg.y) or 0) + (tonumber(noseCfg.y) or 0)
 
-        local canvasSize, _ = getCanvasVirtualSize()
-        local safeH = canvasSize and math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0)) or 2160.0
-        local safeW = canvasSize and math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0)) or 3840.0
-        local marginX = canvasSize and math.max(0.0, (canvasSize.X - safeW) * 0.5) or 0.0
+        local canvasSize, canvasCenter = getCanvasVirtualSize()
 
-        -- Lift forward boresight arrow from native bottom dashboard towards screen center (FPM / Whisky mark: 1920, 1080)
-        -- S.original native slot is ~(2514.0, 2260.0). Canceling delta to land at center (1920, 1080):
-        -- X: 2514.0 - 594.0 = 1920.0 (plus marginX * 0.5 for Ultrawide aspect ratio)
-        -- Y: 2260.0 - 1180.0 = 1080.0 (exact screen vertical center, matching FPM final coordinate)
-        local forwardShiftY = -1180.0
-        local boresightX = -594.0 + (marginX * 0.5)
+        -- Lift forward boresight arrow from native bottom dashboard towards screen center (FPM / Whisky mark)
+        -- S.original native slot is ~(2514.0, 2260.0). Canceling delta to land at center (CX, CY):
+        local forwardShiftY = canvasCenter.Y - 2260.0
+        local boresightX = canvasCenter.X - 2514.0
         local wanted = {X = S.original.X + boresightX + userX, Y = S.original.Y + forwardShiftY - userY}
         if S.verified and S.applied and same(S.applied, wanted) then return end
         S.verified = set(S.widget, wanted)
@@ -1095,28 +1099,17 @@ host.sdk.callbacks.on_post_engine_tick(function()
     local userNoseX = (tonumber(lcfg.x) or 0) + (tonumber(noseCfg.x) or 0)
     local userNoseY = (tonumber(lcfg.y) or 0) + (tonumber(noseCfg.y) or 0)
 
-    local canvasSize, _ = getCanvasVirtualSize()
-    local safeH = math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0))
-    local safeW = math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0))
-    local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
-    local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
+    local canvasSize, canvasCenter = getCanvasVirtualSize()
 
     -- In C++ AC8_ArrowLiveControls, commonX/commonY are baseline offsets.
     local commonX = tonumber(arrowBaseCache.commonX) or 0.0
     local commonY = tonumber(arrowBaseCache.commonY) or 0.0
 
-    -- Calibrated base displacement deltas to cancel native slot errors and converge on screen center (1920, 1080):
-    -- Target arrow: baseLocX = -1232.0, baseLocY = -1985.0 (calibrated to center vertically with FPM / Whisky mark)
-    -- Nose arrow:   baseNoseX = -594.0,  baseNoseY = -578.0
-    local baseLocX = -1232.0
-    local baseLocY = -1985.0
-    local baseNoseX = -594.0
-    local baseNoseY = -578.0
-
-    local nx = (tonumber(arrowBaseCache.noseX) or 0) + baseNoseX + (marginX * 0.5) + userNoseX
-    local ny = (tonumber(arrowBaseCache.noseY) or 0) - (baseNoseY + userNoseY)
-    local tx = (tonumber(arrowBaseCache.targetX) or 0) + baseLocX + marginX + userLocX
-    local ty = (tonumber(arrowBaseCache.targetY) or 0) - (baseLocY + userLocY)
+    -- Dynamic center-relative offsets (100% resolution & aspect-ratio independent):
+    local nx = (tonumber(arrowBaseCache.noseX) or 0) + (canvasCenter.X - 2514.0) + userNoseX
+    local ny = (tonumber(arrowBaseCache.noseY) or 0) - (1658.0 - canvasCenter.Y + userNoseY)
+    local tx = (tonumber(arrowBaseCache.targetX) or 0) + (canvasCenter.X - 3152.0) + userLocX
+    local ty = (tonumber(arrowBaseCache.targetY) or 0) - (3065.0 - canvasCenter.Y + userLocY)
 
     -- C++ AC8_ArrowLiveControls parser expects '%lf|%lf|%lf|%lf%c' matching exactly 4 items (nx, ny, tx, ty)
     local arrowPacket = string.format('%.1f|%.1f|%.1f|%.1f', commonX + nx, commonY + ny, commonX + tx, commonY + ty)
@@ -1766,10 +1759,10 @@ local function recomputeLayoutPlan()
     local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
     local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
 
-    local baseSafeX = (cachedLadderBase and cachedLadderBase.X) or (safeW * 0.1796875) -- 690.0 in 16:9
-    local baseSafeY = (cachedLadderBase and cachedLadderBase.Y) or (safeH * 0.35)      -- 756.0 in 16:9
-    local altBaseX = baseSafeX + marginX
-    local altBaseY = baseSafeY + marginY
+    -- Dynamic Altimeter center alignment (1230.0, 324.0 relative to internal Whisky mark):
+    -- Centers Whisky mark at (CX, CY) across ALL aspect ratios (16:9, 21:9, 32:9, 9:16 portrait)
+    local altBaseX = canvasCenter.X - 1230.0
+    local altBaseY = canvasCenter.Y - 324.0
 
     local lcfg = he.ladder or {}
     local lx = tonumber(lcfg.x) or 0.0
@@ -1798,14 +1791,14 @@ local function recomputeLayoutPlan()
 
     -- FPM (Flight Path Marker / Velocity) Mathematical Origin Alignment:
     -- Precomputed layout matching calibrated visual center across FHD and Ultrawide resolutions.
-    -- Parent container offset (-1232.0, -322.0) with scale 0.75 perfectly counteracts the design baseline.
+    -- Parent container offset (CX - 3152, CY - 1402) centers FPM at screen center (CX, CY).
     -- Dynamic user offsets from ladder (lx, ly) and heading (hx, hy) are seamlessly integrated.
     cachedLayoutPlan = {
         ladder = { tx = altBaseX + lx, ty = altBaseY - ly, sc = lsc, op = lop },
         whisky = { tx = 0.0 + wx, ty = 0.0 - wy, sc = lsc * wsc, op = wop },
         velContainer = {
-            tx = -1232.0 + lx + hx,
-            ty = -322.0 - ly - hy,
+            tx = canvasCenter.X - 3152.0 + lx + hx,
+            ty = canvasCenter.Y - 1402.0 - ly - hy,
             sc = 0.75,
             op = hop
         },
@@ -2038,6 +2031,8 @@ uevr.sdk.callbacks.on_pre_viewport_client_draw(function(viewport_client, viewpor
                     cachedCanvasCenter = nil
                     cachedLayoutPlan = nil
                     flightPlanComputed = false
+                    cachedLadderBase = nil
+                    lastSizeCheckTick = -1000
                     if R.syncLocatorConfigToDLL then pcall(R.syncLocatorConfigToDLL) end
                 end
             end

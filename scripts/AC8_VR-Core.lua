@@ -600,30 +600,29 @@ function R.syncLocatorConfigToDLL()
 
  -- Dynamic resolution & margin-aware locator baseline (Unified cross-display formula)
  local dw, dh = getCachedDisplaySize()
- local canvasSize = R.cachedCanvasVirtualSize
-  or (R.getCanvasVirtualSize and select(1, R.getCanvasVirtualSize()))
-  or { X = dw, Y = dh }
- local safeH = canvasSize and math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0)) or dh
- local safeW = canvasSize and math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0)) or dw
- local marginX = canvasSize and math.max(0.0, (canvasSize.X - safeW) * 0.5) or 0.0
- local marginY = canvasSize and math.max(0.0, (canvasSize.Y - safeH) * 0.5) or 0.0
+ local canvasSize, canvasCenter
+ if R.getCanvasVirtualSize then
+  canvasSize, canvasCenter = R.getCanvasVirtualSize()
+ else
+  local aspect = (dw > 0 and dh > 0) and (dw / dh) or (16.0 / 9.0)
+  local virtW, virtH
+  if aspect >= (16.0 / 9.0) then virtH = 2160.0; virtW = 2160.0 * aspect
+  else virtW = 3840.0; virtH = 3840.0 / aspect end
+  canvasSize = { X = virtW, Y = virtH }
+  canvasCenter = { X = virtW * 0.5, Y = virtH * 0.5 }
+ end
 
- -- Base calibrated values (Unified formula):
- -- Target final screen center: (CX, CY) = (1920.0 + marginX, 1080.0 + marginY)
- -- Base ox = -1232.0 (cancels native X bias to land on screen center 1920.0)
- -- Base oy = -2026.0 (cancels native cockpit Y bias ~3106.0 to land on screen center 1080.0, identical to FPM)
- -- Base groupOffsetX = -1414.0 (-180px canvas bias + -1234px center offset)
- local baseLocX = -1232.0
- local baseLocY = -2026.0
+ -- Center-relative offsets (100% resolution & aspect-ratio independent):
+ -- Target final screen center: (CX, CY)
+ local ox = canvasCenter.X - 3152.0 + userLocX
+ local oy = canvasCenter.Y - 3106.0 - userLocY
  local baseGroupX = -1414.0
-
- local ox = baseLocX + marginX + userLocX
- local oy = baseLocY + marginY - userLocY
+ local groupX = baseGroupX + (canvasCenter.X - 1920.0) + userLocX
  local sc = 1.3 * locSc * lsc
 
  local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
- -- LowestPriorityDynamicDrawCanvas has native 180px right-bias; baseGroupX + marginX centers it.
- local groupCfg = { enabled = true, offsetX = baseGroupX + marginX + userLocX, scale = 0.96 }
+ -- LowestPriorityDynamicDrawCanvas has native 180px right-bias; groupX centers it.
+ local groupCfg = { enabled = true, offsetX = groupX, scale = 0.96 }
  R.targetArrowShiftCache = arrowCfg
  R.offscreenGroupCache = groupCfg
 
