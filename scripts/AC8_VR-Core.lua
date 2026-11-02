@@ -598,22 +598,19 @@ function R.syncLocatorConfigToDLL()
  local userNoseX = lx + noseX
  local userNoseY = ly + noseY
 
- -- Dynamic resolution & margin-aware locator baseline (Unified cross-display formula)
+ -- Dynamic resolution-aware locator baseline (Unified cross-display formula)
  local dw, dh = getCachedDisplaySize()
  local canvasSize, canvasCenter
  if R.getCanvasVirtualSize then
   canvasSize, canvasCenter = R.getCanvasVirtualSize()
  else
-  local aspect = (dw > 0 and dh > 0) and (dw / dh) or (16.0 / 9.0)
-  local virtW, virtH
-  if aspect >= (16.0 / 9.0) then virtH = 2160.0; virtW = 2160.0 * aspect
-  else virtW = 3840.0; virtH = 3840.0 / aspect end
-  canvasSize = { X = virtW, Y = virtH }
-  canvasCenter = { X = virtW * 0.5, Y = virtH * 0.5 }
+  canvasSize = { X = dw, Y = dh }
+  canvasCenter = { X = dw * 0.5, Y = dh * 0.5 }
  end
 
  -- Center-relative offsets (100% resolution & aspect-ratio independent):
  -- Target final screen center: (CX, CY)
+ -- Symmetrical displacement formula: Offset_X = CX - Base_X + User_X, Offset_Y = CY - Base_Y - User_Y
  local ox = canvasCenter.X - 3152.0 + userLocX
  local oy = canvasCenter.Y - 3106.0 - userLocY
  local baseGroupX = -1414.0

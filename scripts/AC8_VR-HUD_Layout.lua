@@ -19,16 +19,39 @@ end
 local cachedCanvasVirtualSize = nil
 local cachedCanvasCenter = nil
 local cachedLadderBase = nil
-local lastSizeCheckTick = -1000
 local sblCdo = nil
+local flightFrameCount = 0
+local flightPlanComputed = false
 
-local function getCanvasVirtualSize()
+-- Phase 0: Measure screen/viewport size at Lua startup
+local function measureDisplaySize()
+    local rawW, rawH = nil, nil
+    pcall(function()
+        local engine = uevr and uevr.api and uevr.api:get_engine()
+        local gvc = engine and engine:get_property('GameViewport')
+        local vs = gvc and gvc:get_property('ViewportSize')
+        if vs and vs.X > 50 and vs.Y > 50 then
+            rawW, rawH = vs.X, vs.Y
+        end
+    end)
+    if not rawW or not rawH then
+        local R = rawget(_G, 'AC8Runtime')
+        local dw, dh = (R and R.getCachedDisplaySize and R.getCachedDisplaySize()) or 3840.0, 2160.0
+        rawW, rawH = dw, dh
+    end
+    return rawW, rawH
+end
+
+-- Initialize display size at Lua startup
+local initW, initH = measureDisplaySize()
+cachedCanvasVirtualSize = { X = initW, Y = initH }
+cachedCanvasCenter = { X = initW * 0.5, Y = initH * 0.5 }
+
+local function getCanvasVirtualSize(forceRefresh)
     local R = rawget(_G, 'AC8Runtime')
-    local nowTick = (R and R.tick) or 0
-    if cachedCanvasVirtualSize and cachedCanvasCenter and (nowTick - lastSizeCheckTick) < 30 then
+    if cachedCanvasVirtualSize and cachedCanvasCenter and not forceRefresh then
         return cachedCanvasVirtualSize, cachedCanvasCenter
     end
-    lastSizeCheckTick = nowTick
 
     local rawW, rawH = nil, nil
     pcall(function()
@@ -49,33 +72,17 @@ local function getCanvasVirtualSize()
     end)
 
     if not rawW or not rawH then
-        local dw, dh = (R and R.getCachedDisplaySize and R.getCachedDisplaySize()) or 3840.0, 2160.0
-        rawW, rawH = dw, dh
+        rawW, rawH = measureDisplaySize()
     end
 
-    -- Normalize to ShortestSide 4K virtual space to prevent sub-4K scale collapse and jitter on small windows:
-    local aspect = (rawW > 0 and rawH > 0) and (rawW / rawH) or (16.0 / 9.0)
-    local virtW, virtH
-    if aspect >= (16.0 / 9.0) then
-        virtH = 2160.0
-        virtW = 2160.0 * aspect
-    else
-        virtW = 3840.0
-        virtH = 3840.0 / aspect
-    end
-
-    cachedCanvasVirtualSize = { X = virtW, Y = virtH }
-    cachedCanvasCenter = { X = virtW * 0.5, Y = virtH * 0.5 }
+    -- Direct measurement of Slate local canvas size without arbitrary 4K rescaling:
+    cachedCanvasVirtualSize = { X = rawW, Y = rawH }
+    cachedCanvasCenter = { X = rawW * 0.5, Y = rawH * 0.5 }
 
     if R then
-        local prevW = R.cachedCanvasVirtualSize and R.cachedCanvasVirtualSize.X or 0
-        local prevH = R.cachedCanvasVirtualSize and R.cachedCanvasVirtualSize.Y or 0
         R.cachedCanvasVirtualSize = cachedCanvasVirtualSize
         R.cachedCanvasCenter = cachedCanvasCenter
         R.getCanvasVirtualSize = getCanvasVirtualSize
-        if (prevW ~= virtW or prevH ~= virtH) and R.syncLocatorConfigToDLL then
-            pcall(R.syncLocatorConfigToDLL)
-        end
     end
 
     return cachedCanvasVirtualSize, cachedCanvasCenter
@@ -1745,7 +1752,6 @@ local function runFPMDiagnosis(ladderWidget, velContainer, velIcon, lp, appliedT
 end
 
 local cachedLayoutPlan = nil
-local flightPlanComputed = false
 
 local function recomputeLayoutPlan()
     local ctx = R.context
@@ -1753,14 +1759,15 @@ local function recomputeLayoutPlan()
     local he = R.customHUDConfig and R.customHUDConfig.hudElements
     if not he then return nil end
 
-    local canvasSize, canvasCenter = getCanvasVirtualSize()
-    local safeW = math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0))
-    local safeH = math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0))
-    local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
-    local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
+    -- Force refresh canvas virtual size from live Slate geometry at settling frame
+    local canvasSize, canvasCenter = getCanvasVirtualSize(true)
 
-    -- Dynamic Altimeter center alignment (1230.0, 324.0 relative to internal Whisky mark):
-    -- Centers Whisky mark at (CX, CY) across ALL aspect ratios (16:9, 21:9, 32:9, 9:16 portrait)
+    -- Unified Horizontal & Vertical Centering Model:
+    -- Screen center is (CX, CY) = (Wc / 2, Hc / 2) with origin (0, 0) at top-left.
+    -- Offset_X = CX - Base_X + User_X
+    -- Offset_Y = CY - Base_Y - User_Y
+    --
+    -- 1. Pitch Ladder (Altimeter / Whisky mark native pivot at 1230.0, 324.0):
     local altBaseX = canvasCenter.X - 1230.0
     local altBaseY = canvasCenter.Y - 324.0
 
@@ -1789,10 +1796,8 @@ local function recomputeLayoutPlan()
     local wingcfg = he.wingman or {}
     local dcfg = he.drawcanvas or {}
 
-    -- FPM (Flight Path Marker / Velocity) Mathematical Origin Alignment:
-    -- Precomputed layout matching calibrated visual center across FHD and Ultrawide resolutions.
-    -- Parent container offset (CX - 3152, CY - 1402) centers FPM at screen center (CX, CY).
-    -- Dynamic user offsets from ladder (lx, ly) and heading (hx, hy) are seamlessly integrated.
+    -- 2. FPM (Flight Path Marker / Velocity container native slot at 3152.0, 1402.0):
+    -- Symmetrical displacement: (CX - 3152.0, CY - 1402.0)
     cachedLayoutPlan = {
         ladder = { tx = altBaseX + lx, ty = altBaseY - ly, sc = lsc, op = lop },
         whisky = { tx = 0.0 + wx, ty = 0.0 - wy, sc = lsc * wsc, op = wop },
@@ -1815,12 +1820,24 @@ local function recomputeLayoutPlan()
         wingman = { ox = tonumber(wingcfg.x) or 0.0, oy = tonumber(wingcfg.y) or 0.0, sc = tonumber(wingcfg.scale) or 1.0, op = tonumber(wingcfg.opacity) or 0.95 },
         drawcanvas = { sc = tonumber(dcfg.scale) or 1.0, op = tonumber(dcfg.opacity) or 0.95 },
     }
+
+    -- Sync locator and target arrow coordinates to C++ DLL once
+    if R.syncLocatorConfigToDLL then
+        pcall(R.syncLocatorConfigToDLL)
+    end
+
+    print(string.format('[AC8-VR] Layout plan settled at flight frame %d: canvas (%.1f x %.1f), center (%.1f, %.1f), ladder=(%.1f, %.1f), fpm=(%.1f, %.1f)',
+        flightFrameCount, canvasSize.X, canvasSize.Y, canvasCenter.X, canvasCenter.Y,
+        cachedLayoutPlan.ladder.tx, cachedLayoutPlan.ladder.ty,
+        cachedLayoutPlan.velContainer.tx, cachedLayoutPlan.velContainer.ty))
+
     return cachedLayoutPlan
 end
 
 function R.invalidateHUDLayoutPlan()
     cachedLayoutPlan = nil
     flightPlanComputed = false
+    flightFrameCount = 0
     baseTransformApplied = {}
     velIconPinned = false
     cachedRetainerBox = nil
@@ -1835,10 +1852,30 @@ function R.applyHUDLayoutIntegrated()
     local ctx = R.context
     if not ctx or not ctx.flight then
         flightPlanComputed = false
+        flightFrameCount = 0
         return
     end
     R.gameplayCameraReadyEpoch = ctx.epoch
     R.gameplayCameraReady = true
+
+    -- Advance flight settling frame counter
+    flightFrameCount = flightFrameCount + 1
+
+    -- Phase 1: At flight frame 5, compute displacement deltas once
+    if flightFrameCount == 5 and not flightPlanComputed then
+        cachedLayoutPlan = recomputeLayoutPlan()
+        if cachedLayoutPlan then
+            flightPlanComputed = true
+        end
+    elseif flightFrameCount < 5 and not flightPlanComputed then
+        if not cachedLayoutPlan then
+            cachedLayoutPlan = recomputeLayoutPlan()
+        end
+    end
+
+    if not cachedLayoutPlan then return end
+    local lp = cachedLayoutPlan
+
     local refs = R.hudLayoutRefs or {}
     local root = refs.root or (ctx and ctx.root)
     local he = R.customHUDConfig and R.customHUDConfig.hudElements
@@ -1847,16 +1884,7 @@ function R.applyHUDLayoutIntegrated()
     -- 1. Direct path resolution for flight widgets
     local ladderWidget, whiskyWidget, velContainer, velIcon = resolveFlightWidgets(root, refs)
 
-    if not flightPlanComputed or not cachedLayoutPlan then
-        cachedLayoutPlan = recomputeLayoutPlan()
-        if cachedLayoutPlan and cachedCanvasVirtualSize then
-            flightPlanComputed = true
-        else
-            if not cachedLayoutPlan then return end
-        end
-    end
-    local lp = cachedLayoutPlan
-
+    -- Phase 2: Per-frame fast coordinate overwriting only (Zero geometry sweeping / recalculation)
     -- 1. PitchLadder (Altimeter) - Direct Memory Assignment
     if ladderWidget then
         applyElementDirect(ladderWidget, lp.ladder.tx, lp.ladder.ty, lp.ladder.sc, lp.ladder.op, true)
@@ -2019,26 +2047,6 @@ host.sdk.callbacks.on_post_engine_tick(function()
 end)
 
 uevr.sdk.callbacks.on_pre_viewport_client_draw(function(viewport_client, viewport)
-    if viewport_client and (not R.isLiveObject or R.isLiveObject(viewport_client)) then
-        pcall(function()
-            local vs = viewport_client:get_property('ViewportSize')
-            if vs and vs.X > 0 and vs.Y > 0 then
-                local prevW = R.cachedViewportSize and R.cachedViewportSize.X or 0
-                local prevH = R.cachedViewportSize and R.cachedViewportSize.Y or 0
-                if prevW ~= vs.X or prevH ~= vs.Y then
-                    R.cachedViewportSize = { X = vs.X, Y = vs.Y }
-                    cachedCanvasVirtualSize = nil
-                    cachedCanvasCenter = nil
-                    cachedLayoutPlan = nil
-                    flightPlanComputed = false
-                    cachedLadderBase = nil
-                    lastSizeCheckTick = -1000
-                    if R.syncLocatorConfigToDLL then pcall(R.syncLocatorConfigToDLL) end
-                end
-            end
-        end)
-    end
-
     local ctx = R.context
     if ctx and ctx.epoch and ctx.epoch ~= lastLayoutEpoch then
         lastLayoutEpoch = ctx.epoch
@@ -2051,24 +2059,27 @@ uevr.sdk.callbacks.on_pre_viewport_client_draw(function(viewport_client, viewpor
         cachedLadderBase = nil
         cachedLayoutPlan = nil
         flightPlanComputed = false
-        lastSizeCheckTick = -1000
+        flightFrameCount = 0
         velIconPinned = false
         cachedRetainerBox = nil
     end
 
-    -- Recalculate layout plan cleanly once when flight begins (e.g. after hangar/intro)
+    -- Reset layout settling cycle once when flight begins (e.g. after hangar/intro/mission load)
     if ctx and ctx.flight and not wasInFlight then
         wasInFlight = true
         cachedCanvasVirtualSize = nil
         cachedCanvasCenter = nil
         cachedLayoutPlan = nil
         flightPlanComputed = false
+        flightFrameCount = 0
         baseTransformApplied = {}
         velIconPinned = false
         cachedRetainerBox = nil
         fpmDiagnosisDumped = false
     elseif ctx and not ctx.flight then
         wasInFlight = false
+        flightPlanComputed = false
+        flightFrameCount = 0
     end
 
     -- Apply HUD layout immediately prior to Slate viewport drawing
@@ -2090,7 +2101,9 @@ host.sdk.callbacks.on_script_reset(function()
     cachedLadderBase = nil
     cachedLayoutPlan = nil
     flightPlanComputed = false
+    flightFrameCount = 0
     lastLayoutEpoch = -1
+    wasInFlight = false
     instantCycleActive = false
     instantCycleFrame = 0
     fpmDiagnosisDumped = false
