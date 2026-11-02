@@ -58,7 +58,7 @@ struct Scope {
  Scope(Object value){
   Controls c{};uintptr_t table=0;uint32_t flags=0;
   if(!ready||!value||value==scopedActor||!snapshot(c)||!c.enabled||!c.level||
-   !read(value,table)||table!=gameBase+0xca8eb78||
+   !read(value,table)||table!=gameBase+0xca794e8||
    !read(reinterpret_cast<unsigned char*>(value)+8,flags)||(flags&0x30)||
    reinterpret_cast<uintptr_t>(host->sdk->uobject->get_outer(value))!=c.level)return;
   for(size_t i=0;i<fields.size();++i)if(!read(reinterpret_cast<unsigned char*>(value)+fields[i].offset,original[i]))return;

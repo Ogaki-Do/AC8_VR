@@ -73,7 +73,7 @@ template<unsigned slot> inline void wrapper(Object object,const void* geometry,f
 #endif
         depth=CaptureStackBackTrace(0,static_cast<DWORD>(frames.size()),frames.data(),nullptr);
         const auto base=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));bool viewport=false,native=false;
-        for(unsigned i=0;i<depth;++i){const auto a=reinterpret_cast<uintptr_t>(frames[i]);viewport|=a==base+0x4ac778d;native|=a==base+0x73011d6;}
+        for(unsigned i=0;i<depth;++i){const auto a=reinterpret_cast<uintptr_t>(frames[i]);viewport|=a==base+0x4ab979d;native|=a==base+0x72ed9d6;}
         route=viewport?(native?3u:1u):native?2u:0u;
     }
     bool nativeRecent=false;

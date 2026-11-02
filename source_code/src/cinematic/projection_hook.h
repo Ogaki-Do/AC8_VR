@@ -33,7 +33,7 @@ inline void verify(){
 inline bool attach_guarded(void* device){
     __try {
         auto** table=*reinterpret_cast<void***>(device);auto** slot=table+12;
-        auto* expected=reinterpret_cast<unsigned char*>(GetModuleHandleW(nullptr))+0x04bbf060;
+        auto* expected=reinterpret_cast<unsigned char*>(GetModuleHandleW(nullptr))+0x04baee50;
         if(*slot!=expected)return false;
         DWORD protection=0;if(!VirtualProtect(slot,sizeof(void*),PAGE_READWRITE,&protection))return false;
         original=reinterpret_cast<Function>(expected);

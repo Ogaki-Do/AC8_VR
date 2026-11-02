@@ -8,7 +8,7 @@
 // its origin to the painted velocity icon and share that draw's horizontal
 // attachment with its landing geometry. Vertical landing calibration is retained.
 namespace bomb_line_anchor {
-constexpr uintptr_t originCaller=0x72456c5;
+constexpr uintptr_t originCaller=0x7231d35;
 struct Anchor {bool enabled=false;uintptr_t widget=0,canvas=0;double x=0,y=0;uint64_t updated=0;};
 inline std::mutex mutex;
 inline Anchor anchor{};
@@ -30,7 +30,7 @@ inline bool apply(uintptr_t caller,double& x,double& y,uint64_t now){
 }
 inline bool landingCaller(uintptr_t caller){
  // Exact callers observed in both manual and automatic native bomb captures.
- return caller==0x72457ba||caller==0x723d7e9||caller==0x723d911||caller==0x724759d;
+ return caller==0x7231e2a||caller==0x7229e59||caller==0x7229f81||caller==0x7233c0d;
 }
 inline bool applyHorizontal(uintptr_t caller,double& x){
  const auto delta=bomb_projection::originAttachment;
