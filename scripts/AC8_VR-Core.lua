@@ -400,8 +400,6 @@ local journals={
  ['ac8_target_arrow_shift_controls.json']=true,
  ['ac8_offscreen_group_controls.json']=true,
  ['ac8_debug_telemetry.json']=true,
- ['ac8_layout_investigation.json']=true,
- ['AC8_VR-LayoutInvestigation.json']=true,
  ['AC8_VR-CockpitScaleRestore.json']=true,
  ['AC8_VR-CinematicUIRestore.json']=true,
  ['AC8_VR-HangarRestoreV48.json']=true,
@@ -600,30 +598,32 @@ function R.syncLocatorConfigToDLL()
  local userNoseX = lx + noseX
  local userNoseY = ly + noseY
 
- -- Dynamic resolution-aware locator baseline (Unified cross-display formula)
+ -- Dynamic resolution & margin-aware locator baseline (Unified cross-display formula)
  local dw, dh = getCachedDisplaySize()
- local canvasSize, canvasCenter
- if R.getCanvasVirtualSize then
-  canvasSize, canvasCenter = R.getCanvasVirtualSize()
- else
-  canvasSize = { X = dw, Y = dh }
-  canvasCenter = { X = dw * 0.5, Y = dh * 0.5 }
- end
+ local canvasSize = R.cachedCanvasVirtualSize
+  or (R.getCanvasVirtualSize and select(1, R.getCanvasVirtualSize()))
+  or { X = dw, Y = dh }
+ local safeH = canvasSize and math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0)) or dh
+ local safeW = canvasSize and math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0)) or dw
+ local marginX = canvasSize and math.max(0.0, (canvasSize.X - safeW) * 0.5) or 0.0
+ local marginY = canvasSize and math.max(0.0, (canvasSize.Y - safeH) * 0.5) or 0.0
 
- local safeW = math.min(canvasSize.X, canvasSize.Y * (16.0 / 9.0))
- local safeH = math.min(canvasSize.Y, canvasSize.X * (9.0 / 16.0))
- local marginX = math.max(0.0, (canvasSize.X - safeW) * 0.5)
- local marginY = math.max(0.0, (canvasSize.Y - safeH) * 0.5)
-
- local ox = -1232.0 + marginX + userLocX
- local oy = -546.0 + marginY - userLocY
+ -- Base calibrated values (Unified formula):
+ -- Base ox = -1232.0 (pixel-for-pixel matches FPM horizontal centering on 16:9)
+ -- On Ultrawide, marginX dynamically shifts the arrow to the ultrawide center (eliminating left-shift)
+ -- Base oy = -2480.0 (lifts arrow from cockpit dashboard to HUD center glass)
+ -- Base groupOffsetX = -1414.0 (-180px canvas bias + -1234px center offset)
+ local baseLocX = -1232.0
+ local baseLocY = -2480.0
  local baseGroupX = -1414.0
- local groupX = baseGroupX + marginX + userLocX
+
+ local ox = baseLocX + marginX + userLocX
+ local oy = baseLocY + marginY - userLocY
  local sc = 1.3 * locSc * lsc
 
  local arrowCfg = { enabled = true, offsetX = ox, offsetY = oy, scale = sc }
- -- LowestPriorityDynamicDrawCanvas has native 180px right-bias; groupX centers it.
- local groupCfg = { enabled = true, offsetX = groupX, scale = 0.96 }
+ -- LowestPriorityDynamicDrawCanvas has native 180px right-bias; baseGroupX + marginX centers it.
+ local groupCfg = { enabled = true, offsetX = baseGroupX + marginX + userLocX, scale = 0.96 }
  R.targetArrowShiftCache = arrowCfg
  R.offscreenGroupCache = groupCfg
 
@@ -1258,20 +1258,6 @@ pcall(function()
     if R.DebugTelemetry and R.DebugTelemetry.dumpNow then
      R.DebugTelemetry.dumpNow('ui_button')
      hudActionMsg = '[OK] Telemetry dumped to ac8_debug_telemetry.json & jsonl!'
-     print('[AC8-VR] ' .. hudActionMsg)
-    end
-   end
-
-   -- Layout Investigation Dump Button & Realtime Diagnostics
-   local d = R.latestDebugInfo
-   if d and ui.text then
-    ui.text(string.format('[Live Meas] Viewport: %.0fx%.0f | RootSlate: %.0fx%.0f', d.vpW or 0, d.vpH or 0, d.rootW or 0, d.rootH or 0))
-    ui.text(string.format('[Live Calc] Center: (%.1f, %.1f) | LadderRT: (%.1f, %.1f)', d.cx or 0, d.cy or 0, d.ladderTx or 0, d.ladderTy or 0))
-   end
-   if ui.button and ui.button('>> Dump Layout Investigation Now <<##btn_dump_investigation') then
-    if rawget(_G, 'AC8_DumpLayoutInvestigation') then
-     rawget(_G, 'AC8_DumpLayoutInvestigation')()
-     hudActionMsg = '[OK] Layout investigation dumped to data/ac8_layout_investigation.json!'
      print('[AC8-VR] ' .. hudActionMsg)
     end
    end
