@@ -63,9 +63,16 @@
      - **モーションブラー**: `オフ`（3D酔い防止のため最重要）
      - **ブルーム**: `低` または `中`（視界確保・HUD視認性向上）
    - 設定後、一度ゲームを終了します。
-3. **Easy Anti-Cheat (EAC) の無効化**:
-   - 本作は標準でEACが起動するため、そのままではUEVRをインジェクトできません。
-   - コミュニティで推奨されているオフライン用ランチャー（No-EAC Launcher）やバイパス設定を適用し、EACを介さずゲーム本体が直接起動できる状態に設定します。
+3. **Easy Anti-Cheat (EAC) の無効化手順（steam_appid.txt 方式）**:
+   本作は通常起動時に EAC が起動するため、外部ツール（UEVR）のプロセスインジェクションがブロックされます。以下の手順で EAC をバイパスし、ゲーム本体を直接起動できるように設定します：
+   - **Step 1**: Steam ライブラリで『ACE COMBAT 8』を右クリック ＞「管理」＞「ローカルファイルを閲覧」を開きます。
+   - **Step 2**: ゲームフォルダ内の `Game\Binaries\Win64` ディレクトリを開きます。
+     - *※ `AceCombat8.exe`（または `Ace7Game.exe`）が存在する階層です。*
+   - **Step 3**: このフォルダ内に新規テキストファイルを作成し、ファイル名を `steam_appid.txt` に変更します。
+   - **Step 4**: `steam_appid.txt` をメモ帳で開き、半角数字で `2288340` と入力して保存します。
+     - *※ ACE COMBAT 7 の場合は `502500` と入力します。*
+   - **Step 5**: 同フォルダ内の `AceCombat8.exe` を直接ダブルクリックして起動し、EAC 画面を挟まずにオフラインゲームが直接立ち上がることを確認します。
+   - **Step 6（推奨）**: `AceCombat8.exe` を右クリックして「ショートカットの作成」を行い、先ほど作成した作業用フォルダ（例: `C:\AC8-UEVR`）やデスクトップに配置しておきます。以降の VR プレイ時は必ずこのショートカットからゲームを起動します。
 
 ### 3.2 MODファイルの配置
 1. 配布 ZIP アーカイブ（例: `AC8-VR-v0.1.0.zip`）をダウンロード・解凍します。
@@ -174,8 +181,14 @@ This document is the comprehensive manual for **`ogaki-ac8vr`**, an advanced UEV
      - **Motion Blur**: `Off` (critical for motion sickness prevention)
      - **Bloom**: `Low` or `Medium` (optimizes cockpit and HUD clarity)
    - Exit the game.
-3. **Disable Easy Anti-Cheat (EAC)**:
-   - Apply a community-verified No-EAC launcher or offline bypass so the game executable launches directly without initializing EAC.
+3. **Disable Easy Anti-Cheat (EAC) via steam_appid.txt**:
+   Standard launches trigger EAC, which blocks UEVR's process DLL injection. Follow these exact steps to bypass EAC and launch the game directly:
+   - **Step 1**: Right-click *ACE COMBAT 8* in your Steam Library > **Manage** > **Browse local files**.
+   - **Step 2**: Open the `Game\Binaries\Win64` directory (where `AceCombat8.exe` / `Ace7Game.exe` is located).
+   - **Step 3**: Create a new text file named `steam_appid.txt` inside this folder.
+   - **Step 4**: Open `steam_appid.txt` with Notepad, type `2288340` (or `502500` for AC7), and save.
+   - **Step 5**: Double-click `AceCombat8.exe` directly to verify that the offline game launches without the EAC splash screen.
+   - **Step 6 (Recommended)**: Right-click `AceCombat8.exe` and select **Create shortcut**, then place it in your working directory (e.g. `C:\AC8-UEVR`) or desktop. Always launch the game via this shortcut for VR sessions.
 
 ### 3.2 Mod File Deployment
 1. Download and extract the release ZIP archive (e.g., `AC8-VR-v0.1.0.zip`).
